@@ -30,7 +30,7 @@ public class StarWindow extends JWindow {
     public static final int MEDIUM_SIZE_PIXELS = 30;
     public static final int SMALL_SIZE_PIXELS = 20;
 
-    // Button distance from center of sun to center of button
+    // Button distance from center of star to center of button
     public static final int LARGE_RADIUS_PIXELS = 55;
     public static final int MEDIUM_RADIUS_PIXELS = 55;
     public static final int SMALL_RADIUS_PIXELS = 45;
@@ -89,14 +89,14 @@ public class StarWindow extends JWindow {
 
 
     public class MainPane extends JPanel {
-        private BufferedImage sunOnlyImg;
-        private BufferedImage sunRaysImg;
+        private BufferedImage starOnlyImg;
+        private BufferedImage starRaysImg;
         // Array of images for the buttons.
 
         public MainPane() {
             try {
-                sunOnlyImg = ImageIO.read(getClass().getResource("img/sun-only.png"));
-                sunRaysImg = ImageIO.read(getClass().getResource("img/sun-rays.png"));
+                starOnlyImg = ImageIO.read(getClass().getResource("img/sun-only.png"));
+                starRaysImg = ImageIO.read(getClass().getResource("img/sun-rays.png"));
 
                 Image originalImg = ImageIO.read(getClass().getResource("img/capture.png"));
                 buttonImg[BTN_CAPTURE][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_DEFAULT);
@@ -126,7 +126,7 @@ public class StarWindow extends JWindow {
 
         @Override
         public Dimension getPreferredSize() {
-            return new Dimension(sunOnlyImg.getWidth(), sunOnlyImg.getHeight());
+            return new Dimension(starOnlyImg.getWidth(), starOnlyImg.getHeight());
         }
 
         @Override
@@ -135,7 +135,7 @@ public class StarWindow extends JWindow {
             Graphics2D g2d = (Graphics2D) g.create();
             if (isWindowFocused) {
                 // Image with rays
-                g2d.drawImage(sunRaysImg, 0, 0, this);
+                g2d.drawImage(starRaysImg, 0, 0, this);
                 if (!isDragging) {
                     // Draw 3 action icons, with size and position depending on highlight state
                     for (int button = 0; button < 3; button++) {
@@ -155,7 +155,7 @@ public class StarWindow extends JWindow {
             }
             else {
                 // Image without rays
-                g2d.drawImage(sunOnlyImg, 0, 0, this);
+                g2d.drawImage(starOnlyImg, 0, 0, this);
             }
             g2d.dispose();
         }

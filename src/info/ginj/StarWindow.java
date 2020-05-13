@@ -10,9 +10,11 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * This "Star" Window is the original widget displayed at the border of the screen to initiate a capture
+ *
  * UI transparency based on sample code by MadProgrammer at https://stackoverflow.com/questions/26205164/java-custom-shaped-frame-using-image
  */
-public class MainWindow {
+public class StarWindow extends JWindow {
 
     public static final int WINDOW_WIDTH_PIXELS = 150;
     public static final int WINDOW_HEIGHT_PIXELS = 150;
@@ -57,7 +59,7 @@ public class MainWindow {
 
 
     // Caching
-    private final Dimension screenSize;
+    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     private final Image[][] buttonImg = new Image[3][3]; // 3 buttons x 3 sizes
     Point[][] deltasByPosAndSize = new Point[3][3]; // 3 buttons x 3 sizes
     private Color defaultPaneBackground;
@@ -67,21 +69,22 @@ public class MainWindow {
     private boolean isDragging = false;
     private int highlightedButtonId = BTN_NONE;
 
-    JWindow window;
+    public StarWindow() {
+        super();
 
-    public MainWindow() {
-        screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        window = new JWindow();
-        window.setBackground(new Color(0, 0, 0, 0));
-        MainPane contentPane = new MainPane();
-        window.setContentPane(contentPane);
-        window.pack();
-        window.setLocationRelativeTo(null);
-        window.setVisible(true);
-        window.setOpacity(OPACITY_HALF);
-        positionWindowOnStartup();
+        // Background is transparent. Only the "star icon" is visible, and even then, it has half opacity
+        setBackground(new Color(0, 0, 0, 0));
+        setOpacity(OPACITY_HALF);
+
+        // Prepare the main pane to paint and receive event
+        JComponent contentPane = new MainPane();
+        setContentPane(contentPane);
         addMouseBehaviour(contentPane);
-        window.setAlwaysOnTop(true);
+
+        // Prepare to show Window
+        pack();
+        positionWindowOnStartup();
+        setAlwaysOnTop(true);
     }
 
 
@@ -159,7 +162,8 @@ public class MainWindow {
     }
 
 
-    private void addMouseBehaviour(MainPane contentPane) {
+    private void addMouseBehaviour(JComponent contentPane) {
+        JWindow window = this;
         MouseAdapter mouseAdapter = new MouseAdapter() {
             private int pX;
             private int pY;
@@ -237,18 +241,17 @@ public class MainWindow {
                 }
                 return buttonId;
             }
-
         };
 
         window.addMouseListener(mouseAdapter);
         window.addMouseMotionListener(mouseAdapter);
     }
 
-    private void changeFocus(MainPane contentPane, boolean focused) {
+    private void changeFocus(JComponent contentPane, boolean focused) {
         isWindowFocused = focused;
         if (focused) {
             // Show the handle as opaque
-            window.setOpacity(OPACITY_FULL);
+            setOpacity(OPACITY_FULL);
             // And make the background of the window "visible", but filled with an almost transparent color
             // This has the effect of capturing mouse events on the full rectangular Window once it is focused,
             // which is necessary so that mouse doesn't "fall in the transparent holes" causing MouseExited events that
@@ -258,29 +261,29 @@ public class MainWindow {
         }
         else {
             // Show the handle as semi-transparent
-            window.setOpacity(OPACITY_HALF);
+            setOpacity(OPACITY_HALF);
             // And make the background of the window invisible, so that all mouse events and clicks "pass through"
             contentPane.setOpaque(false);
             contentPane.setBackground(defaultPaneBackground); // Strangely enough, setting it to a transparent color break things up
         }
     }
 
-
     private void positionWindowOnStartup() {
+        // Load prefs and retrieve previous X/Y
         int retrievedX = (int) (screenSize.getWidth() / 2);
         int retrievedY = 0;
 
-        int x = retrievedX - window.getWidth() / 2;
-        int y = retrievedY - window.getHeight() / 2;
-        window.setLocation(x, y);
+        int x = retrievedX - getWidth() / 2;
+        int y = retrievedY - getHeight() / 2;
+        setLocation(x, y);
 
         computeButtonPositions(retrievedX, retrievedY);
     }
 
     private Point getClosestPointOnScreenBorder() {
         // Compute window center
-        int centerX = window.getLocation().x + window.getWidth() / 2;
-        int centerY = window.getLocation().y + window.getHeight() / 2;
+        int centerX = getLocation().x + getWidth() / 2;
+        int centerY = getLocation().y + getHeight() / 2;
 
         // Closest to left or right ?
         int distanceX;
@@ -319,7 +322,7 @@ public class MainWindow {
         }
         computeButtonPositions(targetX, targetY);
 
-        return new Point(targetX - window.getWidth() / 2, targetY - window.getHeight() / 2);
+        return new Point(targetX - getWidth() / 2, targetY - getHeight() / 2);
     }
 
     // This fills up the deltasByPosAndSize array each time the window is move so that paintComponent() does not have to compute relative positions them over and over avain
@@ -379,7 +382,14 @@ public class MainWindow {
     // EVENT HANDLERS
 
     private void onCapture() {
-        CaptureSelectionWindow captureSelectionWindow = new CaptureSelectionWindow();
+        // Hide star icon during the capture
+        setVisible(false);
+        // Creating the capture selection window will cause the screenshot to happen
+        CaptureSelectionFrame frame = new CaptureSelectionFrame();
+        // Show star icon again
+        setVisible(true);
+        // And show capture selection window
+        frame.setVisible(true);
     }
 
 

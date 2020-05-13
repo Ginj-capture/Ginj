@@ -1,7 +1,5 @@
 package info.ginj;
 
-import javax.swing.*;
-
 import java.awt.*;
 
 import static java.awt.GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSLUCENT;
@@ -19,11 +17,8 @@ public class Ginj {
             System.exit(-1);
         }
 
-        JFrame.setDefaultLookAndFeelDecorated(true);
-
         javax.swing.SwingUtilities.invokeLater(() -> {
-            //OldMainUI ui = new OldMainUI();
-            MainWindow ui = new MainWindow();
+            new StarWindow().setVisible(true);
         });
 
     }

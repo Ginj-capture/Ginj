@@ -95,8 +95,8 @@ public class StarWindow extends JWindow {
 
         public MainPane() {
             try {
-                starOnlyImg = ImageIO.read(getClass().getResource("img/sun-only.png"));
-                starRaysImg = ImageIO.read(getClass().getResource("img/sun-rays.png"));
+                starOnlyImg = ImageIO.read(getClass().getResource("img/star-only.png"));
+                starRaysImg = ImageIO.read(getClass().getResource("img/star-rays.png"));
 
                 Image originalImg = ImageIO.read(getClass().getResource("img/capture.png"));
                 buttonImg[BTN_CAPTURE][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_DEFAULT);

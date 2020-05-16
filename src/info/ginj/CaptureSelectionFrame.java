@@ -1,5 +1,6 @@
 package info.ginj;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -11,6 +12,7 @@ import java.awt.font.LineMetrics;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +48,9 @@ public class CaptureSelectionFrame extends JFrame {
     private Rectangle selection; // filled when selection is done
     private int currentOperation;
 
+    private final JPanel actionPanel;
+    private final JLabel sizeLabel;
+
     public enum HoverArea {
         INSIDE, OUTSIDE, NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST;
     }
@@ -60,7 +65,39 @@ public class CaptureSelectionFrame extends JFrame {
         setContentPane(contentPane);
         addMouseBehaviour();
 
+        setLayout(null); // Allow absolute positioning of button bar
+
+        // Prepare button bar
+        actionPanel = new JPanel();
+        JPanel buttonBar = new JPanel();
+        buttonBar.setLayout(new FlowLayout(FlowLayout.LEADING));
+        try {
+            final JButton imageButton = new JButton(new ImageIcon(ImageIO.read(getClass().getResource("img/b_image.png"))));
+            imageButton.addActionListener(e -> onCaptureImage());
+            buttonBar.add(imageButton);
+            final JButton videoButton = new JButton(new ImageIcon(ImageIO.read(getClass().getResource("img/b_video.png"))));
+            videoButton.addActionListener(e -> onCaptureVideo());
+            buttonBar.add(videoButton);
+            final JButton redoButton = new JButton(new ImageIcon(ImageIO.read(getClass().getResource("img/b_redo.png"))));
+            redoButton.addActionListener(e -> onRedo());
+            buttonBar.add(redoButton);
+            final JButton cancelButton = new JButton(new ImageIcon(ImageIO.read(getClass().getResource("img/b_cancel.png"))));
+            cancelButton.addActionListener(e -> onCancel());
+            buttonBar.add(cancelButton);
+        }
+        catch (IOException e) {
+            System.out.println("Error loading capture button images");
+            e.printStackTrace();
+            System.exit(Ginj.ERR_STATUS_LOAD_IMG);
+        }
+        sizeLabel = new JLabel("Size");
+        buttonBar.add(sizeLabel);
+        actionPanel.add(buttonBar);
+        contentPane.add(actionPanel);
+
         addKeyboardShortcuts();
+
+        resetSelection();
 
         pack();
         setLocationRelativeTo(null);
@@ -106,8 +143,6 @@ public class CaptureSelectionFrame extends JFrame {
             catch (AWTException e) {
                 e.printStackTrace();
             }
-
-            resetSelection();
         }
 
         @Override
@@ -142,7 +177,7 @@ public class CaptureSelectionFrame extends JFrame {
 
                 // Draw the selection rectangle
                 g2d.setColor(COLOR_ORANGE);
-                g2d.setStroke(new BasicStroke(3));
+                g2d.setStroke(new BasicStroke(2));
                 g2d.drawRect(rectangleToDraw.x, rectangleToDraw.y, rectangleToDraw.width, rectangleToDraw.height);
             }
 
@@ -232,8 +267,14 @@ public class CaptureSelectionFrame extends JFrame {
                 // If there was a previous selection
                 Point mousePosition = e.getPoint();
                 if (selection != null) {
-                    // we clicked inside
+                    // There's already a selection.
+                    // Hide the button bar during drag
+                    setActionPanelVisible(false);
+
+                    // See where the mouse press happened
                     currentOperation = getHoverOperation(mousePosition, selection);
+
+                    //noinspection EnhancedSwitchMigration
                     switch (currentOperation) {
                         case Cursor.DEFAULT_CURSOR:
                             // We clicked outside, restart selection (ENHANCEMENT)
@@ -270,15 +311,15 @@ public class CaptureSelectionFrame extends JFrame {
                 window.repaint();
             }
 
-            // Move window to border closest to center
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (selection == null) {
                     // End of dragged rectangle selection: store end position
                     selection = getSelectionRectangle(rememberedStartPoint, e.getPoint());
                     window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-                    window.repaint();
                 }
+                setActionPanelVisible(true);
+                window.repaint();
             }
 
             @Override
@@ -337,6 +378,7 @@ public class CaptureSelectionFrame extends JFrame {
                 // Single click means full window
                 // TODO should become hovered window when detection is implemented
                 selection = new Rectangle(screenSize);
+                setActionPanelVisible(true);
             }
 
             ////////////////////////////////
@@ -423,17 +465,64 @@ public class CaptureSelectionFrame extends JFrame {
                     }
                 }
             }
-
         };
 
         addMouseListener(mouseAdapter);
         addMouseMotionListener(mouseAdapter);
     }
 
+    private void setActionPanelVisible(boolean visible) {
+        if (visible) {
+            positionActionPanel();
+            revalidate();
+        }
+        actionPanel.setVisible(visible);
+        revalidate();
+    }
+
+    private void positionActionPanel() {
+        // Should be computed when making bar visible
+        final int barWidth = 300;
+        final int barHeight = 100;
+
+        // Find the best position according to selection and bar size
+        // Note: not the exact same strategy as the original, but close...
+        Rectangle bestBounds = null;
+        Point[] candidatePositions = new Point[] {
+                new Point(selection.x, selection.y + selection.height), // Below bottom left
+                new Point(selection.x, selection.y - barHeight), // Above top left
+                new Point(selection.x - barWidth, selection.y), // Next to top left
+                new Point(selection.x + selection.width, selection.y + selection.height - barHeight), // Next to bottom right
+                new Point(0, selection.y + selection.height), // Below, on left screen edge
+                new Point(0, selection.y - barHeight), // Above, on left screen edge
+                new Point(selection.x, selection.y + selection.height - barHeight), // Over, at bottom left of selection
+                new Point(selection.x, selection.y), // Over, at top left of selection
+                new Point(0, screenSize.height - barHeight) // Over, at bottom left of screen
+        };
+        Rectangle screenRectangle = new Rectangle(screenSize);
+        System.out.println("--------");
+        for (Point candidatePosition : candidatePositions) {
+            final Rectangle candidateBounds = new Rectangle(candidatePosition.x, candidatePosition.y, barWidth, barHeight);
+            if (screenRectangle.contains(candidateBounds)) {
+                bestBounds = candidateBounds;
+                System.out.println(candidatePosition + " => YES !");
+                break;
+            }
+            else System.out.println(candidatePosition + " => no");
+        }
+        if (bestBounds == null) {
+            Point p = candidatePositions[candidatePositions.length - 1];
+            bestBounds = new Rectangle(p.x, p.y, barWidth, barHeight);
+        }
+        actionPanel.setBounds(bestBounds);
+    }
+
     private void resetSelection() {
+        setActionPanelVisible(false);
         rememberedStartPoint = null;
         selection = null;
         setCursor(CURSOR_NONE);
+        repaint();
     }
 
     private void positionWindowOnStartup() {
@@ -446,6 +535,7 @@ public class CaptureSelectionFrame extends JFrame {
 
 
     private void onCaptureImage() {
+        // Crop now to screen dimensions (check that selection can be moved in and out of screen before this point)
         // TODO
     }
 

@@ -115,8 +115,9 @@ public class StarWindow extends JWindow {
 
             }
             catch (IOException e) {
+                System.err.println("Error loading images for the main star UI");
                 e.printStackTrace();
-                System.exit(-1);
+                System.exit(Ginj.ERR_STATUS_LOAD_IMG);
             }
 
             // Store the background so it can be changed and restored later on
@@ -416,7 +417,7 @@ public class StarWindow extends JWindow {
 
     private void onMore() {
         JOptionPane.showMessageDialog(null, "This should open the more window - Now exiting...");
-        System.exit(0);
+        System.exit(Ginj.ERR_STATUS_OK);
     }
 
 }

@@ -1,3 +1,11 @@
+/*
+TODO :
+ - Merge code of first selection with code of resize (only difference is drawing cross bar on first selection
+ - Reduce height of tooltip bar in GinjButtonBar
+ - Align tooltip above its button
+ - Fix capture size shown when part of the selection is off screen (but remember original selection size)
+*/
+
 package info.ginj;
 
 import info.ginj.ui.GinjButton;
@@ -19,17 +27,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/*
-
-TODO :
- - Merge code of first selection with code of resize (only difference is drawing cross bar on first selection
- - Make sure resize can go past beginning (negative selection)
- - Reduce height of tooltip bar in GinjButtonBar
- - Align tooltip above its button
-
-Note: an undecorated JFrame is required instead of a JWindow, otherwise keyboard events (ESC) are not captured
+/**
+ * This is the full screen window on which the area selection is made.
+ * It takes up the full screen, captures the screen on startup and uses it as background, then paints the selection box
+ * above it.
+ * Note: an undecorated JFrame is required instead of a JWindow, otherwise keyboard events (ESC) are not captured
 */
-
 public class CaptureSelectionFrame extends JFrame {
 
     public static final Color COLOR_ORANGE = new Color(251, 168, 25);
@@ -62,6 +65,7 @@ public class CaptureSelectionFrame extends JFrame {
     public CaptureSelectionFrame() {
         super();
         screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+// Simulate a half screen to be able to debug in parallel of "full screen" capture window on top
 //screenSize.setSize(screenSize.width/2, screenSize.height);
 
         // No window title bar or border.
@@ -91,7 +95,7 @@ public class CaptureSelectionFrame extends JFrame {
             final JButton cancelButton = new GinjButton("Cancel",new ImageIcon(ImageIO.read(getClass().getResource("img/b_cancel.png"))));
             cancelButton.addActionListener(e -> onCancel());
             buttonBar.add( cancelButton);
-            sizeLabel = new JLabel("10000 x 10000");
+            sizeLabel = new JLabel("9999 x 9999");
             buttonBar.add(sizeLabel);
         }
         catch (IOException e) {
@@ -100,9 +104,7 @@ public class CaptureSelectionFrame extends JFrame {
             System.exit(Ginj.ERR_STATUS_LOAD_IMG);
         }
         actionPanel.add(buttonBar);
-
-        actionPanel.setSize(computeSize(actionPanel));
-
+        panelPack(actionPanel);
         contentPane.add(actionPanel);
 
         addKeyboardShortcuts();
@@ -119,15 +121,16 @@ public class CaptureSelectionFrame extends JFrame {
     }
 
     /**
-     * This method computes the size of the given panel by adding it in a temporary window
+     * Lay out components on a Panel and compute size, like pack() for a Window.
+     * This method computes the size of the given panel by adding it in a temporary window.
      * Warning, must be called before adding the panel to its final parent, because it will be removed from it otherwise
      */
-    private Dimension computeSize(JPanel actionPanel) {
+    private void panelPack(JPanel actionPanel) {
         JWindow window = new JWindow();
         window.setLayout(new BorderLayout());
         window.getContentPane().add(actionPanel);
         window.pack();
-        return window.getSize();
+        actionPanel.setSize(window.getSize());
     }
 
     private void addKeyboardShortcuts() {
@@ -415,28 +418,88 @@ public class CaptureSelectionFrame extends JFrame {
 
             // Only move left edge of rectangle, keeping other edges the same
             private void setX1(Rectangle rectangle, int newX1) {
-                int oldX1 = rectangle.x;
-                rectangle.setLocation(newX1, rectangle.y);
-                rectangle.setSize(rectangle.width + oldX1 - newX1, rectangle.height);
+                final int oldX1 = rectangle.x;
+                final int oldX2 = rectangle.x + rectangle.width;
+                if (newX1 <= oldX2) {
+                    // Normal case
+                    rectangle.setLocation(newX1, rectangle.y);
+                    rectangle.setSize(rectangle.width + oldX1 - newX1, rectangle.height);
+                }
+                else {
+                    // Mouse has crossed the right edge
+                    rectangle.setLocation(oldX2, rectangle.y);
+                    rectangle.setSize(newX1 - oldX2, rectangle.height);
+                    switch (currentOperation) {
+                        case Cursor.NW_RESIZE_CURSOR -> currentOperation = Cursor.NE_RESIZE_CURSOR;
+                        case Cursor.W_RESIZE_CURSOR -> currentOperation = Cursor.E_RESIZE_CURSOR;
+                        case Cursor.SW_RESIZE_CURSOR -> currentOperation = Cursor.SE_RESIZE_CURSOR;
+                    }
+                    window.setCursor(Cursor.getPredefinedCursor(currentOperation));
+                }
             }
 
             // Only move top edge of rectangle, keeping other edges the same
             private void setY1(Rectangle rectangle, int newY1) {
-                int oldY1 = rectangle.y;
-                rectangle.setLocation(rectangle.x, newY1);
-                rectangle.setSize(rectangle.width, rectangle.height + oldY1 - newY1);
+                final int oldY1 = rectangle.y;
+                final int oldY2 = rectangle.y + rectangle.height;
+                if (newY1 <= oldY2) {
+                    // Normal case
+                    rectangle.setLocation(rectangle.x, newY1);
+                    rectangle.setSize(rectangle.width, rectangle.height + oldY1 - newY1);
+                }
+                else {
+                    // Mouse has crossed the bottom edge
+                    rectangle.setLocation(rectangle.x, oldY2);
+                    rectangle.setSize(rectangle.width, newY1 - oldY2);
+                    switch (currentOperation) {
+                        case Cursor.NW_RESIZE_CURSOR -> currentOperation = Cursor.SW_RESIZE_CURSOR;
+                        case Cursor.N_RESIZE_CURSOR -> currentOperation = Cursor.S_RESIZE_CURSOR;
+                        case Cursor.NE_RESIZE_CURSOR -> currentOperation = Cursor.SE_RESIZE_CURSOR;
+                    }
+                    window.setCursor(Cursor.getPredefinedCursor(currentOperation));
+                }
             }
 
             // Only move right edge of rectangle, keeping other edges the same
             private void setX2(Rectangle rectangle, int newX2) {
-                int oldX2 = rectangle.x + rectangle.width;
-                rectangle.setSize(rectangle.width - oldX2 + newX2, rectangle.height);
+                final int oldX1 = rectangle.x;
+                final int oldX2 = rectangle.x + rectangle.width;
+                if (newX2 >= oldX1) {
+                    // Normal case
+                    rectangle.setSize(rectangle.width - oldX2 + newX2, rectangle.height);
+                }
+                else {
+                    // Mouse has crossed the left edge
+                    rectangle.setLocation(newX2, rectangle.y);
+                    rectangle.setSize(oldX1 - newX2, rectangle.height);
+                    switch (currentOperation) {
+                        case Cursor.NE_RESIZE_CURSOR -> currentOperation = Cursor.NW_RESIZE_CURSOR;
+                        case Cursor.E_RESIZE_CURSOR -> currentOperation = Cursor.W_RESIZE_CURSOR;
+                        case Cursor.SE_RESIZE_CURSOR -> currentOperation = Cursor.SW_RESIZE_CURSOR;
+                    }
+                    window.setCursor(Cursor.getPredefinedCursor(currentOperation));
+                }
             }
 
             // Only move bottom edge of rectangle, keeping other edges the same
             private void setY2(Rectangle rectangle, int newY2) {
-                int oldY2 = rectangle.y + rectangle.height;
-                rectangle.setSize(rectangle.width, rectangle.height - oldY2 + newY2);
+                final int oldY1 = rectangle.y;
+                final int oldY2 = rectangle.y + rectangle.height;
+                if (newY2 >= oldY1) {
+                    // Normal case
+                    rectangle.setSize(rectangle.width, rectangle.height - oldY2 + newY2);
+                }
+                else {
+                    // Mouse has crossed the top edge
+                    rectangle.setLocation(rectangle.x, newY2);
+                    rectangle.setSize(rectangle.width, oldY1 - newY2);
+                    switch (currentOperation) {
+                        case Cursor.SW_RESIZE_CURSOR -> currentOperation = Cursor.NW_RESIZE_CURSOR;
+                        case Cursor.S_RESIZE_CURSOR -> currentOperation = Cursor.N_RESIZE_CURSOR;
+                        case Cursor.SE_RESIZE_CURSOR -> currentOperation = Cursor.NE_RESIZE_CURSOR;
+                    }
+                    window.setCursor(Cursor.getPredefinedCursor(currentOperation));
+                }
             }
 
             /**

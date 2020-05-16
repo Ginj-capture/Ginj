@@ -1,5 +1,8 @@
 package info.ginj;
 
+import info.ginj.ui.GinjButton;
+import info.ginj.ui.GinjButtonBar;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +22,10 @@ import java.util.Map;
 /*
 
 TODO :
- - Show button bar
+ - Merge code of first selection with code of resize (only difference is drawing cross bar on first selection
+ - Make sure resize can go past beginning (negative selection)
+ - Reduce height of tooltip bar in GinjButtonBar
+ - Align tooltip above its button
 
 Note: an undecorated JFrame is required instead of a JWindow, otherwise keyboard events (ESC) are not captured
 */
@@ -37,8 +43,10 @@ public class CaptureSelectionFrame extends JFrame {
     private static final int RESIZE_AREA_IN_MARGIN = 5;
     private static final int RESIZE_AREA_OUT_MARGIN = 10;
 
+    private static final int OPERATION_NONE = -1;
+
     // Caching
-    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    private final Dimension screenSize;
     // See https://stackoverflow.com/a/10687248
     private final Cursor CURSOR_NONE = Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), new Point(), null);
 
@@ -46,17 +54,16 @@ public class CaptureSelectionFrame extends JFrame {
     // Current state
     private Point rememberedStartPoint = null; // filled when selecting or dragging
     private Rectangle selection; // filled when selection is done
-    private int currentOperation;
+    private int currentOperation = OPERATION_NONE;
 
     private final JPanel actionPanel;
-    private final JLabel sizeLabel;
-
-    public enum HoverArea {
-        INSIDE, OUTSIDE, NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST;
-    }
+    private JLabel sizeLabel;
 
     public CaptureSelectionFrame() {
         super();
+        screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+//screenSize.setSize(screenSize.width/2, screenSize.height);
+
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
         setUndecorated(true);
@@ -69,30 +76,33 @@ public class CaptureSelectionFrame extends JFrame {
 
         // Prepare button bar
         actionPanel = new JPanel();
-        JPanel buttonBar = new JPanel();
-        buttonBar.setLayout(new FlowLayout(FlowLayout.LEADING));
+        actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING));
+        JPanel buttonBar = new GinjButtonBar();
         try {
-            final JButton imageButton = new JButton(new ImageIcon(ImageIO.read(getClass().getResource("img/b_image.png"))));
+            final JButton imageButton = new GinjButton("Capture image", new ImageIcon(ImageIO.read(getClass().getResource("img/b_image.png"))));
             imageButton.addActionListener(e -> onCaptureImage());
             buttonBar.add(imageButton);
-            final JButton videoButton = new JButton(new ImageIcon(ImageIO.read(getClass().getResource("img/b_video.png"))));
+            final JButton videoButton = new GinjButton("Capture video", new ImageIcon(ImageIO.read(getClass().getResource("img/b_video.png"))));
             videoButton.addActionListener(e -> onCaptureVideo());
             buttonBar.add(videoButton);
-            final JButton redoButton = new JButton(new ImageIcon(ImageIO.read(getClass().getResource("img/b_redo.png"))));
+            final JButton redoButton = new GinjButton("Redo selection", new ImageIcon(ImageIO.read(getClass().getResource("img/b_redo.png"))));
             redoButton.addActionListener(e -> onRedo());
             buttonBar.add(redoButton);
-            final JButton cancelButton = new JButton(new ImageIcon(ImageIO.read(getClass().getResource("img/b_cancel.png"))));
+            final JButton cancelButton = new GinjButton("Cancel",new ImageIcon(ImageIO.read(getClass().getResource("img/b_cancel.png"))));
             cancelButton.addActionListener(e -> onCancel());
-            buttonBar.add(cancelButton);
+            buttonBar.add( cancelButton);
+            sizeLabel = new JLabel("10000 x 10000");
+            buttonBar.add(sizeLabel);
         }
         catch (IOException e) {
             System.out.println("Error loading capture button images");
             e.printStackTrace();
             System.exit(Ginj.ERR_STATUS_LOAD_IMG);
         }
-        sizeLabel = new JLabel("Size");
-        buttonBar.add(sizeLabel);
         actionPanel.add(buttonBar);
+
+        actionPanel.setSize(computeSize(actionPanel));
+
         contentPane.add(actionPanel);
 
         addKeyboardShortcuts();
@@ -106,6 +116,18 @@ public class CaptureSelectionFrame extends JFrame {
 
         positionWindowOnStartup();
         setAlwaysOnTop(true);
+    }
+
+    /**
+     * This method computes the size of the given panel by adding it in a temporary window
+     * Warning, must be called before adding the panel to its final parent, because it will be removed from it otherwise
+     */
+    private Dimension computeSize(JPanel actionPanel) {
+        JWindow window = new JWindow();
+        window.setLayout(new BorderLayout());
+        window.getContentPane().add(actionPanel);
+        window.pack();
+        return window.getSize();
     }
 
     private void addKeyboardShortcuts() {
@@ -189,7 +211,26 @@ public class CaptureSelectionFrame extends JFrame {
                 g2d.setStroke(new BasicStroke(3));
                 g2d.drawLine(mousePosition.x, 0, mousePosition.x, (int) screenSize.getHeight());
                 g2d.drawLine(0, mousePosition.y, (int) screenSize.getWidth(), mousePosition.y);
+            }
 
+            // Determine size to print in size box
+            String sizeText = null;
+            if ((selection == null && mousePosition != null)) {
+                if (rectangleToDraw == null) {
+                    // No (partial) selection yet show screen size
+                    // TODO : "screen" to be replaced by "hovered window" when window detection is implemented
+                    sizeText = screenSize.width + " x " + screenSize.height;
+                }
+                else {
+                    // We're dragging, show current size
+                    sizeText = rectangleToDraw.width + " x " + rectangleToDraw.height;
+                }
+            }
+            else if (currentOperation != OPERATION_NONE && currentOperation != Cursor.DEFAULT_CURSOR && currentOperation != Cursor.MOVE_CURSOR) {
+                sizeText = selection.width + " x " + selection.height;
+            }
+
+            if (sizeText != null) {
                 // Draw the selection size box
                 g2d.setColor(COLOR_SIZE_BOX);
                 int sizeBoxX = mousePosition.x + SIZE_BOX_OFFSET;
@@ -202,19 +243,7 @@ public class CaptureSelectionFrame extends JFrame {
                 }
                 g2d.fillRoundRect(sizeBoxX, sizeBoxY, SIZE_BOX_WIDTH, SIZE_BOX_HEIGHT, 4, 4);
 
-                // Determine size to print in size box
-                String sizeText;
-                if (rectangleToDraw == null) {
-                    // No (partial) selection yet show screen size
-                    // TODO : "screen" to be replaced by "hovered window" when window detection is implemented
-                    sizeText = screenSize.width + " x " + screenSize.height;
-                }
-                else {
-                    // We're dragging, show current size
-                    sizeText = rectangleToDraw.width + " x " + rectangleToDraw.height;
-                }
-
-                // And print it
+                // And print size
                 g2d.setColor(COLOR_ORANGE);
                 if (font == null) {
                     font = g2d.getFont();
@@ -232,7 +261,6 @@ public class CaptureSelectionFrame extends JFrame {
                 int x1 = sizeBoxX + (SIZE_BOX_WIDTH - textWidth) / 2;
                 int y1 = sizeBoxY + (int) ((SIZE_BOX_HEIGHT + textHeight) / 2 - ln.getDescent());
                 g2d.drawString(sizeText, x1, y1);
-
             }
 
             g2d.dispose();
@@ -318,6 +346,7 @@ public class CaptureSelectionFrame extends JFrame {
                     selection = getSelectionRectangle(rememberedStartPoint, e.getPoint());
                     window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 }
+                currentOperation = OPERATION_NONE;
                 setActionPanelVisible(true);
                 window.repaint();
             }
@@ -473,6 +502,7 @@ public class CaptureSelectionFrame extends JFrame {
 
     private void setActionPanelVisible(boolean visible) {
         if (visible) {
+            sizeLabel.setText(selection.width + " x " + selection.height);
             positionActionPanel();
             revalidate();
         }
@@ -481,9 +511,8 @@ public class CaptureSelectionFrame extends JFrame {
     }
 
     private void positionActionPanel() {
-        // Should be computed when making bar visible
-        final int barWidth = 300;
-        final int barHeight = 100;
+        final int barWidth = actionPanel.getWidth();
+        final int barHeight = actionPanel.getHeight();
 
         // Find the best position according to selection and bar size
         // Note: not the exact same strategy as the original, but close...
@@ -500,15 +529,12 @@ public class CaptureSelectionFrame extends JFrame {
                 new Point(0, screenSize.height - barHeight) // Over, at bottom left of screen
         };
         Rectangle screenRectangle = new Rectangle(screenSize);
-        System.out.println("--------");
         for (Point candidatePosition : candidatePositions) {
             final Rectangle candidateBounds = new Rectangle(candidatePosition.x, candidatePosition.y, barWidth, barHeight);
             if (screenRectangle.contains(candidateBounds)) {
                 bestBounds = candidateBounds;
-                System.out.println(candidatePosition + " => YES !");
                 break;
             }
-            else System.out.println(candidatePosition + " => no");
         }
         if (bestBounds == null) {
             Point p = candidatePositions[candidatePositions.length - 1];

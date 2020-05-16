@@ -1,9 +1,10 @@
 /*
 TODO :
- - Merge code of first selection with code of resize (only difference is drawing cross bar on first selection
+ - Simplify use of rememberedStartPoint
  - Reduce height of tooltip bar in GinjButtonBar
  - Align tooltip above its button
  - Fix capture size shown when part of the selection is off screen (but remember original selection size)
+ - When button bar is inside selection, mouse should not have a "move" cursor and behaviour above the button bar
 */
 
 package info.ginj;
@@ -58,6 +59,7 @@ public class CaptureSelectionFrame extends JFrame {
     private Point rememberedStartPoint = null; // filled when selecting or dragging
     private Rectangle selection; // filled when selection is done
     private int currentOperation = OPERATION_NONE;
+    private boolean isInitialSelectionDone;
 
     private final JPanel actionPanel;
     private JLabel sizeLabel;
@@ -188,10 +190,6 @@ public class CaptureSelectionFrame extends JFrame {
                 // Selection done
                 rectangleToDraw = selection;
             }
-            else if (rememberedStartPoint != null) {
-                // Selection in progress
-                rectangleToDraw = getSelectionRectangle(rememberedStartPoint, mousePosition);
-            }
 
             if (rectangleToDraw != null) {
                 // Dim the rest of the screen
@@ -206,8 +204,8 @@ public class CaptureSelectionFrame extends JFrame {
                 g2d.drawRect(rectangleToDraw.x, rectangleToDraw.y, rectangleToDraw.width, rectangleToDraw.height);
             }
 
-            if (selection == null && mousePosition != null) {
-                // Selection in progress
+            if (!isInitialSelectionDone && mousePosition != null) {
+                // First selection in progress
 
                 // Draw cross lines
                 g2d.setColor(COLOR_ORANGE);
@@ -218,9 +216,9 @@ public class CaptureSelectionFrame extends JFrame {
 
             // Determine size to print in size box
             String sizeText = null;
-            if ((selection == null && mousePosition != null)) {
+            if (selection == null) {
                 if (rectangleToDraw == null) {
-                    // No (partial) selection yet show screen size
+                    // No (partial) selection yet, show screen size
                     // TODO : "screen" to be replaced by "hovered window" when window detection is implemented
                     sizeText = screenSize.width + " x " + screenSize.height;
                 }
@@ -233,7 +231,7 @@ public class CaptureSelectionFrame extends JFrame {
                 sizeText = selection.width + " x " + selection.height;
             }
 
-            if (sizeText != null) {
+            if (sizeText != null && mousePosition != null) {
                 // Draw the selection size box
                 g2d.setColor(COLOR_SIZE_BOX);
                 int sizeBoxX = mousePosition.x + SIZE_BOX_OFFSET;
@@ -271,19 +269,6 @@ public class CaptureSelectionFrame extends JFrame {
 
     }
 
-    /**
-     * Creates a rectangle given the two opposite points.
-     * Note that is doesn't matter if start is right/left or above/below end.
-     */
-    private static Rectangle getSelectionRectangle(Point startPoint, Point endPoint) {
-        return new Rectangle(
-                Math.min(startPoint.x, endPoint.x),
-                Math.min(startPoint.y, endPoint.y),
-                Math.abs(startPoint.x - endPoint.x),
-                Math.abs(startPoint.y - endPoint.y)
-        );
-    }
-
     private void addMouseBehaviour() {
         Window window = this;
         MouseAdapter mouseAdapter = new MouseAdapter() {
@@ -295,8 +280,8 @@ public class CaptureSelectionFrame extends JFrame {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                // If there was a previous selection
                 Point mousePosition = e.getPoint();
+                // See if there was a previous selection
                 if (selection != null) {
                     // There's already a selection.
                     // Hide the button bar during drag
@@ -335,21 +320,21 @@ public class CaptureSelectionFrame extends JFrame {
                     }
                 }
 
-                if (rememberedStartPoint == null) {
-                    // Start of "drag". Remember mouse position
-                    rememberedStartPoint = mousePosition;
+                if (selection == null) {
+                    // Start of new selection. Remember offset between click position and opposite corner
+                    rememberedStartPoint = new Point(0, 0);
+                    selection = new Rectangle(mousePosition.x, mousePosition.y, 0,0);
+                    currentOperation = Cursor.SW_RESIZE_CURSOR;
+                    isInitialSelectionDone = false; // TODO redundant ?
                 }
                 window.repaint();
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (selection == null) {
-                    // End of dragged rectangle selection: store end position
-                    selection = getSelectionRectangle(rememberedStartPoint, e.getPoint());
-                    window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-                }
                 currentOperation = OPERATION_NONE;
+                isInitialSelectionDone = true;
+                window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 setActionPanelVisible(true);
                 window.repaint();
             }
@@ -434,7 +419,7 @@ public class CaptureSelectionFrame extends JFrame {
                         case Cursor.W_RESIZE_CURSOR -> currentOperation = Cursor.E_RESIZE_CURSOR;
                         case Cursor.SW_RESIZE_CURSOR -> currentOperation = Cursor.SE_RESIZE_CURSOR;
                     }
-                    window.setCursor(Cursor.getPredefinedCursor(currentOperation));
+                    updateMouseCursor();
                 }
             }
 
@@ -456,7 +441,7 @@ public class CaptureSelectionFrame extends JFrame {
                         case Cursor.N_RESIZE_CURSOR -> currentOperation = Cursor.S_RESIZE_CURSOR;
                         case Cursor.NE_RESIZE_CURSOR -> currentOperation = Cursor.SE_RESIZE_CURSOR;
                     }
-                    window.setCursor(Cursor.getPredefinedCursor(currentOperation));
+                    updateMouseCursor();
                 }
             }
 
@@ -477,7 +462,7 @@ public class CaptureSelectionFrame extends JFrame {
                         case Cursor.E_RESIZE_CURSOR -> currentOperation = Cursor.W_RESIZE_CURSOR;
                         case Cursor.SE_RESIZE_CURSOR -> currentOperation = Cursor.SW_RESIZE_CURSOR;
                     }
-                    window.setCursor(Cursor.getPredefinedCursor(currentOperation));
+                    updateMouseCursor();
                 }
             }
 
@@ -498,6 +483,13 @@ public class CaptureSelectionFrame extends JFrame {
                         case Cursor.S_RESIZE_CURSOR -> currentOperation = Cursor.N_RESIZE_CURSOR;
                         case Cursor.SE_RESIZE_CURSOR -> currentOperation = Cursor.NE_RESIZE_CURSOR;
                     }
+                    updateMouseCursor();
+                }
+            }
+
+            private void updateMouseCursor() {
+                if (isInitialSelectionDone) {
+                    //noinspection MagicConstant
                     window.setCursor(Cursor.getPredefinedCursor(currentOperation));
                 }
             }
@@ -608,6 +600,7 @@ public class CaptureSelectionFrame extends JFrame {
 
     private void resetSelection() {
         setActionPanelVisible(false);
+        isInitialSelectionDone = false;
         rememberedStartPoint = null;
         selection = null;
         setCursor(CURSOR_NONE);

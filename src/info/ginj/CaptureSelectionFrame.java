@@ -1,6 +1,5 @@
 /*
 TODO :
- - Simplify use of rememberedStartPoint
  - Reduce height of tooltip bar in GinjButtonBar
  - Align tooltip above its button
  - Fix capture size shown when part of the selection is off screen (but remember original selection size)
@@ -56,7 +55,7 @@ public class CaptureSelectionFrame extends JFrame {
 
 
     // Current state
-    private Point rememberedStartPoint = null; // filled when selecting or dragging
+    private Point rememberedReferenceOffset = null; // filled when selecting or dragging
     private Rectangle selection; // filled when selection is done
     private int currentOperation = OPERATION_NONE;
     private boolean isInitialSelectionDone;
@@ -300,31 +299,32 @@ public class CaptureSelectionFrame extends JFrame {
                         case Cursor.NW_RESIZE_CURSOR:
                         case Cursor.N_RESIZE_CURSOR:
                         case Cursor.W_RESIZE_CURSOR:
-                            // Remember offset between click position and top-left corner of the selection
-                            rememberedStartPoint = new Point(mousePosition.x - selection.x, mousePosition.y - selection.y);
+                            // Remember offset between click position and reference (top-left corner of the selection)
+                            rememberedReferenceOffset = new Point(mousePosition.x - selection.x, mousePosition.y - selection.y);
                             break;
                         case Cursor.NE_RESIZE_CURSOR:
                         case Cursor.E_RESIZE_CURSOR:
-                            // Remember offset between click position and top-right corner of the selection
-                            rememberedStartPoint = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - selection.y);
+                            // Remember offset between click position and reference (top-right corner of the selection)
+                            rememberedReferenceOffset = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - selection.y);
                             break;
                         case Cursor.SW_RESIZE_CURSOR:
                         case Cursor.S_RESIZE_CURSOR:
-                            // Remember offset between click position and bottom-left corner of the selection
-                            rememberedStartPoint = new Point(mousePosition.x - selection.x, mousePosition.y - (selection.y + selection.height));
+                            // Remember offset between click position and reference (bottom-left corner of the selection)
+                            rememberedReferenceOffset = new Point(mousePosition.x - selection.x, mousePosition.y - (selection.y + selection.height));
                             break;
                         case Cursor.SE_RESIZE_CURSOR:
-                            // Remember offset between click position and bottom-right corner of the selection
-                            rememberedStartPoint = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - (selection.y + selection.height));
+                            // Remember offset between click position and reference (bottom-right corner of the selection)
+                            rememberedReferenceOffset = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - (selection.y + selection.height));
                             break;
                     }
                 }
 
                 if (selection == null) {
-                    // Start of new selection. Remember offset between click position and opposite corner
-                    rememberedStartPoint = new Point(0, 0);
+                    // Start of new selection. Remember offset between click position and reference ("opposite" corner)
+                    // Creating a selection is like resizing a selection of 0,0
                     selection = new Rectangle(mousePosition.x, mousePosition.y, 0,0);
                     currentOperation = Cursor.SW_RESIZE_CURSOR;
+                    rememberedReferenceOffset = new Point(0, 0);
                     isInitialSelectionDone = false; // TODO redundant ?
                 }
                 window.repaint();
@@ -342,9 +342,9 @@ public class CaptureSelectionFrame extends JFrame {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (selection != null) {
-                    // Note: rememberedStartPoint has different meanings according to currentOperation. See mousePressed
-                    final int newX = e.getX() - rememberedStartPoint.x;
-                    final int newY = e.getY() - rememberedStartPoint.y;
+                    // Note: rememberedReferenceOffset has different meanings according to currentOperation. See mousePressed
+                    final int newX = e.getX() - rememberedReferenceOffset.x;
+                    final int newY = e.getY() - rememberedReferenceOffset.y;
                     switch (currentOperation) {
                         // Move selection rectangle
                         case Cursor.MOVE_CURSOR -> selection.setLocation(newX, newY);
@@ -601,7 +601,7 @@ public class CaptureSelectionFrame extends JFrame {
     private void resetSelection() {
         setActionPanelVisible(false);
         isInitialSelectionDone = false;
-        rememberedStartPoint = null;
+        rememberedReferenceOffset = null;
         selection = null;
         setCursor(CURSOR_NONE);
         repaint();

@@ -1,6 +1,6 @@
 /*
 TODO :
- - Align tooltip above its button
+ - Min capture size is 6x6px, otherwise capture image/video buttons are disabled
  - Fix capture size shown when part of the selection is off screen (but remember original selection size)
  - When button bar is inside selection, mouse should not have a "move" cursor and behaviour above the button bar
 */
@@ -9,6 +9,7 @@ package info.ginj;
 
 import info.ginj.ui.GinjButton;
 import info.ginj.ui.GinjButtonBar;
+import info.ginj.ui.Util;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -60,7 +61,7 @@ public class CaptureSelectionFrame extends JFrame {
     private boolean isInitialSelectionDone;
 
     private final JPanel actionPanel;
-    private JLabel sizeLabel;
+    private JLabel captureSizeLabel;
 
     public CaptureSelectionFrame() {
         super();
@@ -80,7 +81,7 @@ public class CaptureSelectionFrame extends JFrame {
 
         // Prepare button bar
         actionPanel = new JPanel(); // To add a margin around buttonBar
-        actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 2));
+        actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 5));
         JPanel buttonBar = new GinjButtonBar();
         try {
             final JButton imageButton = new GinjButton("Capture image", new ImageIcon(ImageIO.read(getClass().getResource("img/b_image.png"))));
@@ -95,8 +96,8 @@ public class CaptureSelectionFrame extends JFrame {
             final JButton cancelButton = new GinjButton("Cancel",new ImageIcon(ImageIO.read(getClass().getResource("img/b_cancel.png"))));
             cancelButton.addActionListener(e -> onCancel());
             buttonBar.add(cancelButton);
-            sizeLabel = new JLabel("9999 x 9999");
-            buttonBar.add(sizeLabel);
+            captureSizeLabel = new JLabel("9999 x 9999");
+            buttonBar.add(captureSizeLabel);
         }
         catch (IOException e) {
             System.out.println("Error loading capture button images");
@@ -104,7 +105,7 @@ public class CaptureSelectionFrame extends JFrame {
             System.exit(Ginj.ERR_STATUS_LOAD_IMG);
         }
         actionPanel.add(buttonBar);
-        panelPack(actionPanel);
+        Util.packPanel(actionPanel);
         contentPane.add(actionPanel);
 
         addKeyboardShortcuts();
@@ -118,19 +119,6 @@ public class CaptureSelectionFrame extends JFrame {
 
         positionWindowOnStartup();
         setAlwaysOnTop(true);
-    }
-
-    /**
-     * Lay out components on a Panel and compute size, like pack() for a Window.
-     * This method computes the size of the given panel by adding it in a temporary window.
-     * Warning, must be called before adding the panel to its final parent, because it will be removed from it otherwise
-     */
-    private void panelPack(JPanel actionPanel) {
-        JWindow window = new JWindow();
-        window.setLayout(new BorderLayout());
-        window.getContentPane().add(actionPanel);
-        window.pack();
-        actionPanel.setSize(window.getSize());
     }
 
     private void addKeyboardShortcuts() {
@@ -556,7 +544,7 @@ public class CaptureSelectionFrame extends JFrame {
 
     private void setActionPanelVisible(boolean visible) {
         if (visible) {
-            sizeLabel.setText(selection.width + " x " + selection.height);
+            captureSizeLabel.setText(selection.width + " x " + selection.height);
             positionActionPanel();
             revalidate();
         }

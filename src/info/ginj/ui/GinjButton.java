@@ -7,6 +7,7 @@ public class GinjButton extends JButton {
 
     public GinjButton(String tooltip, ImageIcon imageIcon) {
         super(imageIcon);
+        final GinjButton thisButton = this;
 
         addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -23,10 +24,10 @@ public class GinjButton extends JButton {
                 Component p = getParent();
                 while (p != null) {
                     if (p instanceof GinjButtonBar) {
-                        if (tooltip == null || tooltip.length() == 0) {
+                        if (tooltip == null || tooltip.isEmpty()) {
                             tooltip = " ";
                         }
-                        ((GinjButtonBar) p).setTooltipText(tooltip);
+                        ((GinjButtonBar) p).setTooltipText(thisButton, tooltip);
                         break;
                     }
                     else {
@@ -35,6 +36,5 @@ public class GinjButton extends JButton {
                 }
             }
         });
-
     }
 }

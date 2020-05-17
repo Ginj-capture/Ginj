@@ -31,30 +31,32 @@
     <bind style="buttonStyle" type="region" key="Button"/>
 
     <style id="labelStyle">
-        <font name="Dialog" size="12"/>
+        <font name="Arial" size="12" style="BOLD"/>
         <state>
             <!-- Slightly darker color than general background -->
-            <color value="#181A1B" type="BACKGROUND"/>
+<!--            <color value="#181A1B" type="BACKGROUND"/>-->
+            <color value="#FF0000" type="BACKGROUND"/>
         </state>
     </style>
     <bind style="labelStyle" type="region" key="Label"/>
 
-    <style id="buttonKeyStyle">
+    <style id="GinjButtonTooltipStyle">
         <state>
             <!-- Override default colors -->
-            <color value="#222425" type="BACKGROUND"/>
-            <color value="#FFFFFF" type="FOREGROUND"/>
+<!--            <color value="#222425" type="BACKGROUND"/>-->
+            <color value="#FF0000" type="BACKGROUND"/>
+            <color value="#FFFFFF" type="FOREGROUND"/>-->
         </state>
     </style>
-    <bind style="buttonKeyStyle" type="name" key="ButtonKey"/>
+    <bind style="GinjButtonTooltipStyle" type="name" key="GinjButtonTooltip"/>
 
     <!-- TODO-->
-    <style id="titleStyle">
-        <state>
-            <color value="#F2C800" type="BACKGROUND"/>
-            <color value="#000000" type="FOREGROUND"/>
-        </state>
-    </style>
-    <bind style="titleStyle" type="name" key=".*TitleBar"/>
+<!--    <style id="titleStyle">-->
+<!--        <state>-->
+<!--            <color value="#F2C800" type="BACKGROUND"/>-->
+<!--            <color value="#000000" type="FOREGROUND"/>-->
+<!--        </state>-->
+<!--    </style>-->
+<!--    <bind style="titleStyle" type="name" key=".*TitleBar"/>-->
 
 </synth>

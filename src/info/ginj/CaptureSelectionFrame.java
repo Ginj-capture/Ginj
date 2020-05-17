@@ -1,6 +1,5 @@
 /*
 TODO :
- - Reduce height of tooltip bar in GinjButtonBar
  - Align tooltip above its button
  - Fix capture size shown when part of the selection is off screen (but remember original selection size)
  - When button bar is inside selection, mouse should not have a "move" cursor and behaviour above the button bar
@@ -80,8 +79,8 @@ public class CaptureSelectionFrame extends JFrame {
         setLayout(null); // Allow absolute positioning of button bar
 
         // Prepare button bar
-        actionPanel = new JPanel();
-        actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING));
+        actionPanel = new JPanel(); // To add a margin around buttonBar
+        actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 2));
         JPanel buttonBar = new GinjButtonBar();
         try {
             final JButton imageButton = new GinjButton("Capture image", new ImageIcon(ImageIO.read(getClass().getResource("img/b_image.png"))));
@@ -95,7 +94,7 @@ public class CaptureSelectionFrame extends JFrame {
             buttonBar.add(redoButton);
             final JButton cancelButton = new GinjButton("Cancel",new ImageIcon(ImageIO.read(getClass().getResource("img/b_cancel.png"))));
             cancelButton.addActionListener(e -> onCancel());
-            buttonBar.add( cancelButton);
+            buttonBar.add(cancelButton);
             sizeLabel = new JLabel("9999 x 9999");
             buttonBar.add(sizeLabel);
         }

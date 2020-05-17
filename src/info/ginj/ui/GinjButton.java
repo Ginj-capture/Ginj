@@ -16,13 +16,16 @@ public class GinjButton extends JButton {
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                setParentTooltip("");
+                setParentTooltip(null);
             }
 
             private void setParentTooltip(String tooltip) {
                 Component p = getParent();
                 while (p != null) {
                     if (p instanceof GinjButtonBar) {
+                        if (tooltip == null || tooltip.length() == 0) {
+                            tooltip = " ";
+                        }
                         ((GinjButtonBar) p).setTooltipText(tooltip);
                         break;
                     }

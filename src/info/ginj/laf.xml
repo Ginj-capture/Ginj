@@ -28,7 +28,33 @@
             <imagePainter method="buttonBackground" path="img/b_button-bg-pressed.png" sourceInsets="4 4 4 4"/>
         </state>
     </style>
-    <!-- Bind buttonStyle to all JButtons -->
-    <bind style="buttonStyle" type="region" key="button"/>
+    <bind style="buttonStyle" type="region" key="Button"/>
+
+    <style id="labelStyle">
+        <font name="Dialog" size="12"/>
+        <state>
+            <!-- Slightly darker color than general background -->
+            <color value="#181A1B" type="BACKGROUND"/>
+        </state>
+    </style>
+    <bind style="labelStyle" type="region" key="Label"/>
+
+    <style id="buttonKeyStyle">
+        <state>
+            <!-- Override default colors -->
+            <color value="#222425" type="BACKGROUND"/>
+            <color value="#FFFFFF" type="FOREGROUND"/>
+        </state>
+    </style>
+    <bind style="buttonKeyStyle" type="name" key="ButtonKey"/>
+
+    <!-- TODO-->
+    <style id="titleStyle">
+        <state>
+            <color value="#F2C800" type="BACKGROUND"/>
+            <color value="#000000" type="FOREGROUND"/>
+        </state>
+    </style>
+    <bind style="titleStyle" type="name" key=".*TitleBar"/>
 
 </synth>

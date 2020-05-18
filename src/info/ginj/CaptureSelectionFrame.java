@@ -63,6 +63,8 @@ public class CaptureSelectionFrame extends JFrame {
 
     private final JPanel actionPanel;
     private JLabel captureSizeLabel;
+    private JButton imageButton;
+    private JButton videoButton;
 
     public CaptureSelectionFrame() {
         super();
@@ -85,10 +87,10 @@ public class CaptureSelectionFrame extends JFrame {
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 5));
         JPanel buttonBar = new GinjButtonBar();
         try {
-            final JButton imageButton = new GinjButton("Capture image", new ImageIcon(ImageIO.read(getClass().getResource("img/b_image.png"))));
+            imageButton = new GinjButton("Capture image", new ImageIcon(ImageIO.read(getClass().getResource("img/b_image.png"))));
             imageButton.addActionListener(e -> onCaptureImage());
             buttonBar.add(imageButton);
-            final JButton videoButton = new GinjButton("Capture video", new ImageIcon(ImageIO.read(getClass().getResource("img/b_video.png"))));
+            videoButton = new GinjButton("Capture video", new ImageIcon(ImageIO.read(getClass().getResource("img/b_video.png"))));
             videoButton.addActionListener(e -> onCaptureVideo());
             buttonBar.add(videoButton);
             final JButton redoButton = new GinjButton("Redo selection", new ImageIcon(ImageIO.read(getClass().getResource("img/b_redo.png"))));
@@ -553,7 +555,16 @@ public class CaptureSelectionFrame extends JFrame {
 
     private void setActionPanelVisible(boolean visible) {
         if (visible) {
-            captureSizeLabel.setText(selection.width + " x " + selection.height);
+            // Compute size to be displayed in box.
+            // This is size of the selection, except if it was moved partly off screen.
+            // In that case, we keep the selection unchanged (in case we want to move it back on screen),
+            // but the actual capture would be cropped to the screen dimensions of course.
+            // Use that size here
+            final Rectangle croppedSelection = selection.intersection(new Rectangle(screenSize));
+            captureSizeLabel.setText(croppedSelection.width + " x " + croppedSelection.height);
+            boolean isValidArea = (croppedSelection.width > 5) && (croppedSelection.height > 5);
+            imageButton.setEnabled(isValidArea);
+            videoButton.setEnabled(isValidArea);
             positionActionPanel();
             revalidate();
         }

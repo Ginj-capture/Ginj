@@ -1,6 +1,8 @@
 <!--
     see https://docs.oracle.com/javase/tutorial/uiswing/lookandfeel/synth.html
-    and https://docs.oracle.com/javase/8/docs/api/javax/swing/plaf/synth/doc-files/synthFileFormat.html
+    https://docs.oracle.com/javase/8/docs/api/javax/swing/plaf/synth/doc-files/synthFileFormat.html
+    https://dzone.com/articles/easynth-look-and-feel-customiz-0
+    https://www.ibm.com/developerworks/java/library/j-synth/
 -->
 <synth>
     <!-- Style that all regions will use -->
@@ -31,7 +33,7 @@
     <bind style="buttonStyle" type="region" key="Button"/>
 
     <style id="labelStyle">
-        <font name="Arial" size="12" style="BOLD"/>
+        <font name="SansSerif" size="12" style="BOLD"/>
         <state>
             <!-- Slightly darker color than general background -->
 <!--            <color value="#181A1B" type="BACKGROUND"/>-->

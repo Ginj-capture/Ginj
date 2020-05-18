@@ -1,8 +1,9 @@
 /*
 TODO :
- - Min capture size is 6x6px, otherwise capture image/video buttons are disabled
  - Fix capture size shown when part of the selection is off screen (but remember original selection size)
+ - Min capture size is 6x6px, otherwise capture image/video buttons are disabled
  - When button bar is inside selection, mouse should not have a "move" cursor and behaviour above the button bar
+ - Implement Window detection using JNA
 */
 
 package info.ginj;
@@ -269,47 +270,51 @@ public class CaptureSelectionFrame extends JFrame {
                 Point mousePosition = e.getPoint();
                 // See if there was a previous selection
                 if (selection != null) {
+                    final Rectangle actionPanelBounds = actionPanel.getBounds();
                     // There's already a selection.
                     // Hide the button bar during drag
                     setActionPanelVisible(false);
 
-                    // See where the mouse press happened
-                    currentOperation = getHoverOperation(mousePosition, selection);
+                    // Can happen if selection is so large that actionPanel is over selection
+                    if (!actionPanelBounds.contains(mousePosition)) {
 
-                    //noinspection EnhancedSwitchMigration
-                    switch (currentOperation) {
-                        case Cursor.DEFAULT_CURSOR:
-                            // We clicked outside, restart selection (ENHANCEMENT)
-                            resetSelection();
-                            break;
-                        case Cursor.MOVE_CURSOR:
-                        case Cursor.NW_RESIZE_CURSOR:
-                        case Cursor.N_RESIZE_CURSOR:
-                        case Cursor.W_RESIZE_CURSOR:
-                            // Remember offset between click position and reference (top-left corner of the selection)
-                            rememberedReferenceOffset = new Point(mousePosition.x - selection.x, mousePosition.y - selection.y);
-                            break;
-                        case Cursor.NE_RESIZE_CURSOR:
-                        case Cursor.E_RESIZE_CURSOR:
-                            // Remember offset between click position and reference (top-right corner of the selection)
-                            rememberedReferenceOffset = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - selection.y);
-                            break;
-                        case Cursor.SW_RESIZE_CURSOR:
-                        case Cursor.S_RESIZE_CURSOR:
-                            // Remember offset between click position and reference (bottom-left corner of the selection)
-                            rememberedReferenceOffset = new Point(mousePosition.x - selection.x, mousePosition.y - (selection.y + selection.height));
-                            break;
-                        case Cursor.SE_RESIZE_CURSOR:
-                            // Remember offset between click position and reference (bottom-right corner of the selection)
-                            rememberedReferenceOffset = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - (selection.y + selection.height));
-                            break;
+                        // See where the mouse press happened
+                        currentOperation = getHoverOperation(mousePosition, selection);
+
+                        //noinspection EnhancedSwitchMigration
+                        switch (currentOperation) {
+                            case Cursor.DEFAULT_CURSOR:
+                                // We clicked outside selection, restart selection (ENHANCEMENT ? USEFUL ?)
+                                resetSelection();
+                                break;
+                            case Cursor.MOVE_CURSOR:
+                            case Cursor.NW_RESIZE_CURSOR:
+                            case Cursor.N_RESIZE_CURSOR:
+                            case Cursor.W_RESIZE_CURSOR:
+                                // Remember offset between click position and reference (top-left corner of the selection)
+                                rememberedReferenceOffset = new Point(mousePosition.x - selection.x, mousePosition.y - selection.y);
+                                break;
+                            case Cursor.NE_RESIZE_CURSOR:
+                            case Cursor.E_RESIZE_CURSOR:
+                                // Remember offset between click position and reference (top-right corner of the selection)
+                                rememberedReferenceOffset = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - selection.y);
+                                break;
+                            case Cursor.SW_RESIZE_CURSOR:
+                            case Cursor.S_RESIZE_CURSOR:
+                                // Remember offset between click position and reference (bottom-left corner of the selection)
+                                rememberedReferenceOffset = new Point(mousePosition.x - selection.x, mousePosition.y - (selection.y + selection.height));
+                                break;
+                            case Cursor.SE_RESIZE_CURSOR:
+                                // Remember offset between click position and reference (bottom-right corner of the selection)
+                                rememberedReferenceOffset = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - (selection.y + selection.height));
+                                break;
+                        }
                     }
                 }
-
                 if (selection == null) {
                     // Start of new selection. Remember offset between click position and reference ("opposite" corner)
                     // Creating a selection is like resizing a selection of 0,0
-                    selection = new Rectangle(mousePosition.x, mousePosition.y, 0,0);
+                    selection = new Rectangle(mousePosition.x, mousePosition.y, 0, 0);
                     currentOperation = Cursor.SW_RESIZE_CURSOR;
                     rememberedReferenceOffset = new Point(0, 0);
                     isInitialSelectionDone = false; // TODO redundant ?
@@ -319,6 +324,11 @@ public class CaptureSelectionFrame extends JFrame {
 
             @Override
             public void mouseReleased(MouseEvent e) {
+                if (selection.width == 0 && selection.height == 0) {
+                    // Just a click in fact
+                    selection = new Rectangle(screenSize);
+                    // TODO should become hovered window, if any, when detection is implemented
+                }
                 currentOperation = OPERATION_NONE;
                 isInitialSelectionDone = true;
                 window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -371,18 +381,17 @@ public class CaptureSelectionFrame extends JFrame {
                 }
                 else {
                     // Selection done
-                    // Determine operation that could be done by a mousePressed there, and change cursor accordingly.
-                    //noinspection MagicConstant
-                    window.setCursor(Cursor.getPredefinedCursor(getHoverOperation(e.getPoint(), selection)));
+                    final Rectangle actionPanelBounds = actionPanel.getBounds();
+                    // Can happen if selection is so large that actionPanel is over selection
+                    if (actionPanelBounds.contains(e.getPoint())) {
+                        window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                    }
+                    else {
+                        // Determine operation that could be done by a mousePressed there, and change cursor accordingly.
+                        //noinspection MagicConstant
+                        window.setCursor(Cursor.getPredefinedCursor(getHoverOperation(e.getPoint(), selection)));
+                    }
                 }
-            }
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                // Single click means full window
-                // TODO should become hovered window when detection is implemented
-                selection = new Rectangle(screenSize);
-                setActionPanelVisible(true);
             }
 
             ////////////////////////////////

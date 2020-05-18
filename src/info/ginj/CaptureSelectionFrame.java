@@ -1,8 +1,6 @@
 /*
 TODO :
- - Fix capture size shown when part of the selection is off screen (but remember original selection size)
- - Min capture size is 6x6px, otherwise capture image/video buttons are disabled
- - When button bar is inside selection, mouse should not have a "move" cursor and behaviour above the button bar
+ - Do capture !
  - Implement Window detection using JNA
 */
 

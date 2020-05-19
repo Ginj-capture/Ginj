@@ -1,9 +1,12 @@
 package info.ginj;
 
+import info.ginj.ui.DragInsensitiveMouseClickListener;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.MouseInputListener;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -167,7 +170,7 @@ public class StarWindow extends JWindow {
 
     private void addMouseBehaviour(JComponent contentPane) {
         JWindow window = this;
-        MouseAdapter mouseAdapter = new MouseAdapter() {
+        MouseInputListener mouseInputListener = new DragInsensitiveMouseClickListener(new MouseInputAdapter() {
             private Point mousePressedPoint;
 
             @Override
@@ -202,10 +205,6 @@ public class StarWindow extends JWindow {
                     window.setLocation(getClosestPointOnScreenBorder());
                     isDragging = false;
                     window.repaint();
-                }
-                else if (Math.abs(e.getPoint().x - mousePressedPoint.x) < 5 && Math.abs(e.getPoint().y - mousePressedPoint.y) < 5) {
-                    // Small move is considered a click
-                    mouseClicked(e);
                 }
             }
 
@@ -260,10 +259,10 @@ public class StarWindow extends JWindow {
                 }
                 return buttonId;
             }
-        };
+        });
 
-        window.addMouseListener(mouseAdapter);
-        window.addMouseMotionListener(mouseAdapter);
+        window.addMouseListener(mouseInputListener);
+        window.addMouseMotionListener(mouseInputListener);
     }
 
     private void setDeployed(JComponent contentPane, boolean deployed) {

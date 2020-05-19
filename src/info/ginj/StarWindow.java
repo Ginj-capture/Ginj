@@ -65,7 +65,7 @@ public class StarWindow extends JWindow {
     private Color defaultPaneBackground;
 
     // Current state
-    private boolean isWindowFocused = false;
+    private boolean isWindowDeployed = false;
     private boolean isDragging = false;
     private int highlightedButtonId = BTN_NONE;
 
@@ -134,7 +134,7 @@ public class StarWindow extends JWindow {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
-            if (isWindowFocused) {
+            if (isWindowDeployed) {
                 // Image with rays
                 g2d.drawImage(starRaysImg, 0, 0, this);
                 if (!isDragging) {
@@ -171,12 +171,12 @@ public class StarWindow extends JWindow {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                changeFocus(contentPane, true);
+                setDeployed(contentPane, true);
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                changeFocus(contentPane, false);
+                setDeployed(contentPane, false);
             }
 
             @Override
@@ -222,7 +222,7 @@ public class StarWindow extends JWindow {
                         case BTN_HISTORY -> onHistory();
                         case BTN_MORE -> onMore();
                     }
-                    isWindowFocused = false;
+                    isWindowDeployed = false;
                     window.repaint();
                 }
             }
@@ -248,13 +248,13 @@ public class StarWindow extends JWindow {
         window.addMouseMotionListener(mouseAdapter);
     }
 
-    private void changeFocus(JComponent contentPane, boolean focused) {
-        isWindowFocused = focused;
-        if (focused) {
+    private void setDeployed(JComponent contentPane, boolean deployed) {
+        isWindowDeployed = deployed;
+        if (deployed) {
             // Show the handle as opaque
             setOpacity(OPACITY_FULL);
             // And make the background of the window "visible", but filled with an almost transparent color
-            // This has the effect of capturing mouse events on the full rectangular Window once it is focused,
+            // This has the effect of capturing mouse events on the full rectangular Window once it is deployed,
             // which is necessary so that mouse doesn't "fall in the transparent holes" causing MouseExited events that
             // make the window "retract" to the handle-only view
             contentPane.setOpaque(true);

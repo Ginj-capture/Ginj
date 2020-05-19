@@ -54,6 +54,7 @@ public class CaptureSelectionFrame extends JFrame {
 
 
     // Current state
+    private BufferedImage capturedScreenImg;
     private Point rememberedReferenceOffset = null; // filled when selecting or dragging
     private Rectangle selection; // filled when selection is done
     private int currentOperation = OPERATION_NONE;
@@ -136,7 +137,6 @@ public class CaptureSelectionFrame extends JFrame {
 
     public class CaptureMainPane extends JPanel {
         // Caching
-        private BufferedImage capturedScreenImg;
         private Polygon screenShape;
         private Font font;
         private FontRenderContext fontRenderContext;
@@ -622,8 +622,12 @@ public class CaptureSelectionFrame extends JFrame {
 
 
     private void onCaptureImage() {
-        // Crop now to screen dimensions (check that selection can be moved in and out of screen before this point)
-        // TODO
+        // Crop image
+        final Rectangle croppedSelection = selection.intersection(new Rectangle(screenSize));
+        final BufferedImage capturedImg = capturedScreenImg.getSubimage(croppedSelection.x, croppedSelection.y, croppedSelection.width, croppedSelection.height);
+        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(capturedImg);
+        captureEditingFrame.setVisible(true);
+        dispose();
     }
 
     private void onCaptureVideo() {

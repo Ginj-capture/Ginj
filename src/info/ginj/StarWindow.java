@@ -11,7 +11,7 @@ import java.io.IOException;
 
 /**
  * This "Star" Window is the original widget displayed at the border of the screen to initiate a capture
- *
+ * <p>
  * UI transparency based on sample code by MadProgrammer at https://stackoverflow.com/questions/26205164/java-custom-shaped-frame-using-image
  */
 public class StarWindow extends JWindow {
@@ -24,6 +24,8 @@ public class StarWindow extends JWindow {
 
     public static final float OPACITY_HALF = 0.5f;
     public static final float OPACITY_FULL = 1.0f;
+
+    public static final int STAR_ONLY_RADIUS = 25;
 
     // Button sizes
     public static final int LARGE_SIZE_PIXELS = 40;
@@ -166,8 +168,7 @@ public class StarWindow extends JWindow {
     private void addMouseBehaviour(JComponent contentPane) {
         JWindow window = this;
         MouseAdapter mouseAdapter = new MouseAdapter() {
-            private int pX;
-            private int pY;
+            private Point mousePressedPoint;
 
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -181,24 +182,41 @@ public class StarWindow extends JWindow {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                // Get x,y and store them
-                pX = e.getX();
-                pY = e.getY();
-                isDragging = true;
-                window.repaint();
+                // Get clicked point (relative to Window) and store it
+                mousePressedPoint = e.getPoint();
+                // If clicked happened on center of star
+                // That is if distance between click point and center is less than radius
+                if (Math.pow(window.getWidth() / 2.0 - mousePressedPoint.x, 2)
+                        + Math.pow(window.getHeight() / 2.0 - mousePressedPoint.y, 2)
+                        < Math.pow(STAR_ONLY_RADIUS, 2)) {
+                    // Start dragging
+                    isDragging = true;
+                    window.repaint();
+                }
             }
 
             // Move window to border closest to center
             @Override
             public void mouseReleased(MouseEvent e) {
-                window.setLocation(getClosestPointOnScreenBorder());
-                isDragging = false;
-                window.repaint();
+                if (isDragging) {
+                    window.setLocation(getClosestPointOnScreenBorder());
+                    isDragging = false;
+                    window.repaint();
+                }
+                else if (Math.abs(e.getPoint().x - mousePressedPoint.x) < 5 && Math.abs(e.getPoint().y - mousePressedPoint.y) < 5) {
+                    // Small move is considered a click
+                    mouseClicked(e);
+                }
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                window.setLocation(window.getLocation().x + e.getX() - pX, window.getLocation().y + e.getY() - pY);
+                if (isDragging) {
+                    window.setLocation(
+                            window.getLocation().x + e.getX() - mousePressedPoint.x,
+                            window.getLocation().y + e.getY() - mousePressedPoint.y
+                    );
+                }
             }
 
             @Override

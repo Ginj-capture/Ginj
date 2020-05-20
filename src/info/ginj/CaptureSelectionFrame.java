@@ -1,6 +1,6 @@
 /*
 TODO :
- - Do capture !
+ - Do capture editing
  - Implement Window detection using JNA
 */
 
@@ -31,7 +31,7 @@ import java.util.Map;
  * It takes up the full screen, captures the screen on startup and uses it as background, then paints the selection box
  * above it.
  * Note: an undecorated JFrame is required instead of a JWindow, otherwise keyboard events (ESC) are not captured
-*/
+ */
 public class CaptureSelectionFrame extends JFrame {
 
     public static final Color COLOR_ORANGE = new Color(251, 168, 25);
@@ -95,7 +95,7 @@ public class CaptureSelectionFrame extends JFrame {
             final JButton redoButton = new GinjButton("Redo selection", new ImageIcon(ImageIO.read(getClass().getResource("img/b_redo.png"))));
             redoButton.addActionListener(e -> onRedo());
             buttonBar.add(redoButton);
-            final JButton cancelButton = new GinjButton("Cancel",new ImageIcon(ImageIO.read(getClass().getResource("img/b_cancel.png"))));
+            final JButton cancelButton = new GinjButton("Cancel", new ImageIcon(ImageIO.read(getClass().getResource("img/b_cancel.png"))));
             cancelButton.addActionListener(e -> onCancel());
             buttonBar.add(cancelButton);
             captureSizeLabel = new JLabel("9999 x 9999");
@@ -577,7 +577,7 @@ public class CaptureSelectionFrame extends JFrame {
         // Find the best position according to selection and bar size
         // Note: not the exact same strategy as the original, but close...
         Rectangle bestBounds = null;
-        Point[] candidatePositions = new Point[] {
+        Point[] candidatePositions = new Point[]{
                 new Point(selection.x, selection.y + selection.height), // Below bottom left
                 new Point(selection.x, selection.y - barHeight), // Above top left
                 new Point(selection.x - barWidth, selection.y), // Next to top left

@@ -1,20 +1,27 @@
 <!--
-    see https://docs.oracle.com/javase/tutorial/uiswing/lookandfeel/synth.html
+    See:
+    https://docs.oracle.com/javase/tutorial/uiswing/lookandfeel/synth.html
+    https://docs.oracle.com/javase/tutorial/uiswing/lookandfeel/synthExample.html
     https://docs.oracle.com/javase/8/docs/api/javax/swing/plaf/synth/doc-files/synthFileFormat.html
     https://dzone.com/articles/easynth-look-and-feel-customiz-0
     https://www.ibm.com/developerworks/java/library/j-synth/
 -->
 <synth>
+
+    <object id="EaSynthGraphicsUtils" class="com.easynth.designer.laf.utils.EaSynthGraphicsUtils"/>
+    <object id="EaSynthPainter" class="com.easynth.designer.laf.painter.EaSynthPainter"/>
+
     <!-- Style that all regions will use -->
     <style id="backingStyle">
         <!-- Make all the regions opaque-->
         <opaque value="TRUE"/>
         <font name="Dialog" size="12"/>
-        <state>
-            <!-- Provide default colors -->
-            <color value="#222425" type="BACKGROUND"/>
-            <color value="#FBB901" type="FOREGROUND"/>
-        </state>
+        <!-- TODO if the following colors are defined, the scrollbar arrows do not work on hover -->
+<!--        <state>-->
+<!--            &lt;!&ndash; Provide default colors &ndash;&gt;-->
+<!--            <color value="#222425" type="BACKGROUND"/>-->
+<!--            <color value="#FBB901" type="FOREGROUND"/>-->
+<!--        </state>-->
     </style>
     <bind style="backingStyle" type="region" key=".*"/>
 
@@ -24,30 +31,192 @@
         <insets top="4" left="12" right="12" bottom="4"/>
         <state>
             <!-- Note: sourceInsets are top, left, bottom, and right -->
-            <imagePainter method="buttonBackground" path="img/b_button-bg.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="img/laf_button_bg.png" sourceInsets="4 4 4 4"/>
+            <color value="#0000FF" type="BACKGROUND"/>
+            <color value="#FF0000" type="FOREGROUND"/>
         </state>
         <state value="PRESSED">
-            <imagePainter method="buttonBackground" path="img/b_button-bg-pressed.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="img/laf_button_bg_pressed.png" sourceInsets="4 4 4 4"/>
+            <color value="#0000FF" type="BACKGROUND"/>
+            <color value="#FF0000" type="FOREGROUND"/>
         </state>
     </style>
     <bind style="buttonStyle" type="region" key="Button"/>
 
-    <style id="labelStyle">
-        <font name="SansSerif" size="12" style="BOLD"/>
-        <state>
-            <!-- Slightly darker color than general background -->
-<!--            <color value="#181A1B" type="BACKGROUND"/>-->
-            <color value="#FF0000" type="BACKGROUND"/>
+    <!-- The style for arrow buttons. -->
+    <style id="Arrow Button">
+        <property key="ArrowButton.size" type="integer" value="14"/>
+        <painter idref="EaSynthPainter" method="arrowButtonForeground" direction="north"/>
+        <painter idref="EaSynthPainter" method="arrowButtonForeground" direction="west"/>
+        <painter idref="EaSynthPainter" method="arrowButtonForeground" direction="south"/>
+        <painter idref="EaSynthPainter" method="arrowButtonForeground" direction="east"/>
+        <state value="ENABLED">
+            <color value="#0000FF" type="BACKGROUND"/>
+            <color value="#FF0000" type="FOREGROUND"/>
+            <imageIcon id="Arrow_Up_Enabled" path="img/laf_arrow_up_normal.png"/>
+            <property key="EaSynth.arrow.up.enabled" type="idref" value="Arrow_Up_Enabled"/>
+            <imageIcon id="Arrow_Left_Enabled" path="img/laf_arrow_left_normal.png"/>
+            <property key="EaSynth.arrow.left.enabled" type="idref" value="Arrow_Left_Enabled"/>
+            <imageIcon id="Arrow_Down_Enabled" path="img/laf_arrow_down_normal.png"/>
+            <property key="EaSynth.arrow.down.enabled" type="idref" value="Arrow_Down_Enabled"/>
+            <imageIcon id="Arrow_Right_Enabled" path="img/laf_arrow_right_normal.png"/>
+            <property key="EaSynth.arrow.right.enabled" type="idref" value="Arrow_Right_Enabled"/>
+        </state>
+        <state value="MOUSE_OVER">
+            <color value="#0000FF" type="BACKGROUND"/>
+            <color value="#FF0000" type="FOREGROUND"/>
+            <imageIcon id="Arrow_Up_MouseOver" path="img/laf_arrow_up_over.png"/>
+            <property key="EaSynth.arrow.up.mouseover" type="idref" value="Arrow_Up_MouseOver"/>
+            <imageIcon id="Arrow_Left_MouseOver" path="img/laf_arrow_left_over.png"/>
+            <property key="EaSynth.arrow.left.mouseover" type="idref" value="Arrow_Left_MouseOver"/>
+            <imageIcon id="Arrow_Down_MouseOver" path="img/laf_arrow_down_over.png"/>
+            <property key="EaSynth.arrow.down.mouseover" type="idref" value="Arrow_Down_MouseOver"/>
+            <imageIcon id="Arrow_Right_MouseOver" path="img/laf_arrow_right_over.png"/>
+            <property key="EaSynth.arrow.right.mouseover" type="idref" value="Arrow_Right_MouseOver"/>
+        </state>
+        <!-- TODO USEFUL ?? -->
+        <state value="PRESSED">
+            <color value="#0000FF" type="BACKGROUND"/>
+            <color value="#FF0000" type="FOREGROUND"/>
+            <imageIcon id="Arrow_Up_Pressed" path="img/laf_arrow_up_over.png"/>
+            <property key="EaSynth.arrow.up.pressed" type="idref" value="Arrow_Up_Pressed"/>
+            <imageIcon id="Arrow_Left_Pressed" path="img/laf_arrow_left_over.png"/>
+            <property key="EaSynth.arrow.left.pressed" type="idref" value="Arrow_Left_Pressed"/>
+            <imageIcon id="Arrow_Down_Pressed" path="img/laf_arrow_down_over.png"/>
+            <property key="EaSynth.arrow.down.pressed" type="idref" value="Arrow_Down_Pressed"/>
+            <imageIcon id="Arrow_Right_Pressed" path="img/laf_arrow_right_over.png"/>
+            <property key="EaSynth.arrow.right.pressed" type="idref" value="Arrow_Right_Pressed"/>
+        </state>
+        <!-- TODO USEFUL ?? -->
+        <state value="DISABLED">
+            <color value="#0000FF" type="BACKGROUND"/>
+            <color value="#FF0000" type="FOREGROUND"/>
+            <imageIcon id="Arrow_Up_Disabled" path="img/laf_arrow_up_over.png"/>
+            <property key="EaSynth.arrow.up.disabled" type="idref" value="Arrow_Up_Disabled"/>
+            <imageIcon id="Arrow_Left_Disabled" path="img/laf_arrow_left_over.png"/>
+            <property key="EaSynth.arrow.left.disabled" type="idref" value="Arrow_Left_Disabled"/>
+            <imageIcon id="Arrow_Down_Disabled" path="img/laf_arrow_down_over.png"/>
+            <property key="EaSynth.arrow.down.disabled" type="idref" value="Arrow_Down_Disabled"/>
+            <imageIcon id="Arrow_Right_Disabled" path="img/laf_arrow_right_over.png"/>
+            <property key="EaSynth.arrow.right.disabled" type="idref" value="Arrow_Right_Disabled"/>
         </state>
     </style>
-    <bind style="labelStyle" type="region" key="Label"/>
+    <bind style="Arrow Button" type="region" key="ArrowButton" />
+
+    <!-- The style for scroll bar component. -->
+    <style id="Scroll Bar">
+        <property key="ScrollBar.minimumThumbSize" type="dimension" value="18 18"/>
+        <object id="ScrollBar_Bg_Color" class="java.awt.Color">
+            <int>241</int>
+            <int>233</int>
+            <int>217</int>
+            <int>255</int>
+        </object>
+        <defaultsProperty key="EaSynth.scrollbar.bgcolor" type="idref" value="ScrollBar_Bg_Color"/>
+        <object id="ScrollBar_Border_Color" class="java.awt.Color">
+            <int>190</int>
+            <int>180</int>
+            <int>160</int>
+            <int>255</int>
+        </object>
+        <defaultsProperty key="EaSynth.scrollbar.bordercolor" type="idref" value="ScrollBar_Border_Color"/>
+        <painter idref="EaSynthPainter" method="scrollBarBackground"/>
+        <painter idref="EaSynthPainter" method="scrollBarBorder"/>
+        <property key="ScrollBar.thumbHeight" type="integer" value="18"/>
+    </style>
+    <bind style="Scroll Bar" type="region" key="ScrollBar" />
+
+    <!-- The style for the track of scroll bar. -->
+    <style id="Scroll Bar Track">
+        <object id="ScrollBar_Track_SideColor" class="java.awt.Color">
+            <int>48</int>
+            <int>48</int>
+            <int>48</int>
+            <int>255</int>
+        </object>
+        <defaultsProperty key="EaSynth.scrollbar.track.sidecolor" type="idref" value="ScrollBar_Track_SideColor"/>
+        <object id="ScrollBar_Track_CenterColor" class="java.awt.Color">
+            <int>48</int>
+            <int>48</int>
+            <int>48</int>
+            <int>255</int>
+        </object>
+        <defaultsProperty key="EaSynth.scrollbar.track.centercolor" type="idref" value="ScrollBar_Track_CenterColor"/>
+        <object id="ScrollBar_Track_BorderColor" class="java.awt.Color">
+            <int>32</int>
+            <int>32</int>
+            <int>32</int>
+            <int>255</int>
+        </object>
+        <defaultsProperty key="EaSynth.scrollbar.track.bordercolor" type="idref" value="ScrollBar_Track_BorderColor"/>
+        <painter idref="EaSynthPainter" method="scrollBarTrackBackground"/>
+        <painter idref="EaSynthPainter" method="scrollBarTrackBorder"/>
+    </style>
+    <bind style="Scroll Bar Track" type="region" key="ScrollBarTrack" />
+
+    <!-- The style for the thumb of the scroll bar. -->
+    <style id="Scroll Bar Thumb">
+        <object id="ScrollBar_Thumb_SideColor" class="java.awt.Color">
+            <int>147</int>
+            <int>107</int>
+            <int>2</int>
+            <int>255</int>
+        </object>
+        <defaultsProperty key="EaSynth.scrollbar.thumb.sidecolor" type="idref" value="ScrollBar_Thumb_SideColor"/>
+        <object id="ScrollBar_Thumb_CenterColor" class="java.awt.Color">
+            <int>251</int>
+            <int>225</int>
+            <int>155</int>
+            <int>255</int>
+        </object>
+        <defaultsProperty key="EaSynth.scrollbar.thumb.centercolor" type="idref" value="ScrollBar_Thumb_CenterColor"/>
+        <object id="ScrollBar_Thumb_BorderColor" class="java.awt.Color">
+            <int>19</int>
+            <int>20</int>
+            <int>20</int>
+            <int>255</int>
+        </object>
+        <defaultsProperty key="EaSynth.scrollbar.thumb.borderthick" type="integer" value="1"/>
+        <defaultsProperty key="EaSynth.scrollbar.thumb.bordercolor" type="idref" value="ScrollBar_Thumb_BorderColor"/>
+        <imageIcon id="ScrollBar_Thumb_Image" path="img/laf_scrollbar_thumb.png"/>
+        <property key="EaSynth.scrollbar.thumb.image" type="idref" value="ScrollBar_Thumb_Image"/>
+        <painter idref="EaSynthPainter" method="scrollBarThumbBackground"/>
+        <painter idref="EaSynthPainter" method="scrollBarThumbBorder"/>
+    </style>
+    <bind style="Scroll Bar Thumb" type="region" key="ScrollBarThumb" />
+
+    <style id="GinjPanelStyle">
+    </style>
+    <bind style="GinjPanelStyle" type="name" key="GinjPanel"/>
+
+    <style id="GinjButtonBarStyle">
+        <opaque value="TRUE"/>
+        <insets top="5" left="0" bottom="5" right="0"/>
+        <state>
+            <!-- Provide colors -->
+            <color value="#222425" type="BACKGROUND"/>
+            <color value="#FBB901" type="FOREGROUND"/>
+        </state>
+    </style>
+    <bind style="GinjButtonBarStyle" type="name" key="GinjButtonBar"/>
+
+
+
+    <!--    <style id="labelStyle">-->
+<!--        <font name="SansSerif" size="12" style="BOLD"/>-->
+<!--        <state>-->
+<!--            &lt;!&ndash; Slightly darker color than general background TODO force opaque ? &ndash;&gt;-->
+<!--&lt;!&ndash;            <color value="#181A1B" type="BACKGROUND"/>&ndash;&gt;-->
+<!--            <color value="#FF0000" type="BACKGROUND"/>-->
+<!--        </state>-->
+<!--    </style>-->
+<!--    <bind style="labelStyle" type="region" key="Label"/>-->
 
     <style id="GinjButtonTooltipStyle">
         <state>
             <!-- Override default colors -->
 <!--            <color value="#222425" type="BACKGROUND"/>-->
-            <color value="#FF0000" type="BACKGROUND"/>
-            <color value="#FFFFFF" type="FOREGROUND"/>-->
+            <color value="#FFFFFF" type="FOREGROUND"/>
         </state>
     </style>
     <bind style="GinjButtonTooltipStyle" type="name" key="GinjButtonTooltip"/>

@@ -17,6 +17,7 @@ public class GinjButtonBar extends JPanel {
 
     public GinjButtonBar(boolean isDoubleBuffered) {
         super(isDoubleBuffered);
+        setName("GinjButtonBar"); // To be used as a selector in laf.xml
         setLayout(new GridBagLayout());
 
         // Prepare top left "tooltip" panel, dimensioned according to the JLabel it contains

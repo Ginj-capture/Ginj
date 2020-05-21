@@ -1,7 +1,11 @@
 /*
 TODO :
  - Do capture editing
+ - Fix ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp  640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
+ - Finalize Look and feel
  - Implement Window detection using JNA
+ - Implement "exports"
+ - Implement local storage
 */
 
 package info.ginj;
@@ -69,7 +73,7 @@ public class CaptureSelectionFrame extends JFrame {
         super();
         screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 // Simulate a half screen to be able to debug in parallel of "full screen" capture window on top
-//screenSize.setSize(screenSize.width/2, screenSize.height);
+screenSize.setSize(screenSize.width/2, screenSize.height);
 
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
@@ -83,7 +87,8 @@ public class CaptureSelectionFrame extends JFrame {
 
         // Prepare button bar
         actionPanel = new JPanel(); // To add a margin around buttonBar
-        actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 5));
+        actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        actionPanel.setName("GinjPanel"); // To be used as a selector in laf.xml
         JPanel buttonBar = new GinjButtonBar();
         try {
             imageButton = new GinjButton("Capture image", new ImageIcon(ImageIO.read(getClass().getResource("img/b_image.png"))));

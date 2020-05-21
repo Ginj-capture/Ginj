@@ -28,7 +28,7 @@ public class Ginj {
 
         SynthLookAndFeel ginjLookAndFeel = new SynthLookAndFeel();
         try {
-            ginjLookAndFeel.load(SynthLafTest.class.getResourceAsStream(LAF_XML), SynthLafTest.class);
+            ginjLookAndFeel.load(Ginj.class.getResourceAsStream(LAF_XML), SynthLafTest.class);
             UIManager.setLookAndFeel(ginjLookAndFeel);
 //            UIManager.setLookAndFeel("com.easynth.designer.laf.EaSynthLookAndFeel");
         }

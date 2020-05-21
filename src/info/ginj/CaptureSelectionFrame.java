@@ -1,13 +1,3 @@
-/*
-TODO :
- - Do capture editing
- - Fix ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp  640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
- - Finalize Look and feel
- - Implement Window detection using JNA
- - Implement "exports"
- - Implement local storage
-*/
-
 package info.ginj;
 
 import info.ginj.ui.GinjButton;

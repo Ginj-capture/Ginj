@@ -30,6 +30,7 @@ public class Ginj {
         try {
             ginjLookAndFeel.load(SynthLafTest.class.getResourceAsStream(LAF_XML), SynthLafTest.class);
             UIManager.setLookAndFeel(ginjLookAndFeel);
+//            UIManager.setLookAndFeel("com.easynth.designer.laf.EaSynthLookAndFeel");
         }
         catch (Exception e) {
             System.err.println("Error loading Ginj look and feel");

@@ -1,0 +1,1246 @@
+<synth>
+	<!-- This backing style will make sure that any components that do not match a specific style will have a default style. -->
+	<style id="Default">
+		<font name="Dialog" size="12"/>
+		<object id="Button_Border_Color_Enabled" class="java.awt.Color">
+			<int>192</int>
+
+			<int>170</int>
+
+			<int>145</int>
+
+			<int>255</int>
+		</object>
+		<object id="Button_Border_Color_MouseOver" class="java.awt.Color">
+			<int>128</int>
+
+			<int>100</int>
+
+			<int>80</int>
+
+			<int>255</int>
+		</object>
+		<object id="Button_Border_Color_Pressed" class="java.awt.Color">
+			<int>80</int>
+
+			<int>65</int>
+
+			<int>40</int>
+
+			<int>255</int>
+		</object>
+		<object id="Button_Border_Color_Disabled" class="java.awt.Color">
+			<int>192</int>
+
+			<int>170</int>
+
+			<int>145</int>
+
+			<int>255</int>
+		</object>
+		<object id="Button_Border_Color_Default_Enabled" class="java.awt.Color">
+			<int>220</int>
+
+			<int>145</int>
+
+			<int>40</int>
+
+			<int>255</int>
+		</object>
+		<object id="Button_Border_Color_Default_MouseOver" class="java.awt.Color">
+			<int>202</int>
+
+			<int>101</int>
+
+			<int>0</int>
+
+			<int>255</int>
+		</object>
+		<object id="Button_Border_Color_Default_Pressed" class="java.awt.Color">
+			<int>155</int>
+
+			<int>78</int>
+
+			<int>0</int>
+
+			<int>255</int>
+		</object>
+		<object id="Button_Border_Color_Default_Disabled" class="java.awt.Color">
+			<int>255</int>
+
+			<int>128</int>
+
+			<int>0</int>
+
+			<int>255</int>
+		</object>
+		<object id="InternalFrame_MainColor" class="java.awt.Color">
+			<int>190</int>
+
+			<int>160</int>
+
+			<int>140</int>
+
+			<int>255</int>
+		</object>
+		<object id="TitledBorder_TextColor" class="java.awt.Color">
+			<int>140</int>
+
+			<int>125</int>
+
+			<int>100</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="TitledBorder.titleColor" type="idref" value="TitledBorder_TextColor"/>
+		<object id="EaSynthGraphicsUtils" class="com.easynth.designer.laf.utils.EaSynthGraphicsUtils"></object>
+		<object id="EaSynthPainter" class="com.easynth.designer.laf.painter.EaSynthPainter"></object>
+	</style>
+	<bind style="Default" type="region" key=".*" />
+
+	<!-- The style for arrow buttons. -->
+	<style id="Arrow Button">
+		<property key="ArrowButton.size" type="integer" value="14"/>
+		<painter idref="EaSynthPainter" method="arrowButtonForeground" direction="north"/>
+		<painter idref="EaSynthPainter" method="arrowButtonForeground" direction="west"/>
+		<painter idref="EaSynthPainter" method="arrowButtonForeground" direction="south"/>
+		<painter idref="EaSynthPainter" method="arrowButtonForeground" direction="east"/>
+		<state value="ENABLED">
+			<imageIcon id="Arrow_Up_Enabled" path="resource/1204972099671_arrow_up_normal.png"/>
+			<property key="EaSynth.arrow.up.enabled" type="idref" value="Arrow_Up_Enabled"/>
+			<imageIcon id="Arrow_Left_Enabled" path="resource/1204972109765_arrow_left_normal.png"/>
+			<property key="EaSynth.arrow.left.enabled" type="idref" value="Arrow_Left_Enabled"/>
+			<imageIcon id="Arrow_Down_Enabled" path="resource/1204972119562_arrow_down_normal.png"/>
+			<property key="EaSynth.arrow.down.enabled" type="idref" value="Arrow_Down_Enabled"/>
+			<imageIcon id="Arrow_Right_Enabled" path="resource/1204972131593_arrow_right_normal.png"/>
+			<property key="EaSynth.arrow.right.enabled" type="idref" value="Arrow_Right_Enabled"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<imageIcon id="Arrow_Up_MouseOver" path="resource/1204972154296_arrow_up_over.png"/>
+			<property key="EaSynth.arrow.up.mouseover" type="idref" value="Arrow_Up_MouseOver"/>
+			<imageIcon id="Arrow_Left_MouseOver" path="resource/1204972172953_arrow_left_over.png"/>
+			<property key="EaSynth.arrow.left.mouseover" type="idref" value="Arrow_Left_MouseOver"/>
+			<imageIcon id="Arrow_Down_MouseOver" path="resource/1204972180796_arrow_down_over.png"/>
+			<property key="EaSynth.arrow.down.mouseover" type="idref" value="Arrow_Down_MouseOver"/>
+			<imageIcon id="Arrow_Right_MouseOver" path="resource/1204972188046_arrow_right_over.png"/>
+			<property key="EaSynth.arrow.right.mouseover" type="idref" value="Arrow_Right_MouseOver"/>
+		</state>
+		<state value="PRESSED">
+			<imageIcon id="Arrow_Up_Pressed" path="resource/1204972222593_arrow_up_press.png"/>
+			<property key="EaSynth.arrow.up.pressed" type="idref" value="Arrow_Up_Pressed"/>
+			<imageIcon id="Arrow_Left_Pressed" path="resource/1204972229812_arrow_left_press.png"/>
+			<property key="EaSynth.arrow.left.pressed" type="idref" value="Arrow_Left_Pressed"/>
+			<imageIcon id="Arrow_Down_Pressed" path="resource/1204972236828_arrow_down_press.png"/>
+			<property key="EaSynth.arrow.down.pressed" type="idref" value="Arrow_Down_Pressed"/>
+			<imageIcon id="Arrow_Right_Pressed" path="resource/1204972243953_arrow_right_press.png"/>
+			<property key="EaSynth.arrow.right.pressed" type="idref" value="Arrow_Right_Pressed"/>
+		</state>
+		<state value="DISABLED">
+			<imageIcon id="Arrow_Up_Disabled" path="resource/1204972279156_arrow_up_disable.png"/>
+			<property key="EaSynth.arrow.up.disabled" type="idref" value="Arrow_Up_Disabled"/>
+			<imageIcon id="Arrow_Left_Disabled" path="resource/1204972286015_arrow_left_disable.png"/>
+			<property key="EaSynth.arrow.left.disabled" type="idref" value="Arrow_Left_Disabled"/>
+			<imageIcon id="Arrow_Down_Disabled" path="resource/1204972293703_arrow_down_disable.png"/>
+			<property key="EaSynth.arrow.down.disabled" type="idref" value="Arrow_Down_Disabled"/>
+			<imageIcon id="Arrow_Right_Disabled" path="resource/1204972301171_arrow_right_disable.png"/>
+			<property key="EaSynth.arrow.right.disabled" type="idref" value="Arrow_Right_Disabled"/>
+		</state>
+	</style>
+	<bind style="Arrow Button" type="region" key="ArrowButton" />
+
+	<!-- The style for regular button. -->
+	<style id="Button">
+		<insets top="4" left="6" bottom="4" right="6"/>
+		<!-- Comment this out, since the background image already have border. -->
+		<painter idref="EaSynthPainter" method="#buttonBorder"/>
+		<!-- This property will specify the arc with of the round border -->
+		<defaultsProperty key="EaSynth.button.arc.width" type="integer" value="9"/>
+		<!-- This property will specify the arc height of the round border -->
+		<defaultsProperty key="EaSynth.button.arc.height" type="integer" value="9"/>
+		<defaultsProperty key="EaSynth.button.border.color.enabled" type="idref" value="Button_Border_Color_Enabled"/>
+		<defaultsProperty key="EaSynth.button.border.color.mouseover" type="idref" value="Button_Border_Color_MouseOver"/>
+		<defaultsProperty key="EaSynth.button.border.color.pressed" type="idref" value="Button_Border_Color_Pressed"/>
+		<defaultsProperty key="EaSynth.button.border.color.disabled" type="idref" value="Button_Border_Color_Disabled"/>
+		<defaultsProperty key="EaSynth.button.border.color.default.enabled" type="idref" value="Button_Border_Color_Default_Enabled"/>
+		<defaultsProperty key="EaSynth.button.border.color.default.mouseover" type="idref" value="Button_Border_Color_Default_MouseOver"/>
+		<defaultsProperty key="EaSynth.button.border.color.default.pressed" type="idref" value="Button_Border_Color_Default_Pressed"/>
+		<defaultsProperty key="EaSynth.button.border.color.default.disabled" type="idref" value="Button_Border_Color_Default_Disabled"/>
+		<state value="ENABLED">
+			<imagePainter method="buttonBackground" path="resource/1224501453906_button_normal.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<imagePainter method="buttonBackground" path="resource/1224501467750_button_mouseover.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="PRESSED">
+			<imagePainter method="buttonBackground" path="resource/1224501483062_button_pressed.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="buttonBackground" path="resource/1224501508500_button_disabled.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+		</state>
+	</style>
+	<bind style="Button" type="region" key="Button" />
+
+	<!-- The style for check box button. -->
+	<style id="Check Box">
+		<property key="CheckBox.margin" type="insets" value="2 2 2 2"/>
+		<state value="ENABLED">
+			<imageIcon id="Checkbox_Normal" path="resource/1252460248375_checkbox_normal.png"/>
+			<property key="CheckBox.icon" type="idref" value="Checkbox_Normal"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<imageIcon id="Checkbox_MouseOver" path="resource/1252460265734_checkbox_mouseover.png"/>
+			<property key="CheckBox.icon" type="idref" value="Checkbox_MouseOver"/>
+		</state>
+		<state value="SELECTED">
+			<imageIcon id="Checkbox_Selected" path="resource/1252460276453_checkbox_selected.png"/>
+			<property key="CheckBox.icon" type="idref" value="Checkbox_Selected"/>
+		</state>
+		<state value="DISABLED">
+			<imageIcon id="Checkbox_Disabled" path="resource/1252460290953_checkbox_disabled.png"/>
+			<property key="CheckBox.icon" type="idref" value="Checkbox_Disabled"/>
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+		</state>
+		<state value="PRESSED">
+			<imageIcon id="Checkbox_Pressed" path="resource/1257478593311_checkbox_pressed.png"/>
+			<property key="CheckBox.icon" type="idref" value="Checkbox_Pressed"/>
+		</state>
+		<state value="DISABLED and SELECTED">
+			<imageIcon id="Checkbox_Disabled_Selected" path="resource/1264210516109_checkbox_disabled_selected.png"/>
+			<property key="CheckBox.icon" type="idref" value="Checkbox_Disabled_Selected"/>
+		</state>
+	</style>
+	<bind style="Check Box" type="region" key="CheckBox" />
+
+	<!-- The style for radio button. -->
+	<style id="Radio Button">
+		<property key="RadioButton.margin" type="insets" value="2 2 2 2"/>
+		<state value="ENABLED">
+			<imageIcon id="Radio_Button_Normal" path="resource/1252458931609_radio_enabled.png"/>
+			<property key="RadioButton.icon" type="idref" value="Radio_Button_Normal"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<imageIcon id="Radio_Button_MouseOver" path="resource/1252458949640_radio_mouseover.png"/>
+			<property key="RadioButton.icon" type="idref" value="Radio_Button_MouseOver"/>
+		</state>
+		<state value="PRESSED">
+			<imageIcon id="Radio_Button_Pressed" path="resource/1252458961921_radio_pressed.png"/>
+			<property key="RadioButton.icon" type="idref" value="Radio_Button_Pressed"/>
+		</state>
+		<state value="DISABLED">
+			<imageIcon id="Radio_Button_Disabled" path="resource/1252458992640_radio_disabled.png"/>
+			<property key="RadioButton.icon" type="idref" value="Radio_Button_Disabled"/>
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+		</state>
+		<state value="SELECTED">
+			<imageIcon id="Radio_Button_Selected" path="resource/1252458981875_radio_selected.png"/>
+			<property key="RadioButton.icon" type="idref" value="Radio_Button_Selected"/>
+		</state>
+		<state value="DISABLED and SELECTED">
+			<imageIcon id="Radio_Button_Disabled_Selected" path="resource/1264211465625_radio_disabled_selected.png"/>
+			<property key="RadioButton.icon" type="idref" value="Radio_Button_Disabled_Selected"/>
+		</state>
+	</style>
+	<bind style="Radio Button" type="region" key="RadioButton" />
+
+	<!-- The style for toggle button. -->
+	<style id="Toggle Button">
+		<insets top="4" left="6" bottom="4" right="6"/>
+		<!-- Comment this out, since the background image already has borders. -->
+		<painter idref="EaSynthPainter" method="#toggleButtonBorder"/>
+		<!-- This property will specify the arc with of the round border -->
+		<defaultsProperty key="EaSynth.button.arc.width" type="integer" value="9"/>
+		<!-- This property will specify the arc height of the round border -->
+		<defaultsProperty key="EaSynth.button.arc.height" type="integer" value="9"/>
+		<defaultsProperty key="EaSynth.button.border.color.enabled" type="idref" value="Button_Border_Color_Enabled"/>
+		<defaultsProperty key="EaSynth.button.border.color.mouseover" type="idref" value="Button_Border_Color_MouseOver"/>
+		<defaultsProperty key="EaSynth.button.border.color.pressed" type="idref" value="Button_Border_Color_Pressed"/>
+		<defaultsProperty key="EaSynth.button.border.color.disabled" type="idref" value="Button_Border_Color_Disabled"/>
+		<defaultsProperty key="EaSynth.button.border.color.default.enabled" type="idref" value="Button_Border_Color_Default_Enabled"/>
+		<defaultsProperty key="EaSynth.button.border.color.default.mouseover" type="idref" value="Button_Border_Color_Default_MouseOver"/>
+		<defaultsProperty key="EaSynth.button.border.color.default.pressed" type="idref" value="Button_Border_Color_Default_Pressed"/>
+		<defaultsProperty key="EaSynth.button.border.color.default.disabled" type="idref" value="Button_Border_Color_Default_Disabled"/>
+		<state value="ENABLED">
+			<imagePainter method="toggleButtonBackground" path="resource/1224501609875_button_normal.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<imagePainter method="toggleButtonBackground" path="resource/1224501630593_button_mouseover.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="PRESSED">
+			<imagePainter method="toggleButtonBackground" path="resource/1224501645640_button_pressed.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="toggleButtonBackground" path="resource/1224501664125_button_disabled.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+		</state>
+		<state value="SELECTED">
+			<imagePainter method="toggleButtonBackground" path="resource/1224501687187_button_pressed.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Toggle Button" type="region" key="ToggleButton" />
+
+	<!-- The style for color chooser component. -->
+	<style id="Color Chooser">
+	</style>
+	<bind style="Color Chooser" type="region" key="ColorChooser" />
+
+	<!-- The style for combo box component. -->
+	<style id="Combo Box">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<property key="ComboBox.showPopupOnNavigation" type="boolean" value="true"/>
+		<property key="ComboBox.rendererUseListColors" type="boolean" value="false"/>
+		<painter idref="EaSynthPainter" method="comboBoxBorder"/>
+		<state value="ENABLED">
+			<imagePainter method="comboBoxBackground" path="resource/1263602197905_combobox_normal.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="comboBoxBackground" path="resource/1263602213671_combobox_disabled.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Combo Box" type="region" key="ComboBox" />
+
+	<!-- The style for internal frame. -->
+	<style id="Internal Frame">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<imageIcon id="InternalFrame_Icon" path="resource/1204292723703_internal_frame_icon.png"/>
+		<property key="InternalFrame.icon" type="idref" value="InternalFrame_Icon"/>
+		<defaultsProperty key="EaSynth.internalframe.main.color" type="idref" value="InternalFrame_MainColor"/>
+		<painter idref="EaSynthPainter" method="internalFrameBackground"/>
+		<painter idref="EaSynthPainter" method="internalFrameBorder"/>
+	</style>
+	<bind style="Internal Frame" type="region" key="InternalFrame" />
+
+	<!-- The style for the title pane of internal frame. -->
+	<style id="Internal Frame Title Pane">
+		<property key="InternalFrameTitlePane.titleSpacing" type="integer" value="5"/>
+		<property key="InternalFrameTitlePane.maxFrameIconSize" type="dimension" value="24 24"/>
+		<imageIcon id="InternalFrame_MaximizeButton_Icon" path="resource/1204294372812_internal_frame_max_icon.png"/>
+		<property key="InternalFrameTitlePane.maximizeIcon" type="idref" value="InternalFrame_MaximizeButton_Icon"/>
+		<imageIcon id="InternalFrame_CloseButton_Icon" path="resource/1204294470625_internal_frame_close_icon.png"/>
+		<property key="InternalFrameTitlePane.closeIcon" type="idref" value="InternalFrame_CloseButton_Icon"/>
+		<imageIcon id="InternalFrame_RestoreButton_Icon" path="resource/1204295742281_internal_frame_restore_icon.png"/>
+		<property key="InternalFrameTitlePane.minimizeIcon" type="idref" value="InternalFrame_RestoreButton_Icon"/>
+		<imageIcon id="InternalFrame_MinimizeButton_Icon" path="resource/1204296642906_internal_frame_min_icon.png"/>
+		<property key="InternalFrameTitlePane.iconifyIcon" type="idref" value="InternalFrame_MinimizeButton_Icon"/>
+		<painter idref="EaSynthPainter" method="internalFrameTitlePaneBackground"/>
+		<painter idref="EaSynthPainter" method="internalFrameTitlePaneBorder"/>
+		<defaultsProperty key="EaSynth.internalframe.main.color" type="idref" value="InternalFrame_MainColor"/>
+		<insets top="2" left="2" bottom="2" right="2"/>
+	</style>
+	<bind style="Internal Frame Title Pane" type="region" key="InternalFrameTitlePane" />
+
+	<style id="Internal Frame Close Button">
+		<opaque value="true"/>
+		<state value="ENABLED">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+		<state value="PRESSED">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+		<state value="DISABLED">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+	</style>
+	<bind style="Internal Frame Close Button" type="name" key="InternalFrameTitlePane.closeButton" />
+
+	<style id="Internal Frame Minimize Button">
+		<opaque value="true"/>
+		<state value="ENABLED">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+		<state value="PRESSED">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+		<state value="DISABLED">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+	</style>
+	<bind style="Internal Frame Minimize Button" type="name" key="InternalFrameTitlePane.iconifyButton" />
+
+	<style id="Internal Frame Maximize Button">
+		<opaque value="true"/>
+		<state value="ENABLED">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+		<state value="PRESSED">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+		<state value="DISABLED">
+			<color idref="InternalFrame_MainColor" type="BACKGROUND"/>
+		</state>
+	</style>
+	<bind style="Internal Frame Maximize Button" type="name" key="InternalFrameTitlePane.maximizeButton" />
+
+	<!-- The style for desktop icon (iconified internal frame). -->
+	<style id="Desktop Icon">
+	</style>
+	<bind style="Desktop Icon" type="region" key="DesktopIcon" />
+
+	<!-- The style for desktop pane (the internal frame container). -->
+	<style id="DesktopPane">
+	</style>
+	<bind style="DesktopPane" type="region" key="DesktopPane" />
+
+	<!-- The style for file chooser component. -->
+	<style id="File Chooser">
+		<imageIcon id="FileChooser_Cancel_Icon" path="resource/1204902668718_filechooser_cancel_icon.png"/>
+		<property key="FileChooser.cancelIcon" type="idref" value="FileChooser_Cancel_Icon"/>
+		<imageIcon id="FileChooser_Ok_Icon" path="resource/1204902652625_filechooser_ok_icon.png"/>
+		<property key="FileChooser.okIcon" type="idref" value="FileChooser_Ok_Icon"/>
+		<imageIcon id="FileChooser_Folder_Icon" path="resource/1204876252109_filechooser_folder_icon.png"/>
+		<property key="FileView.directoryIcon" type="idref" value="FileChooser_Folder_Icon"/>
+		<imageIcon id="FileChooser_File_Icon" path="resource/1204876273515_filechooser_file_icon.png"/>
+		<property key="FileView.fileIcon" type="idref" value="FileChooser_File_Icon"/>
+		<imageIcon id="FileChooser_Computer_Icon" path="resource/1204902960359_filechooser_computer_icon.png"/>
+		<property key="FileView.computerIcon" type="idref" value="FileChooser_Computer_Icon"/>
+		<imageIcon id="FileChooser_Harddisk_Icon" path="resource/1204904675734_filechooser_harddisk_icon.png"/>
+		<property key="FileView.hardDriveIcon" type="idref" value="FileChooser_Harddisk_Icon"/>
+		<imageIcon id="FileChooser_Floppydriver_Icon" path="resource/1204905250468_filechooser_floppydriver_icon.png"/>
+		<property key="FileView.floppyDriveIcon" type="idref" value="FileChooser_Floppydriver_Icon"/>
+		<imageIcon id="FileChooser_NewFolder_Icon" path="resource/1204903127984_filechooser_newfolder_icon.png"/>
+		<property key="FileChooser.newFolderIcon" type="idref" value="FileChooser_NewFolder_Icon"/>
+		<imageIcon id="FileChooser_UpperFolder_Icon" path="resource/1204903072437_filechooser_upperfolder_icon.png"/>
+		<property key="FileChooser.upFolderIcon" type="idref" value="FileChooser_UpperFolder_Icon"/>
+		<imageIcon id="FileChooser_Home_Icon" path="resource/1204904952625_filechooser_home_icon.png"/>
+		<property key="FileChooser.homeFolderIcon" type="idref" value="FileChooser_Home_Icon"/>
+		<imageIcon id="FileChooser_Details_Icon" path="resource/1204905941328_filechooser_details_icon.png"/>
+		<property key="FileChooser.detailsViewIcon" type="idref" value="FileChooser_Details_Icon"/>
+		<imageIcon id="FileChooser_List_Icon" path="resource/1204905931656_filechooser_list_icon.png"/>
+		<property key="FileChooser.listViewIcon" type="idref" value="FileChooser_List_Icon"/>
+		<insets top="10" left="10" bottom="10" right="10"/>
+	</style>
+	<bind style="File Chooser" type="region" key="FileChooser" />
+
+	<!-- The style for list component. -->
+	<style id="List">
+		<insets top="5" left="8" bottom="5" right="8"/>
+		<property key="List.rendererUseUIBorder" type="boolean" value="false"/>
+		<property key="List.cellHeight" type="integer" value="21"/>
+		<property key="List.rendererUseListColors" type="boolean" value="false"/>
+		<state value="ENABLED">
+			<color type="BACKGROUND" value="#FFFFFF"/>
+		</state>
+		<state value="DISABLED">
+			<color type="BACKGROUND" value="#EEEEEE"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#CC6600"/>
+			<color type="TEXT_BACKGROUND" value="#FFEEDD"/>
+		</state>
+	</style>
+	<bind style="List" type="region" key="List" />
+
+	<!-- The style for menu bar. -->
+	<style id="Menu Bar">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<state value="ENABLED">
+			<imagePainter method="menuBarBackground" path="resource/1204812856281_menubar_bg_enabled.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="menuBarBackground" path="resource/1204812879093_menubar_bg_disabled.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Menu Bar" type="region" key="MenuBar" />
+
+	<!-- The style for menu. -->
+	<style id="Menu">
+		<insets top="4" left="0" bottom="4" right="0"/>
+		<imageIcon id="Menu_Arrow_Icon" path="resource/1204475729593_arrow_right_over.png"/>
+		<property key="Menu.arrowIcon" type="idref" value="Menu_Arrow_Icon"/>
+		<object id="Menu_Bg_Color_Normal" class="java.awt.Color">
+			<int>241</int>
+
+			<int>233</int>
+
+			<int>217</int>
+
+			<int>255</int>
+		</object>
+		<object id="Menu_Bg_Color_Selected" class="java.awt.Color">
+			<int>255</int>
+
+			<int>240</int>
+
+			<int>210</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.menu.bg.color.normal" type="idref" value="Menu_Bg_Color_Normal"/>
+		<defaultsProperty key="EaSynth.menu.bg.color.selected" type="idref" value="Menu_Bg_Color_Selected"/>
+		<painter idref="EaSynthPainter" method="#menuBackground"/>
+		<state value="ENABLED">
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+		</state>
+		<state value="DISABLED">
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#AA4400"/>
+			<imagePainter method="menuBackground" path="resource/1264231987812_MenuItem_Selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Menu" type="region" key="Menu" />
+
+	<!-- The style for menu item. -->
+	<style id="Menu Item">
+		<insets top="4" left="0" bottom="4" right="0"/>
+		<state value="ENABLED">
+			<imagePainter method="menuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<imagePainter method="menuItemBackground" path="resource/1264231987812_MenuItem_Selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#AA4400"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="menuItemBackground" path="resource/1204817081656_menu_item_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+		</state>
+	</style>
+	<bind style="Menu Item" type="region" key="MenuItem" />
+
+	<!-- The style for menu item accelerator. -->
+	<style id="Menu Item Accelerator">
+		<state>
+			<color type="TEXT_FOREGROUND" value="#770000"/>
+		</state>
+	</style>
+	<bind style="Menu Item Accelerator" type="region" key="MenuItemAccelerator" />
+
+	<!-- The style for check box menu item. -->
+	<style id="Check Box Menu Item">
+		<imageIcon id="CheckBoxMenuItem_Check_Icon_Enabled" path="resource/1252405736906_Checkbox_MenuItem_None.png"/>
+		<imageIcon id="CheckBoxMenuItem_Check_Icon_MouseOver" path="resource/1252405890781_Checkbox_MenuItem_Hover.png"/>
+		<imageIcon id="CheckBoxMenuItem_Check_Icon_Selected" path="resource/1252405906156_Checkbox_MenuItem_Selected.png"/>
+		<imageIcon id="CheckBoxMenuItem_Check_Icon_Disabled" path="resource/1252405809406_Checkbox_MenuItem_None.png"/>
+		<insets top="4" left="0" bottom="4" right="0"/>
+		<state value="ENABLED">
+			<imagePainter method="checkBoxMenuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+			<property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_Enabled"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<color type="TEXT_FOREGROUND" value="#AA4400"/>
+			<property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_MouseOver"/>
+			<imagePainter method="checkBoxMenuItemBackground" path="resource/1264231987812_MenuItem_Selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="checkBoxMenuItemBackground" path="resource/1204817081656_menu_item_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+			<property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_Disabled"/>
+		</state>
+		<state id="CheckBoxMenuItem_State_Selected" value="SELECTED">
+			<imagePainter method="checkBoxMenuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#AA4400"/>
+			<property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_Selected"/>
+		</state>
+		<state clone="CheckBoxMenuItem_State_Selected" value="MOUSE_OVER and SELECTED">
+			<imagePainter method="checkBoxMenuItemBackground" path="resource/1264231987812_MenuItem_Selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Check Box Menu Item" type="region" key="CheckBoxMenuItem" />
+
+	<!-- The style for radio button menu item. -->
+	<style id="Radio Button Menu Item">
+		<imageIcon id="RadioButtonMenuItem_Radio_Icon_Enabled" path="resource/1252407137734_Radiobutton_MenuItem_Normal.png"/>
+		<imageIcon id="RadioButtonMenuItem_Radio_Icon_MouseOver" path="resource/1252458649609_Radiobutton_MenuItem_Hover.png"/>
+		<imageIcon id="RadioButtonMenuItem_Radio_Icon_Selected" path="resource/1252407169453_Radiobutton_MenuItem_Selected.png"/>
+		<imageIcon id="RadioButtonMenuItem_Radio_Icon_Disabled" path="resource/1252407182546_Radiobutton_MenuItem_Disabled.png"/>
+		<insets top="4" left="0" bottom="4" right="0"/>
+		<state value="ENABLED">
+			<imagePainter method="radioButtonMenuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+			<property key="RadioButtonMenuItem.checkIcon" type="idref" value="RadioButtonMenuItem_Radio_Icon_Enabled"/>
+		</state>
+		<state value="MOUSE_OVER">
+			<color type="TEXT_FOREGROUND" value="#AA4400"/>
+			<property key="RadioButtonMenuItem.checkIcon" type="idref" value="RadioButtonMenuItem_Radio_Icon_MouseOver"/>
+			<imagePainter method="radioButtonMenuItemBackground" path="resource/1264231987812_MenuItem_Selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="radioButtonMenuItemBackground" path="resource/1204817081656_menu_item_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+			<property key="RadioButtonMenuItem.checkIcon" type="idref" value="RadioButtonMenuItem_Radio_Icon_Disabled"/>
+		</state>
+		<state id="RadioButtonMenuItem_State_Selected" value="SELECTED">
+			<imagePainter method="radioButtonMenuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#AA4400"/>
+			<property key="RadioButtonMenuItem.checkIcon" type="idref" value="RadioButtonMenuItem_Radio_Icon_Selected"/>
+		</state>
+		<state clone="RadioButtonMenuItem_State_Selected" value="MOUSE_OVER and SELECTED">
+			<imagePainter method="radioButtonMenuItemBackground" path="resource/1264231987812_MenuItem_Selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Radio Button Menu Item" type="region" key="RadioButtonMenuItem" />
+
+	<!-- The style for popup menu. -->
+	<style id="Popup Menu">
+		<insets top="4" left="4" bottom="10" right="9"/>
+		<imageIcon id="EaSynth_Popup_Menu_Bg" path="resource/1227873224531_PopupMenu-Background.png"/>
+		<painter idref="EaSynthPainter" method="popupMenuBackground"/>
+		<property key="EaSynth.popup.menu.bg" type="idref" value="EaSynth_Popup_Menu_Bg"/>
+	</style>
+	<bind style="Popup Menu" type="region" key="PopupMenu" />
+
+	<!-- The style for popup menu separator. -->
+	<style id="Popup Menu Separator">
+		<property key="Separator.thickness" type="integer" value="1"/>
+		<opaque value="true"/>
+		<state value="ENABLED">
+			<color type="BACKGROUND" value="#CCBB99"/>
+		</state>
+		<state value="DISABLED">
+			<color type="BACKGROUND" value="#CCCCCC"/>
+		</state>
+	</style>
+	<bind style="Popup Menu Separator" type="region" key="PopupMenuSeparator" />
+
+	<!-- The style for option pane component. -->
+	<style id="Option Pane">
+		<imageIcon id="OptionPane_Error_Icon" path="resource/1230876526015_error.png"/>
+		<property key="OptionPane.errorIcon" type="idref" value="OptionPane_Error_Icon"/>
+		<imageIcon id="OptionPane_Warn_Icon" path="resource/1230876549625_warning.png"/>
+		<property key="OptionPane.warningIcon" type="idref" value="OptionPane_Warn_Icon"/>
+		<imageIcon id="OptionPane_Info_Icon" path="resource/1230876565968_information.png"/>
+		<property key="OptionPane.informationIcon" type="idref" value="OptionPane_Info_Icon"/>
+		<imageIcon id="OptionPane_Question_Icon" path="resource/1230876580718_question.png"/>
+		<property key="OptionPane.questionIcon" type="idref" value="OptionPane_Question_Icon"/>
+		<insets top="10" left="10" bottom="10" right="10"/>
+	</style>
+	<bind style="Option Pane" type="region" key="OptionPane" />
+
+	<!-- The style for root pane. -->
+	<style id="Root Pane">
+		<imageIcon id="RootPane_Bg_Image" path="resource/1204548216629_rootpane_background.png"/>
+		<property key="EaSynth.rootpanel.bg.image" type="idref" value="RootPane_Bg_Image"/>
+		<painter idref="EaSynthPainter" method="rootPaneBackground"/>
+	</style>
+	<bind style="Root Pane" type="region" key="RootPane" />
+
+	<!-- The style for panel component. -->
+	<style id="Panel">
+	</style>
+	<bind style="Panel" type="region" key="Panel" />
+
+	<!-- The style for progress bar component. -->
+	<style id="Progress Bar">
+		<painter idref="EaSynthPainter" method="progressBarForeground"/>
+		<painter idref="EaSynthPainter" method="progressBarBackground"/>
+		<painter idref="EaSynthPainter" method="progressBarBorder"/>
+		<imageIcon id="Progressbar_Indication_Image" path="resource/1204213052578_progressbar_indication.png"/>
+		<property key="EaSynth.progressbar.indication.image" type="idref" value="Progressbar_Indication_Image"/>
+		<object id="Progressbar_Background_Color" class="java.awt.Color">
+			<int>200</int>
+
+			<int>190</int>
+
+			<int>170</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.progressbar.background.color" type="idref" value="Progressbar_Background_Color"/>
+		<object id="ProgressBar_Line_Color" class="java.awt.Color">
+			<int>255</int>
+
+			<int>160</int>
+
+			<int>30</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.progressbar.line.color" type="idref" value="ProgressBar_Line_Color"/>
+		<imageIcon id="Progressbar_Background_Image" path="resource/1235960155687_ProgressBarBg.png"/>
+		<property key="EaSynth.progressbar.background.image" type="idref" value="Progressbar_Background_Image"/>
+		<object id="ProgressBar_Bg_Insets" class="java.awt.Insets">
+			<int>4</int>
+
+			<int>4</int>
+
+			<int>4</int>
+
+			<int>4</int>
+		</object>
+		<property key="EaSynth.progressbar.bg.insets" type="idref" value="ProgressBar_Bg_Insets"/>
+		<!-- If set to true, will paint string even when the progressbar is indeterminate -->
+		<property key="EaSynth.progressbar.indeterminate.paintstring" type="boolean" value="true"/>
+	</style>
+	<bind style="Progress Bar" type="region" key="ProgressBar" />
+
+	<!-- The style for scroll bar component. -->
+	<style id="Scroll Bar">
+		<property key="ScrollBar.minimumThumbSize" type="dimension" value="18 18"/>
+		<object id="ScrollBar_Bg_Color" class="java.awt.Color">
+			<int>241</int>
+
+			<int>233</int>
+
+			<int>217</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.scrollbar.bgcolor" type="idref" value="ScrollBar_Bg_Color"/>
+		<object id="ScrollBar_Border_Color" class="java.awt.Color">
+			<int>190</int>
+
+			<int>180</int>
+
+			<int>160</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.scrollbar.bordercolor" type="idref" value="ScrollBar_Border_Color"/>
+		<painter idref="EaSynthPainter" method="scrollBarBackground"/>
+		<painter idref="EaSynthPainter" method="scrollBarBorder"/>
+		<property key="ScrollBar.thumbHeight" type="integer" value="18"/>
+	</style>
+	<bind style="Scroll Bar" type="region" key="ScrollBar" />
+
+	<!-- The style for the track of scroll bar. -->
+	<style id="Scroll Bar Track">
+		<object id="ScrollBar_Track_SideColor" class="java.awt.Color">
+			<int>237</int>
+
+			<int>221</int>
+
+			<int>204</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.scrollbar.track.sidecolor" type="idref" value="ScrollBar_Track_SideColor"/>
+		<object id="ScrollBar_Track_CenterColor" class="java.awt.Color">
+			<int>225</int>
+
+			<int>209</int>
+
+			<int>192</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.scrollbar.track.centercolor" type="idref" value="ScrollBar_Track_CenterColor"/>
+		<object id="ScrollBar_Track_BorderColor" class="java.awt.Color">
+			<int>255</int>
+
+			<int>255</int>
+
+			<int>228</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.scrollbar.track.bordercolor" type="idref" value="ScrollBar_Track_BorderColor"/>
+		<painter idref="EaSynthPainter" method="scrollBarTrackBackground"/>
+		<painter idref="EaSynthPainter" method="scrollBarTrackBorder"/>
+	</style>
+	<bind style="Scroll Bar Track" type="region" key="ScrollBarTrack" />
+
+	<!-- The style for the thumb of the scroll bar. -->
+	<style id="Scroll Bar Thumb">
+		<object id="ScrollBar_Thumb_SideColor" class="java.awt.Color">
+			<int>200</int>
+
+			<int>170</int>
+
+			<int>140</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.scrollbar.thumb.sidecolor" type="idref" value="ScrollBar_Thumb_SideColor"/>
+		<object id="ScrollBar_Thumb_CenterColor" class="java.awt.Color">
+			<int>255</int>
+
+			<int>245</int>
+
+			<int>220</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.scrollbar.thumb.centercolor" type="idref" value="ScrollBar_Thumb_CenterColor"/>
+		<object id="ScrollBar_Thumb_BorderColor" class="java.awt.Color">
+			<int>180</int>
+
+			<int>160</int>
+
+			<int>130</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.scrollbar.thumb.borderthick" type="integer" value="5"/>
+		<defaultsProperty key="EaSynth.scrollbar.thumb.bordercolor" type="idref" value="ScrollBar_Thumb_BorderColor"/>
+		<imageIcon id="ScrollBar_Thumb_Image" path="resource/1204450922734_scrollbar_thumb.png"/>
+		<property key="EaSynth.scrollbar.thumb.image" type="idref" value="ScrollBar_Thumb_Image"/>
+		<painter idref="EaSynthPainter" method="scrollBarThumbBackground"/>
+		<painter idref="EaSynthPainter" method="scrollBarThumbBorder"/>
+	</style>
+	<bind style="Scroll Bar Thumb" type="region" key="ScrollBarThumb" />
+
+	<!-- The style for scroll pane component. -->
+	<style id="Scroll Pane">
+		<insets top="2" left="2" bottom="2" right="2"/>
+		<opaque value="false"/>
+		<state value="ENABLED">
+			<imagePainter method="scrollPaneBorder" path="resource/1263604524327_border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="scrollPaneBorder" path="resource/1263604559077_border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Scroll Pane" type="region" key="ScrollPane" />
+
+	<!-- The style for the viewport component. -->
+	<style id="Viewport">
+		<opaque value="false"/>
+	</style>
+	<bind style="Viewport" type="region" key="Viewport" />
+
+	<!-- The style for separator component. -->
+	<style id="Separator">
+		<property key="Separator.thickness" type="integer" value="1"/>
+		<opaque value="true"/>
+		<state value="ENABLED">
+			<color type="BACKGROUND" value="#CCBB99"/>
+		</state>
+		<state value="DISABLED">
+			<color type="BACKGROUND" value="#CCCCCC"/>
+		</state>
+	</style>
+	<bind style="Separator" type="region" key="Separator" />
+
+	<!-- The style for slider component. -->
+	<style id="Slider">
+		<property key="Slider.paintValue" type="boolean" value="false"/>
+		<property key="Slider.thumbWidth" type="integer" value="14"/>
+		<property key="Slider.thumbHeight" type="integer" value="14"/>
+	</style>
+	<bind style="Slider" type="region" key="Slider" />
+
+	<!-- The style for the track of slider. -->
+	<style id="Slider Track">
+		<imagePainter method="sliderTrackBackground" path="resource/1236046395843_SliderTrack.png" sourceInsets="7 7 7 7" destinationInsets="7 7 7 7" paintCenter="true" stretch="true" center="false"/>
+		<state value="DISABLED">
+			<imagePainter method="sliderTrackBackground" path="resource/1236046370343_SliderTrack_Disabled.png" sourceInsets="7 7 7 7" destinationInsets="7 7 7 7" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Slider Track" type="region" key="SliderTrack" />
+
+	<!-- The style for the thumb of slider. -->
+	<style id="Slider Thumb">
+		<painter idref="EaSynthPainter" method="sliderThumbBackground"/>
+		<imageIcon id="Slider_Thumb_Image_Normal" path="resource/1236045394062_SliderThumb.png"/>
+		<property key="EaSynth.slider.thumb.image.normal" type="idref" value="Slider_Thumb_Image_Normal"/>
+		<imageIcon id="Slider_Thumb_Image_MouseOver" path="resource/1236045444625_SliderThumb_MouseOver.png"/>
+		<property key="EaSynth.slider.thumb.image.mouseover" type="idref" value="Slider_Thumb_Image_MouseOver"/>
+		<imageIcon id="Slider_Thumb_Image_Disabled" path="resource/1236045471781_SliderThumb_Disabled.png"/>
+		<property key="EaSynth.slider.thumb.image.disabled" type="idref" value="Slider_Thumb_Image_Disabled"/>
+	</style>
+	<bind style="Slider Thumb" type="region" key="SliderThumb" />
+
+	<!-- The style for the split pane component. -->
+	<style id="Split Pane">
+		<property key="SplitPane.centerOneTouchButtons" type="boolean" value="true"/>
+		<property key="SplitPane.size" type="integer" value="10"/>
+	</style>
+	<bind style="Split Pane" type="region" key="SplitPane" />
+
+	<!-- The style for the devider of split pane. -->
+	<style id="Split Pane Divider">
+		<object id="SplitPane_Divider_MainColor" class="java.awt.Color">
+			<int>220</int>
+
+			<int>180</int>
+
+			<int>150</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.splitpane.divider.maincolor" type="idref" value="SplitPane_Divider_MainColor"/>
+		<imageIcon id="SplitPane_Divider_Image" path="resource/1204451219828_splitpane_divider_image.png"/>
+		<property key="EaSynth.splitpane.divider.image" type="idref" value="SplitPane_Divider_Image"/>
+		<painter idref="EaSynthPainter" method="splitPaneDividerBackground"/>
+		<painter idref="EaSynthPainter" method="splitPaneDragDivider"/>
+	</style>
+	<bind style="Split Pane Divider" type="region" key="SplitPaneDivider" />
+
+	<!-- The style for table component. -->
+	<style id="Table">
+		<property key="Table.rendererUseUIBorder" type="boolean" value="false"/>
+		<object id="Table_Grid_Color" class="java.awt.Color">
+			<int>160</int>
+
+			<int>120</int>
+
+			<int>90</int>
+
+			<int>255</int>
+		</object>
+		<property key="Table.gridColor" type="idref" value="Table_Grid_Color"/>
+		<state value="ENABLED">
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+			<color type="BACKGROUND" value="#FFFFFF"/>
+		</state>
+		<state value="DISABLED">
+			<color type="TEXT_FOREGROUND" value="#CCCCCC"/>
+			<color type="BACKGROUND" value="#EEEEEE"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#CC6600"/>
+			<color type="TEXT_BACKGROUND" value="#FFEEDD"/>
+			<color type="FOCUS" value="#FFEEDD"/>
+		</state>
+	</style>
+	<bind style="Table" type="region" key="Table" />
+
+	<!-- The style for the header component of table. -->
+	<style id="Table Header">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<painter idref="EaSynthPainter" method="tableHeaderBorder"/>
+		<imagePainter method="tableHeaderBackground" path="resource/1204728244468_table_header_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+		<state value="ENABLED">
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="tableHeaderBackground" path="resource/1204449497890_table_header_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#CCCCCC"/>
+		</state>
+	</style>
+	<bind style="Table Header" type="region" key="TableHeader" />
+
+	<!-- The style for the tabbed pane component. -->
+	<style id="Tabbed Pane">
+		<property key="TabbedPane.textIconGap" type="integer" value="2"/>
+	</style>
+	<bind style="Tabbed Pane" type="region" key="TabbedPane" />
+
+	<!-- The style for the tabbed pane content. -->
+	<style id="Tabbed Pane Content">
+	</style>
+	<bind style="Tabbed Pane Content" type="region" key="TabbedPaneContent" />
+
+	<!-- The style for the tabs of tabbed pane. -->
+	<style id="Tabbed Pane Tab">
+		<insets top="5" left="5" bottom="2" right="5"/>
+		<imagePainter method="tabbedPaneTabBorder" path="resource/1204440390390_tab_border.png" sourceInsets="0 1 0 1" paintCenter="true" stretch="true" center="false"/>
+		<state value="ENABLED">
+			<imagePainter method="tabbedPaneTabBackground" path="resource/1204726737093_tab_bg_enabled.png" sourceInsets="6 5 3 5" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="tabbedPaneTabBackground" path="resource/1204439604828_tab_bg_disabled.png" sourceInsets="6 5 3 5" paintCenter="true" stretch="true" center="false"/>
+		</state>
+		<state value="SELECTED">
+			<imagePainter method="tabbedPaneTabBackground" path="resource/1204451361468_tab_bg_selected.png" sourceInsets="6 5 3 5" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Tabbed Pane Tab" type="region" key="TabbedPaneTab" />
+
+	<!-- The style for the tab area of tabbed pane. -->
+	<style id="Tabbed Pane Tab Area">
+		<insets top="3" left="5" bottom="0" right="5"/>
+	</style>
+	<bind style="Tabbed Pane Tab Area" type="region" key="TabbedPaneTabArea" />
+
+	<!-- The style for label component. -->
+	<style id="Label">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<state value="ENABLED">
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+		</state>
+		<state value="DISABLED">
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#CC6600"/>
+			<color type="TEXT_BACKGROUND" value="#FFEEDD"/>
+		</state>
+	</style>
+	<bind style="Label" type="region" key="Label" />
+
+	<!-- The style for tool tip. -->
+	<style id="Tool Tip">
+		<opaque value="true"/>
+		<state>
+			<color type="BACKGROUND" value="#F0EBDF"/>
+		</state>
+		<insets top="5" left="5" bottom="5" right="5"/>
+		<imagePainter method="toolTipBorder" path="resource/1225164972671_tooltip_border.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+		<state value="ENABLED">
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+		</state>
+		<state value="DISABLED">
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+		</state>
+	</style>
+	<bind style="Tool Tip" type="region" key="ToolTip" />
+
+	<!-- The style for text field component. -->
+	<style id="Text Field">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<opaque value="true"/>
+		<state value="ENABLED">
+			<imagePainter method="textFieldBorder" path="resource/1263604524327_border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_BACKGROUND" value="#FFFFFF"/>
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+			<color type="BACKGROUND" value="#FFFFFF"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="textFieldBorder" path="resource/1263604559077_border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+			<color type="BACKGROUND" value="#F0F0F0"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#FFFFFF"/>
+			<color type="TEXT_BACKGROUND" value="#BEA08C"/>
+		</state>
+	</style>
+	<bind style="Text Field" type="region" key="TextField" />
+
+	<!-- The style for formatted text field component. -->
+	<style id="Formatted Text Field">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<opaque value="true"/>
+		<state value="ENABLED">
+			<imagePainter method="formattedTextFieldBorder" path="resource/1263604524327_border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_BACKGROUND" value="#FFFFFF"/>
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+			<color type="BACKGROUND" value="#FFFFFF"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="formattedTextFieldBorder" path="resource/1263604559077_border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+			<color type="BACKGROUND" value="#F0F0F0"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#FFFFFF"/>
+			<color type="TEXT_BACKGROUND" value="#BEA08C"/>
+		</state>
+	</style>
+	<bind style="Formatted Text Field" type="region" key="FormattedTextField" />
+
+	<!-- The style for password field. -->
+	<style id="Password Field">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<opaque value="true"/>
+		<state value="ENABLED">
+			<imagePainter method="passwordFieldBorder" path="resource/1263604524327_border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_BACKGROUND" value="#FFFFFF"/>
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+			<color type="BACKGROUND" value="#FFFFFF"/>
+		</state>
+		<state value="DISABLED">
+			<imagePainter method="passwordFieldBorder" path="resource/1263604559077_border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+			<color type="BACKGROUND" value="#F0F0F0"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#FFFFFF"/>
+			<color type="TEXT_BACKGROUND" value="#BEA08C"/>
+		</state>
+	</style>
+	<bind style="Password Field" type="region" key="PasswordField" />
+
+	<!-- The style for text area component. -->
+	<style id="Text Area">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<opaque value="true"/>
+		<state value="ENABLED">
+			<color type="TEXT_BACKGROUND" value="#FFFFFF"/>
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+			<color type="BACKGROUND" value="#FFFFFF"/>
+		</state>
+		<state value="DISABLED">
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+			<color type="BACKGROUND" value="#F0F0F0"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#FFFFFF"/>
+			<color type="TEXT_BACKGROUND" value="#BEA08C"/>
+		</state>
+	</style>
+	<bind style="Text Area" type="region" key="TextArea" />
+
+	<!-- The style for text pane component. -->
+	<style id="Text Pane">
+		<state value="ENABLED">
+			<color type="TEXT_BACKGROUND" value="#FFFFFF"/>
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+			<color type="BACKGROUND" value="#FFFFFF"/>
+		</state>
+		<state value="DISABLED">
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+			<color type="BACKGROUND" value="#F0F0F0"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#FFFFFF"/>
+			<color type="TEXT_BACKGROUND" value="#BEA08C"/>
+		</state>
+	</style>
+	<bind style="Text Pane" type="region" key="TextPane" />
+
+	<!-- The style for editor pane component. -->
+	<style id="Editor Pane">
+		<state value="ENABLED">
+			<color type="TEXT_BACKGROUND" value="#FFFFFF"/>
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+			<color type="BACKGROUND" value="#FFFFFF"/>
+		</state>
+		<state value="DISABLED">
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+			<color type="BACKGROUND" value="#F0F0F0"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#FFFFFF"/>
+			<color type="TEXT_BACKGROUND" value="#BEA08C"/>
+		</state>
+	</style>
+	<bind style="Editor Pane" type="region" key="EditorPane" />
+
+	<!-- The style for spinner component. -->
+	<style id="Spinner">
+		<opaque value="false"/>
+	</style>
+	<bind style="Spinner" type="region" key="Spinner" />
+
+	<!-- The style for the list renderer of JComboBox -->
+	<style id="ComboBox List Renderer">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<opaque value="true"/>
+		<state value="ENABLED">
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+		</state>
+		<state value="DISABLED">
+			<color type="TEXT_FOREGROUND" value="#999999"/>
+		</state>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#CC6600"/>
+			<color type="TEXT_BACKGROUND" value="#FFEEDD"/>
+		</state>
+	</style>
+	<bind style="ComboBox List Renderer" type="name" key="ComboBox.listRenderer" />
+
+	<!-- The style for the renderer of dragging table header -->
+	<style id="Table Header Renderer">
+		<insets top="3" left="3" bottom="3" right="3"/>
+		<imagePainter method="labelBackground" path="resource/1204728244468_table_header_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+		<state value="ENABLED">
+			<color type="TEXT_FOREGROUND" value="#000000"/>
+		</state>
+		<state value="DISABLED">
+			<color type="TEXT_FOREGROUND" value="#CCCCCC"/>
+			<imagePainter method="labelBackground" path="resource/1204449497890_table_header_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Table Header Renderer" type="name" key="TableHeader.renderer" />
+
+	<!-- The style for tool bar component. -->
+	<style id="Tool Bar">
+		<imageIcon id="Toolbar_Handle_Icon" path="resource/1204547880578_toolbar_handle_icon.png"/>
+		<property key="ToolBar.handleIcon" type="idref" value="Toolbar_Handle_Icon"/>
+		<object id="Toolbar_Bg_Color1" class="java.awt.Color">
+			<int>190</int>
+
+			<int>170</int>
+
+			<int>145</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.toolbar.bg.color1" type="idref" value="Toolbar_Bg_Color1"/>
+		<object id="Toolbar_Bg_Color2" class="java.awt.Color">
+			<int>255</int>
+
+			<int>245</int>
+
+			<int>230</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.toolbar.bg.color2" type="idref" value="Toolbar_Bg_Color2"/>
+		<object id="Toolbar_Bg_Color3" class="java.awt.Color">
+			<int>240</int>
+
+			<int>225</int>
+
+			<int>205</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.toolbar.bg.color3" type="idref" value="Toolbar_Bg_Color3"/>
+		<painter idref="EaSynthPainter" method="toolBarBackground"/>
+	</style>
+	<bind style="Tool Bar" type="region" key="ToolBar" />
+
+	<!-- The style for tool bar content component. -->
+	<style id="Tool Bar Content">
+	</style>
+	<bind style="Tool Bar Content" type="region" key="ToolBarContent" />
+
+	<!-- The style for tool bar separator. -->
+	<style id="Tool Bar Separator">
+		<property key="Separator.thickness" type="integer" value="6"/>
+		<opaque value="false"/>
+	</style>
+	<bind style="Tool Bar Separator" type="region" key="ToolBarSeparator" />
+
+	<!-- The style for tool bar drag window. -->
+	<style id="Tool Bar Drag Window">
+		<state value="ENABLED">
+			<imagePainter method="toolBarDragWindowBackground" path="resource/1204466391828_toolbar_background_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
+		</state>
+	</style>
+	<bind style="Tool Bar Drag Window" type="region" key="ToolBarDragWindow" />
+
+	<!-- The style for tree component. -->
+	<style id="Tree">
+		<opaque value="true"/>
+		<property key="Tree.leftChildIndent" type="integer" value="10"/>
+		<property key="Tree.rightChildIndent" type="integer" value="10"/>
+		<imageIcon id="Tree_Collapse_Icon" path="resource/1204977613109_tree_cell_collapse.png"/>
+		<property key="Tree.collapsedIcon" type="idref" value="Tree_Collapse_Icon"/>
+		<imageIcon id="Tree_Expand_Icon" path="resource/1204977624531_tree_cell_expand.png"/>
+		<property key="Tree.expandedIcon" type="idref" value="Tree_Expand_Icon"/>
+		<!-- If we set this property to >0, the line in tree will contain curve, but it will also bring some painting issues when scrolling the tree. So we set it to 0 here. -->
+		<defaultsProperty key="EaSynth.graphicsutils.drawline.arc.width" type="integer" value="0"/>
+		<!-- If we set this property to >0, the line in tree will contain curve, but it will also bring some painting issues when scrolling the tree. So we set it to 0 here. -->
+		<defaultsProperty key="EaSynth.graphicsutils.drawline.arc.height" type="integer" value="0"/>
+		<object id="Tree_Line_Color" class="java.awt.Color">
+			<int>190</int>
+
+			<int>170</int>
+
+			<int>140</int>
+
+			<int>255</int>
+		</object>
+		<defaultsProperty key="EaSynth.graphicsutils.drawline.color" type="idref" value="Tree_Line_Color"/>
+		<graphicsUtils idref="EaSynthGraphicsUtils"/>
+		<state value="ENABLED">
+			<color type="BACKGROUND" value="#FFFFFF"/>
+		</state>
+		<state value="DISABLED">
+			<color type="BACKGROUND" value="#EEEEEE"/>
+		</state>
+	</style>
+	<bind style="Tree" type="region" key="Tree" />
+
+	<!-- The style for the cell of the tree component. -->
+	<style id="Tree Cell">
+		<opaque value="true"/>
+		<imageIcon id="Tree_Folder_Close_Icon" path="resource/1204455288906_tree_folder_close.png"/>
+		<imageIcon id="Tree_Folder_Open_Icon" path="resource/1204455296437_tree_folder_open.png"/>
+		<imageIcon id="Tree_Leaf_Icon" path="resource/1204397671453_tree_leaf_icon.png"/>
+		<defaultsProperty key="Tree.leafIcon" type="idref" value="Tree_Leaf_Icon"/>
+		<defaultsProperty key="Tree.openIcon" type="idref" value="Tree_Folder_Open_Icon"/>
+		<defaultsProperty key="Tree.closedIcon" type="idref" value="Tree_Folder_Close_Icon"/>
+		<state value="SELECTED">
+			<color type="TEXT_FOREGROUND" value="#CC6600"/>
+			<color type="BACKGROUND" value="#FFEEDD"/>
+		</state>
+	</style>
+	<bind style="Tree Cell" type="region" key="TreeCell" />
+</synth>

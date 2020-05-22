@@ -7,14 +7,23 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class CaptureEditingFrame extends JFrame {
     private BufferedImage capturedImg;
+    private String captureId;
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
+        this(capturedImg, new SimpleDateFormat("yyyy-MM-dd_hh-mm-ss").format(new Date())); // ENHANCEMENT
+    }
+
+    public CaptureEditingFrame(BufferedImage capturedImg, String captureId) {
         super();
         this.capturedImg = capturedImg;
+        this.captureId = captureId;
         final Dimension capturedImgSize = new Dimension(capturedImg.getWidth(), capturedImg.getHeight());
 
         final Container contentPane = getContentPane();
@@ -90,16 +99,45 @@ public class CaptureEditingFrame extends JFrame {
         setLocationRelativeTo(null);
     }
 
+
     private void onExport(String exportType) {
+        // Always store in history, no matter the export type
+        saveInHistory();
+
+        // TODO call the right Exporter implementation based on the exportType
+
+        // and close Window
+        dispose();
+    }
+
+    private void saveInHistory() {
+        File historyFolder = new File("ZZhistoryFolder"); // TODO get from params
+        if (!historyFolder.exists()) {
+            historyFolder.mkdirs();
+        }
+        // Save image
+        File file = new File(historyFolder, captureId + ".png");
+        try {
+            if (!ImageIO.write(capturedImg, "png", file)) {
+                JOptionPane.showMessageDialog(null, "Capture failed (" + file.getAbsolutePath() + ")", "Screen capture error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, e.getMessage() + " - Full error on the console", "Screen capture error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        // TODO save overlays to XML
 
     }
 
     private void onCancel() {
+        // Close window
         dispose();
     }
 
     private void onCustomize() {
-
+        // TODO
     }
 
 }

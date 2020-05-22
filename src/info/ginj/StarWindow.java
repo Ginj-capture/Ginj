@@ -9,7 +9,6 @@ import javax.swing.event.MouseInputListener;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -412,27 +411,13 @@ public class StarWindow extends JWindow {
 
 
     private void onHistory() {
-        try {
-            Robot robot = new Robot();
-
-            Rectangle rectangle = new Rectangle(screenSize);
-            BufferedImage bufferedImage = robot.createScreenCapture(rectangle);
-            File file = new File("screen-capture.png");
-            if (ImageIO.write(bufferedImage, "png", file)) {
-                JOptionPane.showMessageDialog(null, "File:- " + file.getAbsolutePath(), "Screen Captured", JOptionPane.INFORMATION_MESSAGE);
-            }
-            else {
-                JOptionPane.showMessageDialog(null, "Capture failed (" + file.getAbsolutePath() + ")", "Screen capture error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-        catch (AWTException | IOException ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, ex.getMessage() + " - Full error on the console", "Screen capture error", JOptionPane.ERROR_MESSAGE);
-        }
+        // TODO
+        JOptionPane.showMessageDialog(null, "Not implemented yet", "History", JOptionPane.INFORMATION_MESSAGE);
     }
 
 
     private void onMore() {
+        // TODO
         JOptionPane.showMessageDialog(null, "This should open the more window - Now exiting...");
         System.exit(Ginj.ERR_STATUS_OK);
     }

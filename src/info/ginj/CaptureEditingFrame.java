@@ -113,6 +113,7 @@ public class CaptureEditingFrame extends JFrame {
 
         // Render image and overlays
 
+        // Find the right exporter implementation
         GinjExporter exporter = null;
         switch (exportType) {
             case EXPORT_TYPE_SHARE:
@@ -125,6 +126,8 @@ public class CaptureEditingFrame extends JFrame {
                 exporter = new ClipboardExporterImpl(this);
                 break;
         }
+
+        // Perform export
         if (exporter != null) {
             exporter.export(capturedImg, new Properties());
 
@@ -132,7 +135,7 @@ public class CaptureEditingFrame extends JFrame {
             dispose();
         }
         else {
-            JOptionPane.showMessageDialog(this, "Cannot find an exporter for type " + exportType, "Export error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Cannot find an exporter for type '" + exportType + "'.", "Export error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

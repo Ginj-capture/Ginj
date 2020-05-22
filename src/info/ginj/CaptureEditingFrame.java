@@ -17,7 +17,7 @@ public class CaptureEditingFrame extends JFrame {
     private String captureId;
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
-        this(capturedImg, new SimpleDateFormat("yyyy-MM-dd_hh-mm-ss").format(new Date())); // ENHANCEMENT
+        this(capturedImg, new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date())); // ENHANCEMENT
     }
 
     public CaptureEditingFrame(BufferedImage capturedImg, String captureId) {

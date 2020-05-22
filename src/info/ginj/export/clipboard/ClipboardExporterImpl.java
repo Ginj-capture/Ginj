@@ -27,6 +27,6 @@ public class ClipboardExporterImpl extends GinjExporter implements ClipboardOwne
 
     @Override
     public void lostOwnership(Clipboard clipboard, Transferable contents) {
-        JOptionPane.showMessageDialog(getFrame(), "Lost clipboard ownership !", "Error", JOptionPane.ERROR_MESSAGE);
+        // Do nothing. It's normal to lose ownership when another app copies something to the clipboard
     }
 }

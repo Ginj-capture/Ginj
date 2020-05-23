@@ -1,57 +1,70 @@
 package info.ginj.ui;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
+import static info.ginj.ui.Util.LABEL_FOREGROUND_COLOR;
+import static info.ginj.ui.Util.WINDOW_BACKGROUND_COLOR;
+
 /**
- * A Ginj Button Bar is made of a top area for tooltip and a bottom area for actual buttons (GinjButton),
+ * A Ginj Button Bar is made of a top area for help and a bottom area for actual buttons (GinjButton),
  * plus another area at the bottom right for other components
- * When hovering over a GinjButton, the tooltip is filled accordingly and moves above the button
+ * When hovering over a GinjButton, the help is filled accordingly and moves above the button
  */
 public class GinjButtonBar extends JPanel {
-    private JPanel tooltipPanel;
-    private JLabel tooltipLabel;
+    public static final Color HELP_FOREGROUND_COLOR = Color.WHITE;
+    private JPanel helpPanel;
+    private JLabel helpLabel;
     private JPanel buttonPanel;
     private JPanel otherCompPanel;
-    private Dimension tooltipPanelSize;
+    private Dimension helpPanelSize;
+
+    public GinjButtonBar() {
+        this(true);
+    }
 
     public GinjButtonBar(boolean isDoubleBuffered) {
         super(isDoubleBuffered);
-        setName("GinjButtonBar"); // To be used as a selector in laf.xml
+        setOpaque(true);
+        setBorder(new EmptyBorder(5, 0, 5, 0));
+        setBackground(WINDOW_BACKGROUND_COLOR);
+        setForeground(LABEL_FOREGROUND_COLOR);
+
         setLayout(new GridBagLayout());
 
-        // Prepare top left "tooltip" panel, dimensioned according to the JLabel it contains
-        tooltipPanel = new JPanel() {
+        // Prepare top left "help" panel, dimensioned according to the JLabel it contains
+        helpPanel = new JPanel() {
             @Override
             public Dimension getPreferredSize() {
-                return tooltipPanelSize;
+                return helpPanelSize;
             }
 
             @Override
             public Dimension getMaximumSize() {
-                return tooltipPanelSize;
+                return helpPanelSize;
             }
 
             @Override
             public Dimension getMinimumSize() {
-                return tooltipPanelSize;
+                return helpPanelSize;
             }
 
             @Override
             public Dimension getSize() {
-                return tooltipPanelSize;
+                return helpPanelSize;
             }
         };
-        tooltipLabel = new JLabel(" "); // Init it with a string so it takes some height when packing UI
-        tooltipLabel.setName("GinjButtonTooltip"); // To be used as a selector in laf.xml
-        tooltipPanel.add(tooltipLabel);
+        helpLabel = new JLabel(" "); // Init it with a string so it takes some height when packing UI
+        helpLabel.setForeground(HELP_FOREGROUND_COLOR);
+        helpPanel.add(helpLabel);
 
-        // Compute tooltipLabel size with default layout manager of JPanel and remember it for Panel
-        tooltipPanelSize = tooltipLabel.getPreferredSize();
+        // Compute helpLabel size with default layout manager of JPanel and remember it for Panel
+        helpPanelSize = helpLabel.getPreferredSize();
 
         // OK, now let's switch to absolute positioning
-        tooltipPanel.setLayout(null);
-        tooltipLabel.setBounds(0,0,tooltipPanelSize.width, tooltipPanelSize.height);
+        helpPanel.setLayout(null);
+        helpLabel.setBounds(0, 0, helpPanelSize.width, helpPanelSize.height);
 
         // Prepare bottom left "button" panel
         buttonPanel = new JPanel();
@@ -63,25 +76,21 @@ public class GinjButtonBar extends JPanel {
 
         // And add them to the this frame
         GridBagConstraints c = new GridBagConstraints();
-        c.gridx=0;
-        c.gridy=0;
-        c.insets = new Insets(0,5,0,5);
+        c.gridx = 0;
+        c.gridy = 0;
+        c.insets = new Insets(0, 5, 0, 5);
         c.fill = GridBagConstraints.BOTH;
-        super.add(tooltipPanel, c);
+        super.add(helpPanel, c);
         c = new GridBagConstraints();
-        c.gridx=0;
-        c.gridy=1;
+        c.gridx = 0;
+        c.gridy = 1;
         c.fill = GridBagConstraints.BOTH;
         super.add(buttonPanel, c);
         c = new GridBagConstraints();
-        c.gridx=1;
-        c.gridy=1;
+        c.gridx = 1;
+        c.gridy = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
         super.add(otherCompPanel, c);
-    }
-
-    public GinjButtonBar() {
-        this(true);
     }
 
     @Override
@@ -95,14 +104,14 @@ public class GinjButtonBar extends JPanel {
     }
 
     /**
-     * Display the given text tooltip above the given button
+     * Display the given text help above the given button
      */
-    public void setTooltipText(GinjButton thisButton, String text) {
-        tooltipLabel.setText(text);
+    public void setHelpText(GinjButton thisButton, String text) {
+        helpLabel.setText(text);
 
-        // Compute position of tooltip
+        // Compute position of help
         // get metrics from the JLabel
-        FontMetrics metrics = tooltipLabel.getFontMetrics(tooltipLabel.getFont());
+        FontMetrics metrics = helpLabel.getFontMetrics(helpLabel.getFont());
         int height = metrics.getHeight();
         int width = metrics.stringWidth(text) + 1; // Overestimate to avoid truncation
         // By default, center the label above the button
@@ -110,16 +119,16 @@ public class GinjButtonBar extends JPanel {
         final int thisButtonCenterX = thisButtonBounds.x + thisButtonBounds.width / 2;
         // Check if end of label would go past right edge of panel
         int offsetX = 0;
-        final int panelWidth = tooltipPanel.getWidth();
-        int x2 = thisButtonCenterX + width/2;
+        final int panelWidth = helpPanel.getWidth();
+        int x2 = thisButtonCenterX + width / 2;
         if (x2 > panelWidth) {
             offsetX = panelWidth - x2;
         }
         // Check if start of label would go past left edge of panel
-        int x1 = thisButtonCenterX - width/2 + offsetX;
+        int x1 = thisButtonCenterX - width / 2 + offsetX;
         if (x1 < 0) {
             x1 = 0;
         }
-        tooltipLabel.setBounds(x1, 0, panelWidth - x1, height);
+        helpLabel.setBounds(x1, 0, panelWidth - x1, height);
     }
 }

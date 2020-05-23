@@ -23,17 +23,6 @@
     </style>
     <bind style="GinjPanelStyle" type="name" key="GinjPanel"/>
 
-    <style id="GinjButtonBarStyle">
-        <opaque value="TRUE"/>
-        <insets top="5" left="0" bottom="5" right="0"/>
-        <state>
-            <!-- Provide colors -->
-            <color type="FOREGROUND" value="#FBB901"/>
-            <color type="BACKGROUND" value="#222425"/>
-        </state>
-    </style>
-    <bind style="GinjButtonBarStyle" type="name" key="GinjButtonBar"/>
-
     <!-- TODO -->
     <!--    <style id="labelStyle">-->
     <!--        <font name="SansSerif" size="12" style="BOLD"/>-->
@@ -44,16 +33,6 @@
     <!--        </state>-->
     <!--    </style>-->
     <!--    <bind style="labelStyle" type="region" key="Label"/>-->
-
-    <style id="GinjButtonTooltipStyle">
-        <state>
-            <!-- Override default colors -->
-            <!--            <color value="#222425" type="BACKGROUND"/>-->
-            <color value="#FFFFFF" type="FOREGROUND"/>
-        </state>
-    </style>
-    <bind style="GinjButtonTooltipStyle" type="name" key="GinjButtonTooltip"/>
-
 
     <style id="GinjButtonStyle">
         <!-- Shift the text one pixel when pressed -->
@@ -69,27 +48,29 @@
     </style>
     <bind style="GinjButtonStyle" type="name" key="GinjButton"/>
 
+
+    <!-- The style for toggle button. -->
     <style id="GinjToolButtonStyle">
-        <!-- Shift the text one pixel when pressed -->
-        <property key="Button.textShiftOffset" type="integer" value="1"/>
-        <insets top="4" left="4" right="4" bottom="4"/>
+        <insets top="4" left="4" bottom="4" right="4"/>
         <state value="ENABLED">
-            <!-- Note: sourceInsets are top, left, bottom, and right -->
-            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4"/>
-        </state>
-        <state value="PRESSED">
-            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg_selected_hover.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="MOUSE_OVER">
-            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_hover.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
         </state>
-        <state value="SELECTED">
-            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg_selected.png" sourceInsets="4 4 4 4"/>
+        <state value="PRESSED">
+            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_selected_hover.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="DISABLED">
+            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+            <color type="TEXT_FOREGROUND" value="#999999"/>
+        </state>
+        <state value="SELECTED">
+            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
     <bind style="GinjToolButtonStyle" type="name" key="GinjToolButton"/>
+
 
     <!-- TODO-->
     <!--    <style id="titleStyle">-->

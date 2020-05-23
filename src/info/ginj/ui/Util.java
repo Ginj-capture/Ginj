@@ -14,6 +14,7 @@ public class Util {
     public static final Color TEXTFIELD_BACKGROUND_COLOR = Color.WHITE;
     public static final Color TEXTFIELD_SELECTION_BACKGROUND_COLOR = new Color(153, 201, 239);
     public static final Color ICON_ENABLED_COLOR = new Color(243,205,77);
+    public static final Color TOOLBAR_ICON_ENABLED_COLOR = new Color(238,179,8);
 
     /**
      * Lay out components of a Panel and compute its size, like pack() for a Window.

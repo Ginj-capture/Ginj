@@ -5,7 +5,7 @@ import java.awt.*;
 
 public class GinjButton extends JButton {
 
-    public GinjButton(String tooltip, ImageIcon imageIcon) {
+    public GinjButton(String help, ImageIcon imageIcon) {
         super(imageIcon);
         setName("GinjButton");
 
@@ -14,22 +14,22 @@ public class GinjButton extends JButton {
         addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                setParentTooltip(tooltip);
+                setParentHelp(help);
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                setParentTooltip(null);
+                setParentHelp(null);
             }
 
-            private void setParentTooltip(String tooltip) {
+            private void setParentHelp(String help) {
                 Component p = getParent();
                 while (p != null) {
                     if (p instanceof GinjButtonBar) {
-                        if (tooltip == null || tooltip.isEmpty()) {
-                            tooltip = " ";
+                        if (help == null || help.isEmpty()) {
+                            help = " ";
                         }
-                        ((GinjButtonBar) p).setTooltipText(thisButton, tooltip);
+                        ((GinjButtonBar) p).setHelpText(thisButton, help);
                         break;
                     }
                     else {

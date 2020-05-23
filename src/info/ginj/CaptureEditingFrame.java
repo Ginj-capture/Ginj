@@ -64,13 +64,14 @@ public class CaptureEditingFrame extends JFrame {
         toolBar.setLayout(new BoxLayout(toolBar, BoxLayout.Y_AXIS));
         toolBar.setBackground(Util.WINDOW_BACKGROUND_COLOR);
 
-        GinjToolToggleButton arrowToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/arrow.png"), 24, 24, Util.ICON_ENABLED_COLOR));
+        GinjToolToggleButton arrowToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/arrow.png"), 24, 24, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        arrowToolButton.setSelected(true);
         toolBar.add(arrowToolButton);
-        GinjToolToggleButton textToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/text.png"), 24, 24, Util.ICON_ENABLED_COLOR));
+        GinjToolToggleButton textToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/text.png"), 24, 24, Util.TOOLBAR_ICON_ENABLED_COLOR));
         toolBar.add(textToolButton);
-        GinjToolToggleButton frameToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/frame.png"), 24, 24, Util.ICON_ENABLED_COLOR));
+        GinjToolToggleButton frameToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/frame.png"), 24, 24, Util.TOOLBAR_ICON_ENABLED_COLOR));
         toolBar.add(frameToolButton);
-        GinjToolToggleButton highlightToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/highlight.png"), 24, 24, Util.ICON_ENABLED_COLOR));
+        GinjToolToggleButton highlightToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/highlight.png"), 24, 24, Util.TOOLBAR_ICON_ENABLED_COLOR));
         toolBar.add(highlightToolButton);
         GinjToolButton colorToolButton = new GinjToolButton(/*new ImageIcon(ImageIO.read(getClass().getResource("img/icon24_color.png")))*/);
         toolBar.add(colorToolButton);

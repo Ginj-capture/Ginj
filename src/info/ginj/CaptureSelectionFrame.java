@@ -4,7 +4,6 @@ import info.ginj.ui.GinjButton;
 import info.ginj.ui.GinjButtonBar;
 import info.ginj.ui.Util;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -16,7 +15,6 @@ import java.awt.font.LineMetrics;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,27 +78,22 @@ screenSize.setSize(screenSize.width/2, screenSize.height);
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         actionPanel.setName("GinjPanel"); // To be used as a selector in laf.xml
         JPanel buttonBar = new GinjButtonBar();
-        try {
-            imageButton = new GinjButton("Capture image", new ImageIcon(ImageIO.read(getClass().getResource("img/b_image.png"))));
-            imageButton.addActionListener(e -> onCaptureImage());
-            buttonBar.add(imageButton);
-            videoButton = new GinjButton("Capture video", new ImageIcon(ImageIO.read(getClass().getResource("img/b_video.png"))));
-            videoButton.addActionListener(e -> onCaptureVideo());
-            buttonBar.add(videoButton);
-            final JButton redoButton = new GinjButton("Redo selection", new ImageIcon(ImageIO.read(getClass().getResource("img/b_redo.png"))));
-            redoButton.addActionListener(e -> onRedo());
-            buttonBar.add(redoButton);
-            final JButton cancelButton = new GinjButton("Cancel", new ImageIcon(ImageIO.read(getClass().getResource("img/b_cancel.png"))));
-            cancelButton.addActionListener(e -> onCancel());
-            buttonBar.add(cancelButton);
-            captureSizeLabel = new JLabel("9999 x 9999");
-            buttonBar.add(captureSizeLabel);
-        }
-        catch (IOException e) {
-            System.out.println("Error loading capture button images");
-            e.printStackTrace();
-            System.exit(Ginj.ERR_STATUS_LOAD_IMG);
-        }
+
+        imageButton = new GinjButton("Capture image", Util.createIcon(getClass().getResource("img/icon/image.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        imageButton.addActionListener(e -> onCaptureImage());
+        buttonBar.add(imageButton);
+        videoButton = new GinjButton("Capture video", Util.createIcon(getClass().getResource("img/icon/video.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        videoButton.addActionListener(e -> onCaptureVideo());
+        buttonBar.add(videoButton);
+        final JButton redoButton = new GinjButton("Redo selection", Util.createIcon(getClass().getResource("img/icon/redo_selection.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        redoButton.addActionListener(e -> onRedo());
+        buttonBar.add(redoButton);
+        final JButton cancelButton = new GinjButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        cancelButton.addActionListener(e -> onCancel());
+        buttonBar.add(cancelButton);
+        captureSizeLabel = new JLabel("9999 x 9999");
+        buttonBar.add(captureSizeLabel);
+
         actionPanel.add(buttonBar);
         Util.packPanel(actionPanel);
         contentPane.add(actionPanel);

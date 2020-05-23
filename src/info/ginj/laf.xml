@@ -55,19 +55,41 @@
     <bind style="GinjButtonTooltipStyle" type="name" key="GinjButtonTooltip"/>
 
 
-    <style id="buttonStyle">
+    <style id="GinjButtonStyle">
         <!-- Shift the text one pixel when pressed -->
         <property key="Button.textShiftOffset" type="integer" value="1"/>
         <insets top="4" left="12" right="12" bottom="4"/>
         <state>
             <!-- Note: sourceInsets are top, left, bottom, and right -->
-            <imagePainter method="buttonBackground" path="img/laf_button_bg.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
         </state>
         <state value="PRESSED">
-            <imagePainter method="buttonBackground" path="img/laf_button_bg_pressed.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="img/laf/button_bg_pressed.png" sourceInsets="4 4 4 4"/>
         </state>
     </style>
-    <bind style="buttonStyle" type="region" key="Button"/>
+    <bind style="GinjButtonStyle" type="name" key="GinjButton"/>
+
+    <style id="GinjToolButtonStyle">
+        <!-- Shift the text one pixel when pressed -->
+        <property key="Button.textShiftOffset" type="integer" value="1"/>
+        <insets top="4" left="4" right="4" bottom="4"/>
+        <state value="ENABLED">
+            <!-- Note: sourceInsets are top, left, bottom, and right -->
+            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4"/>
+        </state>
+        <state value="PRESSED">
+            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg_selected_hover.png" sourceInsets="4 4 4 4"/>
+        </state>
+        <state value="MOUSE_OVER">
+            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4"/>
+        </state>
+        <state value="SELECTED">
+            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg_selected.png" sourceInsets="4 4 4 4"/>
+        </state>
+        <state value="DISABLED">
+        </state>
+    </style>
+    <bind style="GinjToolButtonStyle" type="name" key="GinjToolButton"/>
 
     <!-- TODO-->
     <!--    <style id="titleStyle">-->
@@ -88,23 +110,23 @@
         <painter idref="EaSynthPainter" method="arrowButtonForeground" direction="south"/>
         <painter idref="EaSynthPainter" method="arrowButtonForeground" direction="east"/>
         <state value="ENABLED">
-            <imageIcon id="Arrow_Up_Enabled" path="img/laf_arrow_up_normal.png"/>
+            <imageIcon id="Arrow_Up_Enabled" path="img/laf/arrow_up_normal.png"/>
             <property key="EaSynth.arrow.up.enabled" type="idref" value="Arrow_Up_Enabled"/>
-            <imageIcon id="Arrow_Left_Enabled" path="img/laf_arrow_left_normal.png"/>
+            <imageIcon id="Arrow_Left_Enabled" path="img/laf/arrow_left_normal.png"/>
             <property key="EaSynth.arrow.left.enabled" type="idref" value="Arrow_Left_Enabled"/>
-            <imageIcon id="Arrow_Down_Enabled" path="img/laf_arrow_down_normal.png"/>
+            <imageIcon id="Arrow_Down_Enabled" path="img/laf/arrow_down_normal.png"/>
             <property key="EaSynth.arrow.down.enabled" type="idref" value="Arrow_Down_Enabled"/>
-            <imageIcon id="Arrow_Right_Enabled" path="img/laf_arrow_right_normal.png"/>
+            <imageIcon id="Arrow_Right_Enabled" path="img/laf/arrow_right_normal.png"/>
             <property key="EaSynth.arrow.right.enabled" type="idref" value="Arrow_Right_Enabled"/>
         </state>
         <state value="MOUSE_OVER">
-            <imageIcon id="Arrow_Up_MouseOver" path="img/laf_arrow_up_over.png"/>
+            <imageIcon id="Arrow_Up_MouseOver" path="img/laf/arrow_up_over.png"/>
             <property key="EaSynth.arrow.up.mouseover" type="idref" value="Arrow_Up_MouseOver"/>
-            <imageIcon id="Arrow_Left_MouseOver" path="img/laf_arrow_left_over.png"/>
+            <imageIcon id="Arrow_Left_MouseOver" path="img/laf/arrow_left_over.png"/>
             <property key="EaSynth.arrow.left.mouseover" type="idref" value="Arrow_Left_MouseOver"/>
-            <imageIcon id="Arrow_Down_MouseOver" path="img/laf_arrow_down_over.png"/>
+            <imageIcon id="Arrow_Down_MouseOver" path="img/laf/arrow_down_over.png"/>
             <property key="EaSynth.arrow.down.mouseover" type="idref" value="Arrow_Down_MouseOver"/>
-            <imageIcon id="Arrow_Right_MouseOver" path="img/laf_arrow_right_over.png"/>
+            <imageIcon id="Arrow_Right_MouseOver" path="img/laf/arrow_right_over.png"/>
             <property key="EaSynth.arrow.right.mouseover" type="idref" value="Arrow_Right_MouseOver"/>
         </state>
         <state value="PRESSED">
@@ -192,7 +214,7 @@
         </object>
         <defaultsProperty key="EaSynth.scrollbar.thumb.borderthick" type="integer" value="1"/>
         <defaultsProperty key="EaSynth.scrollbar.thumb.bordercolor" type="idref" value="ScrollBar_Thumb_BorderColor"/>
-        <imageIcon id="ScrollBar_Thumb_Image" path="img/laf_scrollbar_thumb.png"/>
+        <imageIcon id="ScrollBar_Thumb_Image" path="img/laf/scrollbar_thumb.png"/>
         <property key="EaSynth.scrollbar.thumb.image" type="idref" value="ScrollBar_Thumb_Image"/>
         <painter idref="EaSynthPainter" method="scrollBarThumbBackground"/>
         <painter idref="EaSynthPainter" method="scrollBarThumbBorder"/>

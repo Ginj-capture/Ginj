@@ -3,12 +3,14 @@ package info.ginj;
 import info.ginj.export.GinjExporter;
 import info.ginj.export.clipboard.ClipboardExporterImpl;
 import info.ginj.export.disk.DiskExporterImpl;
-import info.ginj.ui.GinjButton;
-import info.ginj.ui.GinjButtonBar;
+import info.ginj.ui.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.MouseInputListener;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +22,7 @@ public class CaptureEditingFrame extends JFrame {
     public static final String EXPORT_TYPE_DISK = "disk";
     public static final String EXPORT_TYPE_SHARE = "share";
     public static final String EXPORT_TYPE_CLIPBOARD = "clipboard";
+
     private BufferedImage capturedImg;
     private String captureId;
 
@@ -33,9 +36,61 @@ public class CaptureEditingFrame extends JFrame {
         this.captureId = captureId;
         final Dimension capturedImgSize = new Dimension(capturedImg.getWidth(), capturedImg.getHeight());
 
-        final Container contentPane = getContentPane();
-        contentPane.setLayout(new BorderLayout());
+        // Make it transparent
+        setUndecorated(true);
+        setBackground(new Color(0, 0, 0, 0));
+        // Add default "draggable window" behaviour
+        addDraggableWindowMouseBehaviour(this);
 
+        final Container contentPane = getContentPane();
+        contentPane.setLayout(new GridBagLayout());
+
+        // Prepare title bar
+        JPanel titleBar = new JPanel();
+        titleBar.setBackground(Color.YELLOW);
+        JLabel testLabel = new JLabel("Title");
+        titleBar.add(testLabel);
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 0;
+        c.gridwidth = 2;
+        c.gridheight = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        contentPane.add(titleBar, c);
+
+        // Prepare overlay toolbar
+        JPanel toolBar = new JPanel();
+        toolBar.setLayout(new BoxLayout(toolBar, BoxLayout.Y_AXIS));
+        toolBar.setBackground(Util.WINDOW_BACKGROUND_COLOR);
+
+        GinjToolToggleButton arrowToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/arrow.png"), 24, 24, Util.ICON_ENABLED_COLOR));
+        toolBar.add(arrowToolButton);
+        GinjToolToggleButton textToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/text.png"), 24, 24, Util.ICON_ENABLED_COLOR));
+        toolBar.add(textToolButton);
+        GinjToolToggleButton frameToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/frame.png"), 24, 24, Util.ICON_ENABLED_COLOR));
+        toolBar.add(frameToolButton);
+        GinjToolToggleButton highlightToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/highlight.png"), 24, 24, Util.ICON_ENABLED_COLOR));
+        toolBar.add(highlightToolButton);
+        GinjToolButton colorToolButton = new GinjToolButton(/*new ImageIcon(ImageIO.read(getClass().getResource("img/icon24_color.png")))*/);
+        toolBar.add(colorToolButton);
+
+        JPanel undoRedoPanel = new JPanel();
+        JButton undoButton = new JButton("U");
+        undoRedoPanel.add(undoButton);
+        JButton redoButton = new JButton("R");
+        undoRedoPanel.add(redoButton);
+        toolBar.add(undoRedoPanel);
+
+        c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 1;
+        c.gridwidth = 1;
+        c.gridheight = 1;
+        contentPane.add(toolBar, c);
+
+
+        // Prepare main image panel
         JPanel imagePanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -67,43 +122,110 @@ public class CaptureEditingFrame extends JFrame {
 
         JScrollPane scrollableImagePanel = new JScrollPane(imagePanel);
 
-        contentPane.add(scrollableImagePanel, BorderLayout.CENTER);
+        JPanel mainPanel = new JPanel();
+        mainPanel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
+        mainPanel.setLayout(new GridBagLayout());
 
-        // Prepare button bar
+        c = new GridBagConstraints();
+        c.insets = new Insets(13,17,10,17);
+        mainPanel.add(scrollableImagePanel, c);
+
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 1;
+        c.gridwidth = 2;
+        c.gridheight = 2;
+        contentPane.add(mainPanel, c);
+
+
+        // Prepare name editing panel
+        JPanel editPanel = new JPanel();
+        editPanel.setLayout(new BorderLayout());
+        editPanel.setBackground(Util.LABEL_BACKGROUND_COLOR);
+        final JLabel nameLabel = new JLabel("Name");
+        nameLabel.setForeground(Util.LABEL_FOREGROUND_COLOR);
+        editPanel.add(nameLabel, BorderLayout.WEST);
+        JTextField nameTextField = new JTextField();
+        nameTextField.setBackground(Util.TEXTFIELD_BACKGROUND_COLOR);
+        nameTextField.setSelectionColor(Util.TEXTFIELD_SELECTION_BACKGROUND_COLOR);
+        editPanel.add(nameTextField, BorderLayout.CENTER);
+
+        JPanel lowerPanel = new JPanel();
+        lowerPanel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
+        c = new GridBagConstraints();
+        c.insets = new Insets(4,17,12,17);
+        lowerPanel.add(editPanel, c);
+
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 3;
+        c.gridwidth = 2;
+        c.gridheight = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        contentPane.add(lowerPanel, c);
+
+
+        // Prepare horizontal button bar
         JPanel actionPanel = new JPanel(); // To add a margin around buttonBar
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         actionPanel.setName("GinjPanel"); // To be used as a selector in laf.xml
         JPanel buttonBar = new GinjButtonBar();
-        try {
-            GinjButton shareButton = new GinjButton("Share via X", new ImageIcon(ImageIO.read(getClass().getResource("img/b_share.png"))));
-            shareButton.addActionListener(e -> onExport(EXPORT_TYPE_SHARE));
-            buttonBar.add(shareButton);
-            GinjButton saveButton = new GinjButton("Save", new ImageIcon(ImageIO.read(getClass().getResource("img/b_save.png"))));
-            saveButton.addActionListener(e -> onExport(EXPORT_TYPE_DISK));
-            buttonBar.add(saveButton);
-            final JButton copyButton = new GinjButton("Copy", new ImageIcon(ImageIO.read(getClass().getResource("img/b_copy.png"))));
-            copyButton.addActionListener(e -> onExport(EXPORT_TYPE_CLIPBOARD));
-            buttonBar.add(copyButton);
-            final JButton cancelButton = new GinjButton("Cancel", new ImageIcon(ImageIO.read(getClass().getResource("img/b_cancel.png"))));
-            cancelButton.addActionListener(e -> onCancel());
-            buttonBar.add(cancelButton);
-            final JButton customizeButton = new GinjButton("Customize Ginj buttons", new ImageIcon(ImageIO.read(getClass().getResource("img/b_customize.png"))));
-            customizeButton.addActionListener(e -> onCustomize());
-            buttonBar.add(customizeButton);
-        }
-        catch (IOException e) {
-            System.out.println("Error loading capture button images");
-            e.printStackTrace();
-            System.exit(Ginj.ERR_STATUS_LOAD_IMG);
-        }
+
+        GinjButton shareButton = new GinjButton("Share via X", Util.createIcon(getClass().getResource("img/icon/share.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        shareButton.addActionListener(e -> onExport(EXPORT_TYPE_SHARE));
+        buttonBar.add(shareButton);
+        GinjButton saveButton = new GinjButton("Save", Util.createIcon(getClass().getResource("img/icon/save.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        saveButton.addActionListener(e -> onExport(EXPORT_TYPE_DISK));
+        buttonBar.add(saveButton);
+        final JButton copyButton = new GinjButton("Copy", Util.createIcon(getClass().getResource("img/icon/copy.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        copyButton.addActionListener(e -> onExport(EXPORT_TYPE_CLIPBOARD));
+        buttonBar.add(copyButton);
+        final JButton cancelButton = new GinjButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        cancelButton.addActionListener(e -> onCancel());
+        buttonBar.add(cancelButton);
+        final JButton customizeButton = new GinjButton("Customize Ginj buttons", Util.createIcon(getClass().getResource("img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        customizeButton.addActionListener(e -> onCustomize());
+        buttonBar.add(customizeButton);
+
         actionPanel.add(buttonBar);
 
-        contentPane.add(actionPanel, BorderLayout.SOUTH);
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 4;
+        c.gridwidth = 1;
+        c.gridheight = 1;
+        contentPane.add(actionPanel, c);
+
+        // Prefill and select name
+        // TODO does not work
+        nameTextField.setText(captureId);
+        nameTextField.requestFocusInWindow();
+        nameTextField.selectAll();
 
         pack();
 
         // Center window
         setLocationRelativeTo(null);
+    }
+
+    private void addDraggableWindowMouseBehaviour(CaptureEditingFrame frame) {
+        MouseInputListener mouseListener = new MouseInputAdapter() {
+            Point clicked;
+
+            public void mousePressed(MouseEvent e) {
+                clicked = e.getPoint();
+            }
+
+            public void mouseDragged(MouseEvent e) {
+                Point position = e.getPoint();
+                Point location = frame.getLocation();
+                int x = location.x - clicked.x + position.x;
+                int y = location.y - clicked.y + position.y;
+                frame.setLocation(x, y);
+            }
+        };
+        frame.addMouseListener(mouseListener);
+        frame.addMouseMotionListener(mouseListener);
     }
 
 

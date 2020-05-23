@@ -2,13 +2,24 @@ package info.ginj;
 
 /*
 TODO :
- - Do capture editing
- - Remove EASynth resource dir, and maybe some useless classes...
+ - Fix toolbar buttons L&F
+ - Do overlays
  - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp  640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
- - Finalize Look and feel
  - Implement Window detection using JNA
  - Implement "exports"
  - Implement local storage
+
+ UI:
+ - Finalize Look and feel
+ - Fix scrollbar corner + thumb icon + colors + gap
+ - Upscale sun and sun-rays so that runtime downscale provides an anti-aliasing, or better yet draw it by code (gradients etc)
+ - Build 3 main buttons at runtime based on circle + icons (downscale provides an anti-aliasing)
+
+ Cleanup:
+ - Remove EASynth resource dir
+ - Remove useless EASynth classes, if any
+ - Remove useless icons ?
+
 */
 
 import javax.swing.*;

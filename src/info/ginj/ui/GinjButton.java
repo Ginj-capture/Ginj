@@ -7,6 +7,8 @@ public class GinjButton extends JButton {
 
     public GinjButton(String tooltip, ImageIcon imageIcon) {
         super(imageIcon);
+        setName("GinjButton");
+
         final GinjButton thisButton = this;
 
         addMouseListener(new java.awt.event.MouseAdapter() {

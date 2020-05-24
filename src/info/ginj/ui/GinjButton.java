@@ -7,7 +7,7 @@ public class GinjButton extends JButton {
 
     public GinjButton(String help, ImageIcon imageIcon) {
         super(imageIcon);
-        setName("GinjButton");
+        setName("GinjButton"); // To be addressed in laf.xml
 
         final GinjButton thisButton = this;
 

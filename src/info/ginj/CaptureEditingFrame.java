@@ -7,6 +7,7 @@ import info.ginj.ui.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
 import java.awt.*;
@@ -22,6 +23,14 @@ public class CaptureEditingFrame extends JFrame {
     public static final String EXPORT_TYPE_DISK = "disk";
     public static final String EXPORT_TYPE_SHARE = "share";
     public static final String EXPORT_TYPE_CLIPBOARD = "clipboard";
+
+    public static final int TOOL_BUTTON_ICON_WIDTH = 24;
+    public static final int TOOL_BUTTON_ICON_HEIGHT = 24;
+    public static final int MINI_TOOL_BUTTON_ICON_WIDTH = 10;
+    public static final int MINI_TOOL_BUTTON_ICON_HEIGHT = 10;
+
+    // Caching
+    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
     private BufferedImage capturedImg;
     private String captureId;
@@ -62,24 +71,38 @@ public class CaptureEditingFrame extends JFrame {
         // Prepare overlay toolbar
         JPanel toolBar = new JPanel();
         toolBar.setLayout(new BoxLayout(toolBar, BoxLayout.Y_AXIS));
+        toolBar.setBorder(new EmptyBorder(6,6,6,6));
         toolBar.setBackground(Util.WINDOW_BACKGROUND_COLOR);
 
-        GinjToolToggleButton arrowToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/arrow.png"), 24, 24, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        final Dimension spacer = new Dimension(0, 8);
+
+        GinjToolToggleButton arrowToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/arrow.png"), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        arrowToolButton.addActionListener(e -> {
+            //selectTool();
+        });
         arrowToolButton.setSelected(true);
         toolBar.add(arrowToolButton);
-        GinjToolToggleButton textToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/text.png"), 24, 24, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        toolBar.add(Box.createRigidArea(spacer));
+        GinjToolToggleButton textToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/text.png"), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
         toolBar.add(textToolButton);
-        GinjToolToggleButton frameToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/frame.png"), 24, 24, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        toolBar.add(Box.createRigidArea(spacer));
+        GinjToolToggleButton frameToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/frame.png"), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
         toolBar.add(frameToolButton);
-        GinjToolToggleButton highlightToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/highlight.png"), 24, 24, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        toolBar.add(Box.createRigidArea(spacer));
+        GinjToolToggleButton highlightToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/highlight.png"), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
         toolBar.add(highlightToolButton);
-        GinjToolButton colorToolButton = new GinjToolButton(/*new ImageIcon(ImageIO.read(getClass().getResource("img/icon24_color.png")))*/);
+        toolBar.add(Box.createRigidArea(spacer));
+
+        GinjToolButton colorToolButton = new GinjToolButton(createRoundRectColorIcon(Color.RED, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
         toolBar.add(colorToolButton);
+        toolBar.add(Box.createRigidArea(spacer));
 
         JPanel undoRedoPanel = new JPanel();
-        JButton undoButton = new JButton("U");
+        undoRedoPanel.setAlignmentX(0); // Otherwise the panel adds horizontal space...
+        undoRedoPanel.setLayout(new BoxLayout(undoRedoPanel, BoxLayout.X_AXIS));
+        GinjMiniToolButton undoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("img/icon/undo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
         undoRedoPanel.add(undoButton);
-        JButton redoButton = new JButton("R");
+        GinjMiniToolButton redoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("img/icon/redo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
         undoRedoPanel.add(redoButton);
         toolBar.add(undoRedoPanel);
 
@@ -98,6 +121,8 @@ public class CaptureEditingFrame extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.drawImage(capturedImg, 0, 0, this);
+
+                // TODO draw overlays
             }
 
             @Override
@@ -110,25 +135,23 @@ public class CaptureEditingFrame extends JFrame {
                 return capturedImgSize;
             }
 
-            @Override
-            public Dimension getMinimumSize() {
-                return capturedImgSize;
-            }
-
-            @Override
-            public Dimension getSize(Dimension rv) {
-                return capturedImgSize;
-            }
         };
 
         JScrollPane scrollableImagePanel = new JScrollPane(imagePanel);
 
+//        scrollableImagePanel.setPreferredSize(new Dimension(
+//                Math.min(screenSize.width - 150, capturedImgSize.width),
+//                Math.min(screenSize.height - 150, capturedImgSize.height)
+//        ));
+
         JPanel mainPanel = new JPanel();
+        mainPanel.setOpaque(true);
         mainPanel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
         mainPanel.setLayout(new GridBagLayout());
 
         c = new GridBagConstraints();
-        c.insets = new Insets(13,17,10,17);
+        // min border around scrollPane
+        c.insets = new Insets(13,17, 10,17);
         mainPanel.add(scrollableImagePanel, c);
 
         c = new GridBagConstraints();
@@ -136,25 +159,27 @@ public class CaptureEditingFrame extends JFrame {
         c.gridy = 1;
         c.gridwidth = 2;
         c.gridheight = 2;
+        c.fill = GridBagConstraints.BOTH;
         contentPane.add(mainPanel, c);
 
 
         // Prepare name editing panel
         JPanel editPanel = new JPanel();
-        editPanel.setLayout(new BorderLayout());
+        editPanel.setLayout(new GridBagLayout());
         editPanel.setBackground(Util.LABEL_BACKGROUND_COLOR);
         final JLabel nameLabel = new JLabel("Name");
         nameLabel.setForeground(Util.LABEL_FOREGROUND_COLOR);
-        editPanel.add(nameLabel, BorderLayout.WEST);
+        editPanel.add(nameLabel, /*BorderLayout.WEST*/new GridBagConstraints(0,0,1,1,0,0,GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0,0));
         JTextField nameTextField = new JTextField();
         nameTextField.setBackground(Util.TEXTFIELD_BACKGROUND_COLOR);
         nameTextField.setSelectionColor(Util.TEXTFIELD_SELECTION_BACKGROUND_COLOR);
-        editPanel.add(nameTextField, BorderLayout.CENTER);
+        editPanel.add(nameTextField, /*BorderLayout.CENTER*/new GridBagConstraints(1,0,1,1,0,0,GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0,0));
 
         JPanel lowerPanel = new JPanel();
         lowerPanel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
         c = new GridBagConstraints();
         c.insets = new Insets(4,17,12,17);
+        c.fill = GridBagConstraints.HORIZONTAL;
         lowerPanel.add(editPanel, c);
 
         c = new GridBagConstraints();
@@ -167,7 +192,7 @@ public class CaptureEditingFrame extends JFrame {
 
 
         // Prepare horizontal button bar
-        JPanel actionPanel = new JPanel(); // To add a margin around buttonBar
+        JPanel actionPanel = new JPanel();
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         actionPanel.setName("GinjPanel"); // To be used as a selector in laf.xml
         JPanel buttonBar = new GinjButtonBar();
@@ -207,6 +232,28 @@ public class CaptureEditingFrame extends JFrame {
 
         // Center window
         setLocationRelativeTo(null);
+    }
+
+    private Icon createRoundRectColorIcon(Color color, int width, int height) {
+        return new Icon(){
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setColor(color);
+                g2.fillRoundRect(x, y, width, height, 3, 3);
+                g2.dispose();
+            }
+
+            @Override
+            public int getIconWidth() {
+                return width;
+            }
+
+            @Override
+            public int getIconHeight() {
+                return height;
+            }
+        };
     }
 
     private void addDraggableWindowMouseBehaviour(CaptureEditingFrame frame) {

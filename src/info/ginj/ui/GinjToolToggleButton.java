@@ -17,6 +17,6 @@ public class GinjToolToggleButton extends JToggleButton {
 
     public GinjToolToggleButton(String text, Icon icon, boolean selected) {
         super(text, icon, selected);
-        setName("GinjToolButton"); // To be addressed in laf.xml
+        setName("GinjToggleToolButton"); // To be addressed in laf.xml
     }
 }

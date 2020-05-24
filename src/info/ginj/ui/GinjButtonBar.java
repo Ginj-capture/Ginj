@@ -4,16 +4,12 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
-import static info.ginj.ui.Util.LABEL_FOREGROUND_COLOR;
-import static info.ginj.ui.Util.WINDOW_BACKGROUND_COLOR;
-
 /**
  * A Ginj Button Bar is made of a top area for help and a bottom area for actual buttons (GinjButton),
  * plus another area at the bottom right for other components
  * When hovering over a GinjButton, the help is filled accordingly and moves above the button
  */
 public class GinjButtonBar extends JPanel {
-    public static final Color HELP_FOREGROUND_COLOR = Color.WHITE;
     private JPanel helpPanel;
     private JLabel helpLabel;
     private JPanel buttonPanel;
@@ -28,8 +24,8 @@ public class GinjButtonBar extends JPanel {
         super(isDoubleBuffered);
         setOpaque(true);
         setBorder(new EmptyBorder(5, 0, 5, 0));
-        setBackground(WINDOW_BACKGROUND_COLOR);
-        setForeground(LABEL_FOREGROUND_COLOR);
+        setBackground(Util.WINDOW_BACKGROUND_COLOR);
+        setForeground(Util.LABEL_FOREGROUND_COLOR);
 
         setLayout(new GridBagLayout());
 
@@ -56,7 +52,7 @@ public class GinjButtonBar extends JPanel {
             }
         };
         helpLabel = new JLabel(" "); // Init it with a string so it takes some height when packing UI
-        helpLabel.setForeground(HELP_FOREGROUND_COLOR);
+        helpLabel.setForeground(Util.HELP_FOREGROUND_COLOR);
         helpPanel.add(helpLabel);
 
         // Compute helpLabel size with default layout manager of JPanel and remember it for Panel

@@ -15,7 +15,6 @@ TODO UI:
  - Fix scrollbar corner + thumb icon + colors + gap
  - Upscale sun and sun-rays so that runtime downscale provides an anti-aliasing, or better yet draw it by code (gradients etc)
  - Build 3 main buttons at runtime based on circle + icons (downscale provides an anti-aliasing)
- - Make a yellowish icons for disabled buttons
 
 TODO Cleanup:
  - Remove EASynth resource dir

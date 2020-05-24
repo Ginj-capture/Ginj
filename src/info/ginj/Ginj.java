@@ -3,6 +3,7 @@ package info.ginj;
 /*
 TODO Features :
  - Fix toolbar buttons L&F
+
  - Do overlays
  - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp  640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
  - Implement Window detection using JNA
@@ -22,6 +23,8 @@ TODO Cleanup:
  - Remove useless icons ?
 
 */
+
+import info.ginj.ui.laf.GinjSynthLookAndFeel;
 
 import javax.swing.*;
 import javax.swing.plaf.synth.SynthLookAndFeel;
@@ -49,7 +52,7 @@ public class Ginj {
             System.exit(ERR_STATUS_TRANSPARENCY);
         }
 
-        SynthLookAndFeel ginjLookAndFeel = new SynthLookAndFeel();
+        SynthLookAndFeel ginjLookAndFeel = new GinjSynthLookAndFeel();
         try {
             ginjLookAndFeel.load(Ginj.class.getResourceAsStream(LAF_XML), Ginj.class);
             UIManager.setLookAndFeel(ginjLookAndFeel);

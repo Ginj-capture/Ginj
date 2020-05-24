@@ -40,7 +40,7 @@ public class CaptureSelectionFrame extends JFrame {
     private static final int OPERATION_NONE = -1;
 
     // Caching
-    private final Dimension screenSize;
+    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     // See https://stackoverflow.com/a/10687248
     private final Cursor CURSOR_NONE = Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), new Point(), null);
 
@@ -59,9 +59,8 @@ public class CaptureSelectionFrame extends JFrame {
 
     public CaptureSelectionFrame() {
         super();
-        screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 // Simulate a half screen to be able to debug in parallel of "full screen" capture window on top
-screenSize.setSize(screenSize.width/2, screenSize.height);
+//screenSize.setSize(screenSize.width/2, screenSize.height);
 
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work

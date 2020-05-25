@@ -60,7 +60,7 @@ public class CaptureSelectionFrame extends JFrame {
     public CaptureSelectionFrame() {
         super();
 // Simulate a half screen to be able to debug in parallel of "full screen" capture window on top
-screenSize.setSize(screenSize.width/2, screenSize.height);
+//  screenSize.setSize(screenSize.width/2, screenSize.height);
 
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
@@ -326,33 +326,38 @@ screenSize.setSize(screenSize.width/2, screenSize.height);
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (selection != null) {
+                    // ENHANCEMENT: resize cursor changes when it goes over the edge
                     // Note: rememberedReferenceOffset has different meanings according to currentOperation. See mousePressed
                     final int newX = e.getX() - rememberedReferenceOffset.x;
                     final int newY = e.getY() - rememberedReferenceOffset.y;
+                    int previousOperation = currentOperation;
                     switch (currentOperation) {
                         // Move selection rectangle
                         case Cursor.MOVE_CURSOR -> selection.setLocation(newX, newY);
                         // Move only one edge or one corner
-                        case Cursor.W_RESIZE_CURSOR -> setX1(selection, newX);
-                        case Cursor.N_RESIZE_CURSOR -> setY1(selection, newY);
+                        case Cursor.W_RESIZE_CURSOR -> currentOperation = Coords.setX1(selection, newX, currentOperation);
+                        case Cursor.N_RESIZE_CURSOR -> currentOperation = Coords.setY1(selection, newY, currentOperation);
                         case Cursor.NW_RESIZE_CURSOR -> {
-                            setX1(selection, newX);
-                            setY1(selection, newY);
+                            currentOperation = Coords.setX1(selection, newX, currentOperation);
+                            currentOperation = Coords.setY1(selection, newY, currentOperation);
                         }
-                        case Cursor.E_RESIZE_CURSOR -> setX2(selection, newX);
+                        case Cursor.E_RESIZE_CURSOR -> currentOperation = Coords.setX2(selection, newX, currentOperation);
                         case Cursor.NE_RESIZE_CURSOR -> {
-                            setY1(selection, newY);
-                            setX2(selection, newX);
+                            currentOperation = Coords.setY1(selection, newY, currentOperation);
+                            currentOperation = Coords.setX2(selection, newX, currentOperation);
                         }
-                        case Cursor.S_RESIZE_CURSOR -> setY2(selection, newY);
+                        case Cursor.S_RESIZE_CURSOR -> currentOperation = Coords.setY2(selection, newY, currentOperation);
                         case Cursor.SW_RESIZE_CURSOR -> {
-                            setX1(selection, newX);
-                            setY2(selection, newY);
+                            currentOperation = Coords.setX1(selection, newX, currentOperation);
+                            currentOperation = Coords.setY2(selection, newY, currentOperation);
                         }
                         case Cursor.SE_RESIZE_CURSOR -> {
-                            setX2(selection, newX);
-                            setY2(selection, newY);
+                            currentOperation = Coords.setX2(selection, newX, currentOperation);
+                            currentOperation = Coords.setY2(selection, newY, currentOperation);
                         }
+                    }
+                    if (previousOperation != currentOperation) {
+                        updateMouseCursor();
                     }
                 }
                 // Paint rectangle (and cross lines if making selection)
@@ -381,94 +386,6 @@ screenSize.setSize(screenSize.width/2, screenSize.height);
                 }
             }
 
-            ////////////////////////////////
-            // Coordinate utils
-
-            // Only move left edge of rectangle, keeping other edges the same
-            private void setX1(Rectangle rectangle, int newX1) {
-                final int oldX1 = rectangle.x;
-                final int oldX2 = rectangle.x + rectangle.width;
-                if (newX1 <= oldX2) {
-                    // Normal case
-                    rectangle.setLocation(newX1, rectangle.y);
-                    rectangle.setSize(rectangle.width + oldX1 - newX1, rectangle.height);
-                }
-                else {
-                    // Mouse has crossed the right edge
-                    rectangle.setLocation(oldX2, rectangle.y);
-                    rectangle.setSize(newX1 - oldX2, rectangle.height);
-                    switch (currentOperation) {
-                        case Cursor.NW_RESIZE_CURSOR -> currentOperation = Cursor.NE_RESIZE_CURSOR;
-                        case Cursor.W_RESIZE_CURSOR -> currentOperation = Cursor.E_RESIZE_CURSOR;
-                        case Cursor.SW_RESIZE_CURSOR -> currentOperation = Cursor.SE_RESIZE_CURSOR;
-                    }
-                    updateMouseCursor();
-                }
-            }
-
-            // Only move top edge of rectangle, keeping other edges the same
-            private void setY1(Rectangle rectangle, int newY1) {
-                final int oldY1 = rectangle.y;
-                final int oldY2 = rectangle.y + rectangle.height;
-                if (newY1 <= oldY2) {
-                    // Normal case
-                    rectangle.setLocation(rectangle.x, newY1);
-                    rectangle.setSize(rectangle.width, rectangle.height + oldY1 - newY1);
-                }
-                else {
-                    // Mouse has crossed the bottom edge
-                    rectangle.setLocation(rectangle.x, oldY2);
-                    rectangle.setSize(rectangle.width, newY1 - oldY2);
-                    switch (currentOperation) {
-                        case Cursor.NW_RESIZE_CURSOR -> currentOperation = Cursor.SW_RESIZE_CURSOR;
-                        case Cursor.N_RESIZE_CURSOR -> currentOperation = Cursor.S_RESIZE_CURSOR;
-                        case Cursor.NE_RESIZE_CURSOR -> currentOperation = Cursor.SE_RESIZE_CURSOR;
-                    }
-                    updateMouseCursor();
-                }
-            }
-
-            // Only move right edge of rectangle, keeping other edges the same
-            private void setX2(Rectangle rectangle, int newX2) {
-                final int oldX1 = rectangle.x;
-                final int oldX2 = rectangle.x + rectangle.width;
-                if (newX2 >= oldX1) {
-                    // Normal case
-                    rectangle.setSize(rectangle.width - oldX2 + newX2, rectangle.height);
-                }
-                else {
-                    // Mouse has crossed the left edge
-                    rectangle.setLocation(newX2, rectangle.y);
-                    rectangle.setSize(oldX1 - newX2, rectangle.height);
-                    switch (currentOperation) {
-                        case Cursor.NE_RESIZE_CURSOR -> currentOperation = Cursor.NW_RESIZE_CURSOR;
-                        case Cursor.E_RESIZE_CURSOR -> currentOperation = Cursor.W_RESIZE_CURSOR;
-                        case Cursor.SE_RESIZE_CURSOR -> currentOperation = Cursor.SW_RESIZE_CURSOR;
-                    }
-                    updateMouseCursor();
-                }
-            }
-
-            // Only move bottom edge of rectangle, keeping other edges the same
-            private void setY2(Rectangle rectangle, int newY2) {
-                final int oldY1 = rectangle.y;
-                final int oldY2 = rectangle.y + rectangle.height;
-                if (newY2 >= oldY1) {
-                    // Normal case
-                    rectangle.setSize(rectangle.width, rectangle.height - oldY2 + newY2);
-                }
-                else {
-                    // Mouse has crossed the top edge
-                    rectangle.setLocation(rectangle.x, newY2);
-                    rectangle.setSize(rectangle.width, oldY1 - newY2);
-                    switch (currentOperation) {
-                        case Cursor.SW_RESIZE_CURSOR -> currentOperation = Cursor.NW_RESIZE_CURSOR;
-                        case Cursor.S_RESIZE_CURSOR -> currentOperation = Cursor.N_RESIZE_CURSOR;
-                        case Cursor.SE_RESIZE_CURSOR -> currentOperation = Cursor.NE_RESIZE_CURSOR;
-                    }
-                    updateMouseCursor();
-                }
-            }
 
             private void updateMouseCursor() {
                 if (isInitialSelectionDone) {

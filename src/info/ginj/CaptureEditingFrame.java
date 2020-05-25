@@ -3,6 +3,12 @@ package info.ginj;
 import info.ginj.export.GinjExporter;
 import info.ginj.export.clipboard.ClipboardExporterImpl;
 import info.ginj.export.disk.DiskExporterImpl;
+import info.ginj.tool.GinjTool;
+import info.ginj.tool.Overlay;
+import info.ginj.tool.arrow.ArrowTool;
+import info.ginj.tool.frame.FrameTool;
+import info.ginj.tool.highlight.HighlightTool;
+import info.ginj.tool.text.GinjTextTool;
 import info.ginj.ui.*;
 
 import javax.imageio.ImageIO;
@@ -16,6 +22,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
 
@@ -31,9 +38,15 @@ public class CaptureEditingFrame extends JFrame {
 
     // Caching
     private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    private Dimension capturedImgSize;
 
+    // State
     private BufferedImage capturedImg;
     private String captureId;
+    private GinjTool currentTool;
+    private Color currentColor = Color.RED;
+    private java.util.List<JComponent> overLays = new ArrayList<>();
+
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
         this(capturedImg, new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date())); // ENHANCEMENT
@@ -43,7 +56,7 @@ public class CaptureEditingFrame extends JFrame {
         super();
         this.capturedImg = capturedImg;
         this.captureId = captureId;
-        final Dimension capturedImgSize = new Dimension(capturedImg.getWidth(), capturedImg.getHeight());
+        capturedImgSize = new Dimension(capturedImg.getWidth(), capturedImg.getHeight());
 
         // Make it transparent
         setUndecorated(true);
@@ -74,28 +87,27 @@ public class CaptureEditingFrame extends JFrame {
         toolBar.setBorder(new EmptyBorder(6,6,6,6));
         toolBar.setBackground(Util.WINDOW_BACKGROUND_COLOR);
 
-        final Dimension spacer = new Dimension(0, 8);
+        ButtonGroup toolButtonGroup = new ButtonGroup();
+        GinjTool[] tools = new GinjTool[] {new ArrowTool(), new FrameTool(), new GinjTextTool(), new HighlightTool()};
+        for (GinjTool tool : tools) {
+            addToolButton(toolBar, tool, toolButtonGroup);
+        }
 
-        GinjToolToggleButton arrowToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/arrow.png"), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
-        arrowToolButton.addActionListener(e -> {
-            //selectTool();
+        GinjToolButton colorToolButton = new GinjToolButton(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        colorToolButton.addActionListener(e -> {
+            if (Color.RED.equals(currentColor)) {
+                currentColor = Color.GREEN;
+            }
+            else if (Color.GREEN.equals(currentColor)) {
+                currentColor = Color.BLUE;
+            }
+            else {
+                currentColor = Color.RED;
+            }
+            colorToolButton.setIcon(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
         });
-        arrowToolButton.setSelected(true);
-        toolBar.add(arrowToolButton);
-        toolBar.add(Box.createRigidArea(spacer));
-        GinjToolToggleButton textToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/text.png"), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
-        toolBar.add(textToolButton);
-        toolBar.add(Box.createRigidArea(spacer));
-        GinjToolToggleButton frameToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/frame.png"), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
-        toolBar.add(frameToolButton);
-        toolBar.add(Box.createRigidArea(spacer));
-        GinjToolToggleButton highlightToolButton = new GinjToolToggleButton(Util.createIcon(getClass().getResource("img/icon/highlight.png"), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
-        toolBar.add(highlightToolButton);
-        toolBar.add(Box.createRigidArea(spacer));
-
-        GinjToolButton colorToolButton = new GinjToolButton(createRoundRectColorIcon(Color.RED, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
         toolBar.add(colorToolButton);
-        toolBar.add(Box.createRigidArea(spacer));
+        toolBar.add(Box.createRigidArea(new Dimension(0, 8)));
 
         JPanel undoRedoPanel = new JPanel();
         undoRedoPanel.setAlignmentX(0); // Otherwise the panel adds horizontal space...
@@ -121,8 +133,6 @@ public class CaptureEditingFrame extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
                 g2d.drawImage(capturedImg, 0, 0, this);
-
-                // TODO draw overlays
             }
 
             @Override
@@ -136,6 +146,10 @@ public class CaptureEditingFrame extends JFrame {
             }
 
         };
+        // Absolute positioning of components over the image
+        imagePanel.setLayout(null);
+
+        addOverlayMouseBehaviour(imagePanel);
 
         JScrollPane scrollableImagePanel = new JScrollPane(imagePanel);
 
@@ -234,6 +248,30 @@ public class CaptureEditingFrame extends JFrame {
         setLocationRelativeTo(null);
     }
 
+    private void addToolButton(JPanel toolBar, GinjTool tool, ButtonGroup group) {
+        // Create button
+        GinjToolToggleButton toolButton = new GinjToolToggleButton(Util.createIcon(
+                getClass().getResource("img/icon/tool_" + tool.getName().toLowerCase() + ".png"),
+                TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        // Add it to the toolbar, followed by a spacer
+        toolBar.add(toolButton);
+        toolBar.add(Box.createRigidArea(new Dimension(0, 8)));
+
+        // Add the button to the buttonGroup to get a "radio-button" experience
+        group.add(toolButton);
+
+        // Select this button if it's the first
+        if (currentTool == null) {
+            toolButton.setSelected(true);
+            currentTool = tool;
+        }
+
+        // And store this tool as currentTool if clicked
+        toolButton.addActionListener((event) -> {
+            currentTool = tool;
+        });
+    }
+
     private Icon createRoundRectColorIcon(Color color, int width, int height) {
         return new Icon(){
             @Override
@@ -255,6 +293,33 @@ public class CaptureEditingFrame extends JFrame {
             }
         };
     }
+
+    /*
+     * TODO add click filter like on star window
+     */
+    private void addOverlayMouseBehaviour(JPanel panel) {
+        MouseInputListener mouseListener = new MouseInputAdapter() {
+            private Overlay component;
+            Point clicked;
+
+            public void mousePressed(MouseEvent e) {
+                // TODO what about selecting / editing ?
+                clicked = e.getPoint();
+                component = currentTool.createComponent(e.getPoint(), currentColor);
+                panel.add(component);
+                component.setBounds(0,0,capturedImgSize.width, capturedImgSize.height);
+                overLays.add(component);
+            }
+
+            public void mouseDragged(MouseEvent e) {
+                component.moveHandle(0, e.getPoint());
+                repaint();
+            }
+        };
+        panel.addMouseListener(mouseListener);
+        panel.addMouseMotionListener(mouseListener);
+    }
+
 
     private void addDraggableWindowMouseBehaviour(CaptureEditingFrame frame) {
         MouseInputListener mouseListener = new MouseInputAdapter() {

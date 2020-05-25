@@ -76,4 +76,9 @@ public class Util {
         }
         return result;
     }
+
+    public static Color getTranslucentColor(Color color) {
+        // Make 50% opacity
+        return new Color(0x7F000000 | (color.getRGB() | 0x00FFFFFF));
+    }
 }

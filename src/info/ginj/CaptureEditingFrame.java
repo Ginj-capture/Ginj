@@ -46,6 +46,7 @@ public class CaptureEditingFrame extends JFrame {
     private GinjTool currentTool;
     private Color currentColor = Color.RED;
     private java.util.List<JComponent> overLays = new ArrayList<>();
+    private JPanel imagePanel;
 
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
@@ -66,6 +67,7 @@ public class CaptureEditingFrame extends JFrame {
 
         final Container contentPane = getContentPane();
         contentPane.setLayout(new GridBagLayout());
+        GridBagConstraints c;
 
         // Prepare title bar
         JPanel titleBar = new JPanel();
@@ -73,7 +75,7 @@ public class CaptureEditingFrame extends JFrame {
         JLabel testLabel = new JLabel("Title");
         titleBar.add(testLabel);
 
-        GridBagConstraints c = new GridBagConstraints();
+        c = new GridBagConstraints();
         c.gridx = 1;
         c.gridy = 0;
         c.gridwidth = 2;
@@ -127,7 +129,7 @@ public class CaptureEditingFrame extends JFrame {
 
 
         // Prepare main image panel
-        JPanel imagePanel = new JPanel() {
+        imagePanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -153,19 +155,21 @@ public class CaptureEditingFrame extends JFrame {
 
         JScrollPane scrollableImagePanel = new JScrollPane(imagePanel);
 
-//        scrollableImagePanel.setPreferredSize(new Dimension(
-//                Math.min(screenSize.width - 150, capturedImgSize.width),
-//                Math.min(screenSize.height - 150, capturedImgSize.height)
-//        ));
-
+        // Prepare an opaque panel which will fill the main display area and host the image scrollpane
+        // (the scrollpane will only occupy the center if image is smaller than the toolbars)
         JPanel mainPanel = new JPanel();
         mainPanel.setOpaque(true);
         mainPanel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
         mainPanel.setLayout(new GridBagLayout());
 
+        // TODO center image in display area, while preserving the scrollbars when capturing full screen
+
         c = new GridBagConstraints();
         // min border around scrollPane
         c.insets = new Insets(13,17, 10,17);
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1;
+        c.weighty = 1;
         mainPanel.add(scrollableImagePanel, c);
 
         c = new GridBagConstraints();
@@ -173,11 +177,14 @@ public class CaptureEditingFrame extends JFrame {
         c.gridy = 1;
         c.gridwidth = 2;
         c.gridheight = 2;
+        c.weightx = 1;
+        c.weighty = 1;
         c.fill = GridBagConstraints.BOTH;
         contentPane.add(mainPanel, c);
 
 
         // Prepare name editing panel
+        // TODO should fill space horizontally...
         JPanel editPanel = new JPanel();
         editPanel.setLayout(new GridBagLayout());
         editPanel.setBackground(Util.LABEL_BACKGROUND_COLOR);
@@ -243,6 +250,19 @@ public class CaptureEditingFrame extends JFrame {
         nameTextField.selectAll();
 
         pack();
+
+        // Make sure the window fits on the screen
+
+        // Find the usable screen size (without the Taskbar)
+        GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        Rectangle bounds = env.getMaximumWindowBounds();
+
+        // And compare with current size, choosing the smallest one
+        Dimension size = getSize();
+        size.width = Math.min(size.width, bounds.width);
+        size.height = Math.min(size.height, bounds.height);
+        System.out.println(size);
+        setSize(size);
 
         // Center window
         setLocationRelativeTo(null);
@@ -347,6 +367,10 @@ public class CaptureEditingFrame extends JFrame {
         saveInHistory();
 
         // Render image and overlays
+        BufferedImage renderedImage = new BufferedImage(imagePanel.getWidth(), imagePanel.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics g = renderedImage.getGraphics();
+        imagePanel.paint(g);
+        g.dispose();
 
         // Find the right exporter implementation
         GinjExporter exporter = null;
@@ -364,7 +388,7 @@ public class CaptureEditingFrame extends JFrame {
 
         // Perform export
         if (exporter != null) {
-            exporter.export(capturedImg, new Properties());
+            exporter.export(renderedImage, new Properties());
 
             // and close Window
             dispose();

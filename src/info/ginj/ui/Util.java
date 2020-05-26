@@ -16,6 +16,7 @@ public class Util {
     public static final Color LABEL_FOREGROUND_COLOR = new Color(222, 165, 5);
     public static final Color TEXTFIELD_BACKGROUND_COLOR = Color.WHITE;
     public static final Color TEXTFIELD_SELECTION_BACKGROUND_COLOR = new Color(153, 201, 239);
+    public static final Color TEXTFIELD_SELECTION_FOREGROUND_COLOR = Color.BLACK;
 
     /**
      * Lay out components of a Panel and compute its size, like pack() for a Window.

@@ -184,23 +184,26 @@ public class CaptureEditingFrame extends JFrame {
 
 
         // Prepare name editing panel
-        // TODO should fill space horizontally...
         JPanel editPanel = new JPanel();
-        editPanel.setLayout(new GridBagLayout());
+        editPanel.setLayout(new BorderLayout());
         editPanel.setBackground(Util.LABEL_BACKGROUND_COLOR);
-        final JLabel nameLabel = new JLabel("Name");
+        final JLabel nameLabel = new JLabel("Name ");
         nameLabel.setForeground(Util.LABEL_FOREGROUND_COLOR);
-        editPanel.add(nameLabel, /*BorderLayout.WEST*/new GridBagConstraints(0,0,1,1,0,0,GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0,0));
+        editPanel.add(nameLabel, BorderLayout.WEST);
         JTextField nameTextField = new JTextField();
         nameTextField.setBackground(Util.TEXTFIELD_BACKGROUND_COLOR);
         nameTextField.setSelectionColor(Util.TEXTFIELD_SELECTION_BACKGROUND_COLOR);
-        editPanel.add(nameTextField, /*BorderLayout.CENTER*/new GridBagConstraints(1,0,1,1,0,0,GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0,0));
+        nameTextField.setSelectedTextColor(Util.TEXTFIELD_SELECTION_FOREGROUND_COLOR);
+        editPanel.add(nameTextField, BorderLayout.CENTER);
 
         JPanel lowerPanel = new JPanel();
+        lowerPanel.setLayout(new GridBagLayout());
         lowerPanel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
         c = new GridBagConstraints();
         c.insets = new Insets(4,17,12,17);
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.BOTH;
+        c.weightx = 1;
+        c.weighty = 1;
         lowerPanel.add(editPanel, c);
 
         c = new GridBagConstraints();

@@ -35,6 +35,7 @@ public class CaptureEditingFrame extends JFrame {
     public static final int TOOL_BUTTON_ICON_HEIGHT = 24;
     public static final int MINI_TOOL_BUTTON_ICON_WIDTH = 10;
     public static final int MINI_TOOL_BUTTON_ICON_HEIGHT = 10;
+    public static final Insets MAIN_PANEL_INSETS = new Insets(13, 17, 10, 17);
 
     // Caching
     private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -46,7 +47,8 @@ public class CaptureEditingFrame extends JFrame {
     private GinjTool currentTool;
     private Color currentColor = Color.RED;
     private java.util.List<JComponent> overLays = new ArrayList<>();
-    private JPanel imagePanel;
+    private JLayeredPane imagePane;
+    private int depth = 0;
 
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
@@ -129,7 +131,7 @@ public class CaptureEditingFrame extends JFrame {
 
 
         // Prepare main image panel
-        imagePanel = new JPanel() {
+        imagePane = new JLayeredPane() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -149,11 +151,9 @@ public class CaptureEditingFrame extends JFrame {
 
         };
         // Absolute positioning of components over the image
-        imagePanel.setLayout(null);
+        imagePane.setLayout(null);
 
-        addOverlayMouseBehaviour(imagePanel);
-
-        JScrollPane scrollableImagePanel = new JScrollPane(imagePanel);
+        addOverlayMouseBehaviour(imagePane);
 
         // Prepare an opaque panel which will fill the main display area and host the image scrollpane
         // (the scrollpane will only occupy the center if image is smaller than the toolbars)
@@ -162,15 +162,15 @@ public class CaptureEditingFrame extends JFrame {
         mainPanel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
         mainPanel.setLayout(new GridBagLayout());
 
-        // TODO center image in display area, while preserving the scrollbars when capturing full screen
-
+        // Let's be confident that the image will fit and we won't need a scrollpane
+        // (that will be checked at the end and fixed if needed)
+        // Not using a scrollpane guarantees the image will be fully visible, centered, if it is smaller than the available display area
         c = new GridBagConstraints();
         // min border around scrollPane
-        c.insets = new Insets(13,17, 10,17);
-        c.fill = GridBagConstraints.BOTH;
+        c.insets = MAIN_PANEL_INSETS;
         c.weightx = 1;
         c.weighty = 1;
-        mainPanel.add(scrollableImagePanel, c);
+        mainPanel.add(imagePane, c);
 
         c = new GridBagConstraints();
         c.gridx = 1;
@@ -249,18 +249,47 @@ public class CaptureEditingFrame extends JFrame {
         nameTextField.requestFocusInWindow();
         nameTextField.selectAll();
 
+        /////////////////////////////
+        // Check that the window fits on screen, or adjust size and add a scrollpane if needed
+
+        // Lay out components
         pack();
 
-        // Make sure the window fits on the screen
+        // Make sure the window fits on the screen:
 
         // Find the usable screen size (without the Taskbar)
         GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         Rectangle bounds = env.getMaximumWindowBounds();
 
         // And compare with current size, choosing the smallest one
+        boolean mustResize = false;
         Dimension size = getSize();
-        size.width = Math.min(size.width, bounds.width);
-        size.height = Math.min(size.height, bounds.height);
+        if (size.width > bounds.width) {
+            // Must limit width
+            size.width = bounds.width;
+            mustResize = true;
+        }
+        if (size.height > bounds.height) {
+            // Must limit height
+            size.height = bounds.height;
+            mustResize = true;
+        }
+
+        // See if a resize is needed or not
+        if (mustResize) {
+            // Replace the imagePane by a JScrollPane filling the whole space and containing in turn the imagePane
+            c = new GridBagConstraints();
+            // min border around scrollPane
+            c.insets = MAIN_PANEL_INSETS;
+            c.fill = GridBagConstraints.BOTH;
+            c.weightx = 1;
+            c.weighty = 1;
+            JScrollPane scrollableImagePanel = new JScrollPane(imagePane);
+            mainPanel.add(scrollableImagePanel, c);
+        }
+        // Lay out components again
+        pack();
+        // And limit size
         setSize(size);
 
         // Center window
@@ -316,7 +345,7 @@ public class CaptureEditingFrame extends JFrame {
     /*
      * TODO add click filter like on star window
      */
-    private void addOverlayMouseBehaviour(JPanel panel) {
+    private void addOverlayMouseBehaviour(JLayeredPane panel) {
         MouseInputListener mouseListener = new MouseInputAdapter() {
             private Overlay component;
             Point clicked;
@@ -325,7 +354,8 @@ public class CaptureEditingFrame extends JFrame {
                 // TODO what about selecting / editing ?
                 clicked = e.getPoint();
                 component = currentTool.createComponent(e.getPoint(), currentColor);
-                panel.add(component);
+                depth++;
+                panel.add(component, new Integer(depth));
                 component.setBounds(0,0,capturedImgSize.width, capturedImgSize.height);
                 overLays.add(component);
             }
@@ -373,9 +403,9 @@ public class CaptureEditingFrame extends JFrame {
         saveInHistory();
 
         // Render image and overlays
-        BufferedImage renderedImage = new BufferedImage(imagePanel.getWidth(), imagePanel.getHeight(), BufferedImage.TYPE_INT_RGB);
+        BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics g = renderedImage.getGraphics();
-        imagePanel.paint(g);
+        imagePane.paint(g);
         g.dispose();
 
         // Find the right exporter implementation

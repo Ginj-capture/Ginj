@@ -52,11 +52,16 @@ public class ArrowOverlay extends Overlay {
         else start = newPosition;
     }
 
+    @Override
+    public boolean hasNoSize() {
+        return (start.x == end.x && start.y == end.y);
+    }
+
 
     /**
      * Draw an arrow line between two points.
      * from https://stackoverflow.com/a/27461352/13551878
-     *  @param g2d the graphics component.
+     * @param g2d the graphics component.
      * @param x1 x-position of first point.
      * @param y1 y-position of first point.
      * @param x2 x-position of second point.
@@ -65,6 +70,9 @@ public class ArrowOverlay extends Overlay {
     private void drawArrowLine(Graphics2D g2d, int x1, int y1, int x2, int y2) {
         int dx = x2 - x1;
         int dy = y2 - y1;
+
+        if (dx == 0 && dy == 0) return;
+
         double hyp = Math.sqrt(dx*dx + dy*dy);
 
         // The width of the arrow (the length of the base of the triangle, perpendicular to the shaft)

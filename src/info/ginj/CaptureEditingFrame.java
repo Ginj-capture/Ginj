@@ -261,7 +261,6 @@ public class CaptureEditingFrame extends JFrame {
         Dimension size = getSize();
         size.width = Math.min(size.width, bounds.width);
         size.height = Math.min(size.height, bounds.height);
-        System.out.println(size);
         setSize(size);
 
         // Center window
@@ -334,6 +333,13 @@ public class CaptureEditingFrame extends JFrame {
             public void mouseDragged(MouseEvent e) {
                 component.moveHandle(0, e.getPoint());
                 repaint();
+            }
+
+            public void mouseReleased(MouseEvent e) {
+                if (component.hasNoSize()) {
+                    panel.remove(component);
+                    overLays.remove(component);
+                }
             }
         };
         panel.addMouseListener(mouseListener);

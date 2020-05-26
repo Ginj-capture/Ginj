@@ -80,4 +80,6 @@ public abstract class Overlay extends JComponent {
      * @param newPosition
      */
     public abstract void moveHandle(int handleIndex, Point newPosition);
+
+    public abstract boolean hasNoSize();
 }

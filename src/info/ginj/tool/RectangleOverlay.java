@@ -36,4 +36,9 @@ public abstract class RectangleOverlay extends Overlay {
     public void moveHandle(int handleIndex, Point newPosition) {
         // Do it
     }
+
+    @Override
+    public boolean hasNoSize() {
+        return (rectangle.getWidth() == 0 && rectangle.getHeight() == 0);
+    }
 }

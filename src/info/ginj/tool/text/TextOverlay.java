@@ -4,7 +4,7 @@ import info.ginj.tool.RectangleOverlay;
 
 import java.awt.*;
 
-public class GinjText extends RectangleOverlay {
+public class TextOverlay extends RectangleOverlay {
 
     // TODO there should be a JTextArea inside
     // So should this extends JPanel instead

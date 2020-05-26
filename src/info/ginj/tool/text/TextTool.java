@@ -5,7 +5,7 @@ import info.ginj.tool.Overlay;
 
 import java.awt.*;
 
-public class GinjTextTool implements GinjTool {
+public class TextTool implements GinjTool {
     @Override
     public String getName() {
         return "Text";
@@ -13,6 +13,6 @@ public class GinjTextTool implements GinjTool {
 
     @Override
     public Overlay createComponent(Point initalPosition, Color initialColor) {
-        return new GinjText().initialize(initalPosition, initialColor);
+        return new TextOverlay().initialize(initalPosition, initialColor);
     }
 }

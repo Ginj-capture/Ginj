@@ -8,7 +8,7 @@ import info.ginj.tool.Overlay;
 import info.ginj.tool.arrow.ArrowTool;
 import info.ginj.tool.frame.FrameTool;
 import info.ginj.tool.highlight.HighlightTool;
-import info.ginj.tool.text.GinjTextTool;
+import info.ginj.tool.text.TextTool;
 import info.ginj.ui.*;
 
 import javax.imageio.ImageIO;
@@ -92,7 +92,7 @@ public class CaptureEditingFrame extends JFrame {
         toolBar.setBackground(Util.WINDOW_BACKGROUND_COLOR);
 
         ButtonGroup toolButtonGroup = new ButtonGroup();
-        GinjTool[] tools = new GinjTool[] {new ArrowTool(), new FrameTool(), new GinjTextTool(), new HighlightTool()};
+        GinjTool[] tools = new GinjTool[] {new ArrowTool(), new TextTool(), new FrameTool(), new HighlightTool()};
         for (GinjTool tool : tools) {
             addToolButton(toolBar, tool, toolButtonGroup);
         }

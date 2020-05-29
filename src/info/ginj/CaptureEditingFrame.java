@@ -110,15 +110,21 @@ public class CaptureEditingFrame extends JFrame {
             }
             colorToolButton.setIcon(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
         });
+        colorToolButton.setToolTipText("Tool Color");
         toolBar.add(colorToolButton);
         toolBar.add(Box.createRigidArea(new Dimension(0, 8)));
 
+        // TODO implement undo
         JPanel undoRedoPanel = new JPanel();
         undoRedoPanel.setAlignmentX(0); // Otherwise the panel adds horizontal space...
         undoRedoPanel.setLayout(new BoxLayout(undoRedoPanel, BoxLayout.X_AXIS));
         GinjMiniToolButton undoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("img/icon/undo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        undoButton.setEnabled(false);
+        undoButton.setToolTipText("Undo");
         undoRedoPanel.add(undoButton);
         GinjMiniToolButton redoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("img/icon/redo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        redoButton.setToolTipText("Redo");
+        redoButton.setEnabled(false);
         undoRedoPanel.add(redoButton);
         toolBar.add(undoRedoPanel);
 
@@ -305,6 +311,7 @@ public class CaptureEditingFrame extends JFrame {
                 getClass().getResource("img/icon/tool_" + tool.getName().toLowerCase() + ".png"),
                 TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
         // Add it to the toolbar, followed by a spacer
+        toolButton.setToolTipText(tool.getName());
         toolBar.add(toolButton);
         toolBar.add(Box.createRigidArea(new Dimension(0, 8)));
 

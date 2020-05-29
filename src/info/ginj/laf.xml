@@ -248,4 +248,21 @@
     </style>
     <bind style="Scroll Bar Thumb" type="region" key="ScrollBarThumb" />
 
+    <!-- The style for tool tip. -->
+    <style id="Tool Tip">
+        <opaque value="true"/>
+        <state>
+            <color type="BACKGROUND" value="#FFFFFF"/>
+        </state>
+        <insets top="2" left="5" bottom="2" right="5"/>
+        <imagePainter method="toolTipBorder" path="img/laf/tooltip.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+        <state value="ENABLED">
+            <color type="TEXT_FOREGROUND" value="#696969"/>
+        </state>
+        <state value="DISABLED">
+            <color type="TEXT_FOREGROUND" value="#999999"/>
+        </state>
+    </style>
+    <bind style="Tool Tip" type="region" key="ToolTip" />
+
 </synth>

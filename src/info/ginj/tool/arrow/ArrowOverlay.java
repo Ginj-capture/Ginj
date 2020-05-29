@@ -21,6 +21,11 @@ public class ArrowOverlay extends Overlay {
     }
 
     @Override
+    public String getName() {
+        return "Arrow form " + start + " to " + end;
+    }
+
+    @Override
     protected void drawComponent(Graphics g) {
         final Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHints(ANTI_ALIASING_HINTS);
@@ -48,6 +53,7 @@ public class ArrowOverlay extends Overlay {
      */
     @Override
     public void moveHandle(int handleIndex, Point newPosition) {
+        clearRenderedCache();
         if (handleIndex == 0) end = newPosition;
         else start = newPosition;
     }

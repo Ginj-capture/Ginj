@@ -11,6 +11,11 @@ public abstract class RectangleOverlay extends Overlay {
         return this;
     }
 
+    @Override
+    public String getName() {
+        return this.getClass().getSimpleName() + " for " + rectangle.toString();
+    }
+
     /**
      * Returns all handles of the component
      * By convention, when a component is first drawn, getHandles()[0] is the end of the drawing (arrowhead or second point of rectangle)

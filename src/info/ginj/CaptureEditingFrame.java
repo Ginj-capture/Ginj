@@ -335,8 +335,9 @@ public class CaptureEditingFrame extends JFrame {
             @Override
             public void paintIcon(Component c, Graphics g, int x, int y) {
                 Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(color);
-                g2.fillRoundRect(x, y, width, height, 3, 3);
+                g2.fillRoundRect(x, y, width, height, width/3, height/3);
                 g2.dispose();
             }
 

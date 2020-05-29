@@ -46,7 +46,7 @@ public class CaptureEditingFrame extends JFrame {
     private String captureId;
     private GinjTool currentTool;
     private Color currentColor = Color.RED;
-    private java.util.List<JComponent> overLays = new ArrayList<>();
+    private java.util.List<Overlay> overLays = new ArrayList<>();
     private JLayeredPane imagePane;
     private int depth = 0;
 
@@ -153,7 +153,7 @@ public class CaptureEditingFrame extends JFrame {
         // Absolute positioning of components over the image
         imagePane.setLayout(null);
 
-        addOverlayMouseBehaviour(imagePane);
+        addImagePanelMouseBehaviour(imagePane);
 
         // Prepare an opaque panel which will fill the main display area and host the image scrollpane
         // (the scrollpane will only occupy the center if image is smaller than the toolbars)
@@ -348,30 +348,48 @@ public class CaptureEditingFrame extends JFrame {
     /*
      * TODO add click filter like on star window
      */
-    private void addOverlayMouseBehaviour(JLayeredPane panel) {
+    private void addImagePanelMouseBehaviour(JLayeredPane panel) {
         MouseInputListener mouseListener = new MouseInputAdapter() {
-            private Overlay component;
+            private int selectedHandle = 0;
+            private Overlay selectedOverlay;
             Point clicked;
 
             public void mousePressed(MouseEvent e) {
-                // TODO what about selecting / editing ?
                 clicked = e.getPoint();
-                component = currentTool.createComponent(e.getPoint(), currentColor);
-                depth++;
-                panel.add(component, new Integer(depth));
-                component.setBounds(0,0,capturedImgSize.width, capturedImgSize.height);
-                overLays.add(component);
+
+                // See if we clicked in a component
+                boolean found = false;
+                for (Overlay overLay : overLays) {
+                    overLay.setSelected(false);
+                    if (!found) {
+                        if (overLay.isInComponent(clicked)) {
+                            overLay.setSelected(true);
+                            found = true;
+                        }
+                    }
+                }
+                if (!found) {
+                    // No component selected. Create a new one
+                    selectedOverlay = currentTool.createComponent(clicked, currentColor);
+                    depth++;
+                    panel.add(selectedOverlay, Integer.valueOf(depth));
+                    selectedOverlay.setBounds(0, 0, capturedImgSize.width, capturedImgSize.height);
+                    overLays.add(0, selectedOverlay); // At it to the beginning, so that it it tested first in case of click
+                    selectedOverlay.setSelected(true);
+                    selectedHandle = 0;
+                }
+                repaint();
             }
 
             public void mouseDragged(MouseEvent e) {
-                component.moveHandle(0, e.getPoint());
+                selectedOverlay.moveHandle(0, e.getPoint());
                 repaint();
             }
 
             public void mouseReleased(MouseEvent e) {
-                if (component.hasNoSize()) {
-                    panel.remove(component);
-                    overLays.remove(component);
+                if (selectedOverlay.hasNoSize()) {
+                    panel.remove(selectedOverlay);
+                    overLays.remove(selectedOverlay);
                 }
             }
         };

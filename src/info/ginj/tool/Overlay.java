@@ -2,11 +2,16 @@ package info.ginj.tool;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 public abstract class Overlay extends JComponent {
+    // State
     private Color color;
     private boolean selected = false;
     protected boolean dragging = false;
+
+    // Caching
+    private BufferedImage renderedImage = null;
 
     public Color getColor() {
         return color;
@@ -37,12 +42,34 @@ public abstract class Overlay extends JComponent {
         super.paintComponent(g);
         drawComponent(g);
         if (selected) {
+            g.setColor(Color.BLACK);
             for (Point handle : getHandles()) {
                 // TODO : better looking handles than just a square
                 g.drawRect(handle.x - 3, handle.y - 3, 6, 6);
             }
         }
     }
+
+    // Hit detection.
+    // Note: this is similar to overriding contains(), except it is called only on click (and not on mouseover),
+    public boolean isInComponent(Point p) {
+        if (renderedImage == null) {
+            // Render the item in an image
+            renderedImage = new BufferedImage(500, 500, BufferedImage.TYPE_INT_ARGB);
+            Graphics g = renderedImage.getGraphics();
+            drawComponent(g);
+            g.dispose();
+        }
+        // Return true if the pixel at (x,y) is not transparent
+        final int rgb = renderedImage.getRGB(p.x, p.y);
+        return ((rgb & 0xFF000000) != 0);
+    }
+
+
+    protected void clearRenderedCache() {
+        renderedImage = null;
+    }
+
 
     // TODO place here all logic regarding
     //  - mouse handling
@@ -53,7 +80,7 @@ public abstract class Overlay extends JComponent {
 
     /**
      * This method should be called just after instantiating the component
-     *  @param initialPoint
+     * @param initialPoint
      * @param initialColor
      * @return
      */

@@ -39,20 +39,21 @@ public class CaptureEditingFrame extends JFrame {
 
     // Caching
     private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    private Dimension capturedImgSize;
+    private final Dimension capturedImgSize;
 
     // State
-    private BufferedImage capturedImg;
-    private String captureId;
+    private final BufferedImage capturedImg;
+    private final String captureId;
+    private final java.util.List<Overlay> overLays = new ArrayList<>();
+    private final JLayeredPane imagePane;
+
     private GinjTool currentTool;
     private Color currentColor = Color.RED;
-    private java.util.List<Overlay> overLays = new ArrayList<>();
-    private JLayeredPane imagePane;
-    private int depth = 0;
+    private int currentDepth = 0;
 
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
-        this(capturedImg, new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date())); // ENHANCEMENT
+        this(capturedImg, new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date())); // ENHANCEMENT: seconds
     }
 
     public CaptureEditingFrame(BufferedImage capturedImg, String captureId) {
@@ -60,6 +61,10 @@ public class CaptureEditingFrame extends JFrame {
         this.capturedImg = capturedImg;
         this.captureId = captureId;
         capturedImgSize = new Dimension(capturedImg.getWidth(), capturedImg.getHeight());
+
+        // For Alt+Tab behaviour
+        this.setTitle(Ginj.getAppName() + " Preview");
+        // this.setIconImage(); TODO
 
         // Make it transparent
         setUndecorated(true);
@@ -159,7 +164,7 @@ public class CaptureEditingFrame extends JFrame {
         // Absolute positioning of components over the image
         imagePane.setLayout(null);
 
-        addImagePanelMouseBehaviour(imagePane);
+        addMouseEditingBehaviour(imagePane);
 
         // Prepare an opaque panel which will fill the main display area and host the image scrollpane
         // (the scrollpane will only occupy the center if image is smaller than the toolbars)
@@ -356,7 +361,7 @@ public class CaptureEditingFrame extends JFrame {
     /*
      * TODO add click filter like on star window
      */
-    private void addImagePanelMouseBehaviour(JLayeredPane panel) {
+    private void addMouseEditingBehaviour(JLayeredPane panel) {
         MouseInputListener mouseListener = new MouseInputAdapter() {
             private int selectedHandle = 0;
             private Overlay selectedOverlay;
@@ -379,13 +384,14 @@ public class CaptureEditingFrame extends JFrame {
                 if (!found) {
                     // No component selected. Create a new one
                     selectedOverlay = currentTool.createComponent(clicked, currentColor);
-                    depth++;
-                    panel.add(selectedOverlay, Integer.valueOf(depth));
+                    currentDepth++;
+                    panel.add(selectedOverlay, Integer.valueOf(currentDepth));
                     selectedOverlay.setBounds(0, 0, capturedImgSize.width, capturedImgSize.height);
                     overLays.add(0, selectedOverlay); // At it to the beginning, so that it it tested first in case of click
                     selectedOverlay.setSelected(true);
                     selectedHandle = 0;
                 }
+                // TODO Remember the "before" state to be able to undo
                 repaint();
             }
 
@@ -398,6 +404,9 @@ public class CaptureEditingFrame extends JFrame {
                 if (selectedOverlay.hasNoSize()) {
                     panel.remove(selectedOverlay);
                     overLays.remove(selectedOverlay);
+                }
+                else {
+                    // TODO Add edit (creation, selection, modification) to undo stack
                 }
             }
         };

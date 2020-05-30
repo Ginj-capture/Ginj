@@ -2,12 +2,14 @@ package info.ginj;
 
 /*
 TODO Features :
- - Do overlays
+ - Implement resize and move
+ - Do rectangular overlays
  - Add key handlers (e.g. delete key to remove overlay)
  - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp  640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
  - Implement Window detection using JNA
  - Implement "exports"
  - Implement history
+ - Implement video
  - Double-clicking one a component should bring it to front ENHANCEMENT
 
 TODO UI:

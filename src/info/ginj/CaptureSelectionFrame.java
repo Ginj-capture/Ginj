@@ -53,9 +53,9 @@ public class CaptureSelectionFrame extends JFrame {
     private boolean isInitialSelectionDone;
 
     private final JPanel actionPanel;
-    private JLabel captureSizeLabel;
-    private JButton imageButton;
-    private JButton videoButton;
+    private final JLabel captureSizeLabel;
+    private final JButton imageButton;
+    private final JButton videoButton;
 
     public CaptureSelectionFrame() {
         super();

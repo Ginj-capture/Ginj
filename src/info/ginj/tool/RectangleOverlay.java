@@ -38,7 +38,7 @@ public abstract class RectangleOverlay extends Overlay {
      * @param newPosition
      */
     @Override
-    public void moveHandle(int handleIndex, Point newPosition) {
+    public void setHandlePosition(int handleIndex, Point newPosition) {
         // Do it
     }
 

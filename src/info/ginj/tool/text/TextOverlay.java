@@ -10,11 +10,11 @@ public class TextOverlay extends RectangleOverlay {
     // So should this extends JPanel instead
 
     @Override
-    public void drawComponent(Graphics g) {
-        g.setColor(getColor());
-        g.drawRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, 4, 4);
-        g.setColor(Color.WHITE);
-        g.fillRoundRect(rectangle.x+2, rectangle.y+2, rectangle.width-4, rectangle.height-4, 4, 4);
+    public void drawComponent(Graphics2D g2d) {
+        g2d.setColor(getColor());
+        g2d.drawRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, 4, 4);
+        g2d.setColor(Color.WHITE);
+        g2d.fillRoundRect(rectangle.x+2, rectangle.y+2, rectangle.width-4, rectangle.height-4, 4, 4);
         if (!dragging) {
             // TODO drawShadow();
         }

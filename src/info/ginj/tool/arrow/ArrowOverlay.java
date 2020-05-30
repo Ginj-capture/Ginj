@@ -8,8 +8,6 @@ import java.awt.geom.Line2D;
 
 public class ArrowOverlay extends Overlay {
 
-    public static final RenderingHints ANTI_ALIASING_HINTS = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
     private Point start;
     private Point end;
 
@@ -26,9 +24,7 @@ public class ArrowOverlay extends Overlay {
     }
 
     @Override
-    public void drawComponent(Graphics g) {
-        final Graphics2D g2d = (Graphics2D) g;
-        g2d.setRenderingHints(ANTI_ALIASING_HINTS);
+    public void drawComponent(Graphics2D g2d) {
         drawArrowLine(g2d, start.x, start.y, end.x, end.y);
         if (!dragging) {
             // TODO draw shadow;
@@ -52,8 +48,7 @@ public class ArrowOverlay extends Overlay {
      * @param newPosition
      */
     @Override
-    public void moveHandle(int handleIndex, Point newPosition) {
-        clearRenderedCache();
+    public void setHandlePosition(int handleIndex, Point newPosition) {
         if (handleIndex == 0) end = newPosition;
         else start = newPosition;
     }

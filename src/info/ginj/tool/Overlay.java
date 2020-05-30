@@ -5,6 +5,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public abstract class Overlay extends JComponent {
+    public static final RenderingHints ANTI_ALIASING_HINTS = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+    public static final int HANDLE_WIDTH = 6;
+    public static final int HANDLE_HEIGHT = 6;
+
     // State
     private Color color;
     private boolean selected = false;
@@ -40,12 +45,14 @@ public abstract class Overlay extends JComponent {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        drawComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHints(ANTI_ALIASING_HINTS);
+        drawComponent(g2d);
         if (selected) {
             g.setColor(Color.BLACK);
             for (Point handle : getHandles()) {
                 // TODO : better looking handles than just a square
-                g.drawRect(handle.x - 3, handle.y - 3, 6, 6);
+                g.drawRect(handle.x - HANDLE_WIDTH/2, handle.y - HANDLE_HEIGHT/2, HANDLE_WIDTH, HANDLE_HEIGHT);
             }
         }
     }
@@ -56,9 +63,9 @@ public abstract class Overlay extends JComponent {
         if (renderedImage == null) {
             // Render the item in an image
             renderedImage = new BufferedImage(500, 500, BufferedImage.TYPE_INT_ARGB);
-            Graphics g = renderedImage.getGraphics();
-            drawComponent(g);
-            g.dispose();
+            Graphics2D g2d = (Graphics2D) renderedImage.getGraphics();
+            drawComponent(g2d);
+            g2d.dispose();
         }
         // Return true if the pixel at (x,y) is not transparent
         final int rgb = renderedImage.getRGB(p.x, p.y);
@@ -66,7 +73,7 @@ public abstract class Overlay extends JComponent {
     }
 
 
-    protected void clearRenderedCache() {
+    private void clearRenderedCache() {
         renderedImage = null;
     }
 
@@ -91,7 +98,7 @@ public abstract class Overlay extends JComponent {
      *
      * @param g
      */
-    public abstract void drawComponent(Graphics g);
+    public abstract void drawComponent(Graphics2D g);
 
     /**
      * Returns all handles of the component
@@ -106,7 +113,12 @@ public abstract class Overlay extends JComponent {
      * @param handleIndex
      * @param newPosition
      */
-    public abstract void moveHandle(int handleIndex, Point newPosition);
+    public final void moveHandle(int handleIndex, Point newPosition) {
+        clearRenderedCache();
+        setHandlePosition(handleIndex, newPosition);
+    }
+
+    protected abstract void setHandlePosition(int handleIndex, Point newPosition);
 
     public abstract boolean hasNoSize();
 }

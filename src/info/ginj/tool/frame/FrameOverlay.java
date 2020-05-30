@@ -6,8 +6,8 @@ import java.awt.*;
 
 public class FrameOverlay extends RectangleOverlay {
     @Override
-    public void drawComponent(Graphics g) {
-        g.drawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+    public void drawComponent(Graphics2D g2d) {
+        g2d.drawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
         if (!dragging) {
             // TODO drawShadow();
         }

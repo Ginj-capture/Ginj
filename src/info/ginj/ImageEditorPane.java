@@ -18,6 +18,8 @@ public class ImageEditorPane extends JLayeredPane {
     private final BufferedImage capturedImg;
     private final Dimension capturedImgSize;
 
+    private Overlay selectedOverlay;
+
     public ImageEditorPane(CaptureEditingFrame frame, BufferedImage capturedImg) {
         super();
         this.frame = frame;
@@ -44,36 +46,31 @@ public class ImageEditorPane extends JLayeredPane {
     }
 
     private void addMouseEditingBehaviour() {
-        final JLayeredPane imagePanel = this;
+        final ImageEditorPane imagePanel = this;
         MouseInputListener mouseListener = new DragInsensitiveMouseClickListener(new MouseInputAdapter() {
-            private Overlay selectedOverlay;
             Point clicked;
             AbstractUndoableAction currentAction = null;
 
             public void mousePressed(MouseEvent e) {
                 clicked = e.getPoint();
 
-                // See if we clicked in a component
-                boolean found = false;
+                // Find selected component
+                setSelectedOverlay(null);
                 // Iterate in reverse direction to check closest first
                 // Note: JLayeredPane guarantees components are returned based on their layer order. See implementation of JLayeredPane.highestLayer()
                 for (Component component : imagePanel.getComponents()) {
                     if (component instanceof Overlay) {
                         Overlay overlay = (Overlay) component;
-                        overlay.setSelected(false);
-                        if (!found) {
-                            if (overlay.isInComponent(clicked)) {
-                                selectedOverlay = overlay;
-                                overlay.setSelected(true);
-                                found = true;
-                            }
+                        if (overlay.isInComponent(clicked)) {
+                            setSelectedOverlay(overlay);
+                            break;
                         }
                     }
                     else {
                         System.err.println("Encountered unexpected component: " + component);
                     }
                 }
-                if (found) {
+                if (selectedOverlay != null) {
                     // OK, we're in a component.
                     // See if it's in a handle
 /*
@@ -93,9 +90,9 @@ public class ImageEditorPane extends JLayeredPane {
                 else {
                     // Out of all components.
                     // Create a new one
-                    selectedOverlay = frame.currentTool.createComponent(clicked, frame.currentColor);
-                    selectedOverlay.setBounds(0, 0, capturedImgSize.width, capturedImgSize.height);
-                    currentAction = new AddOverlayAction(selectedOverlay, imagePanel);
+                    final Overlay overlay = frame.currentTool.createComponent(clicked, frame.currentColor);
+                    overlay.setBounds(0, 0, capturedImgSize.width, capturedImgSize.height);
+                    currentAction = new AddOverlayAction(overlay, imagePanel);
                     currentAction.execute();
                 }
                 // TODO Remember the "before" state to be able to undo
@@ -126,5 +123,22 @@ public class ImageEditorPane extends JLayeredPane {
         });
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
+    }
+
+    /**
+     * Sets the given overlay as "selected".
+     * @param overlay the overlay to select, or deselect all if null
+     */
+    public void setSelectedOverlay(Overlay overlay) {
+        if (selectedOverlay != overlay) {
+            // De-select previous one
+            if (selectedOverlay != null) {
+                selectedOverlay.setSelected(false);
+            }
+            if (overlay != null) {
+                overlay.setSelected(true);
+            }
+            selectedOverlay = overlay;
+        }
     }
 }

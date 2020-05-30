@@ -1,15 +1,14 @@
 package info.ginj.action;
 
+import info.ginj.ImageEditorPane;
 import info.ginj.tool.Overlay;
-
-import javax.swing.*;
 
 public class AddOverlayAction extends AbstractUndoableAction {
 
     private final Overlay overlay;
-    private final JLayeredPane panel;
+    private final ImageEditorPane panel;
 
-    public AddOverlayAction(Overlay overlay, JLayeredPane panel) {
+    public AddOverlayAction(Overlay overlay, ImageEditorPane panel) {
         super();
         this.overlay = overlay;
         this.panel = panel;
@@ -20,7 +19,7 @@ public class AddOverlayAction extends AbstractUndoableAction {
     }
 
     public void execute() {
-        overlay.setSelected(true);
+        panel.setSelectedOverlay(overlay);
         panel.add(overlay, Integer.valueOf(panel.highestLayer() + 1));
     }
 

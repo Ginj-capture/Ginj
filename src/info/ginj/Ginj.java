@@ -8,6 +8,7 @@ TODO Features :
  - Implement Window detection using JNA
  - Implement "exports"
  - Implement history
+ - Double-clicking one a component should bring it to front ENHANCEMENT
 
 TODO UI:
  - Finalize Look and feel (title bar)
@@ -19,6 +20,9 @@ TODO Cleanup:
  - Remove EASynth resource dir
  - Remove useless EASynth classes, if any
  - Remove useless icons ?
+
+TODO Options:
+ - Add optional "Speech Balloon" tool ENHANCEMENT
 
 */
 
@@ -62,9 +66,7 @@ public class Ginj {
             System.exit(ERR_STATUS_LAF);
         }
 
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            new StarWindow().setVisible(true);
-        });
+        javax.swing.SwingUtilities.invokeLater(() -> new StarWindow().setVisible(true));
 
     }
 

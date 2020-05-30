@@ -7,7 +7,7 @@ import java.awt.*;
 
 public class HighlightOverlay extends RectangleOverlay {
     @Override
-    protected void drawComponent(Graphics g) {
+    public void drawComponent(Graphics g) {
         g.setColor(Util.getTranslucentColor(getColor()));
         g.fillRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
     }

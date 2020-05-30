@@ -26,7 +26,7 @@ public class ArrowOverlay extends Overlay {
     }
 
     @Override
-    protected void drawComponent(Graphics g) {
+    public void drawComponent(Graphics g) {
         final Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHints(ANTI_ALIASING_HINTS);
         drawArrowLine(g2d, start.x, start.y, end.x, end.y);

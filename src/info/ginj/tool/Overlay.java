@@ -91,7 +91,7 @@ public abstract class Overlay extends JComponent {
      *
      * @param g
      */
-    protected abstract void drawComponent(Graphics g);
+    public abstract void drawComponent(Graphics g);
 
     /**
      * Returns all handles of the component

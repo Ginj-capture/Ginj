@@ -3,6 +3,7 @@ package info.ginj;
 import info.ginj.action.AbstractUndoableAction;
 import info.ginj.action.AddOverlayAction;
 import info.ginj.tool.Overlay;
+import info.ginj.ui.DragInsensitiveMouseClickListener;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
@@ -42,12 +43,9 @@ public class ImageEditorPane extends JLayeredPane {
         return capturedImgSize;
     }
 
-    /*
-     * TODO add click filter like on star window
-     */
     private void addMouseEditingBehaviour() {
         final JLayeredPane imagePanel = this;
-        MouseInputListener mouseListener = new MouseInputAdapter() {
+        MouseInputListener mouseListener = new DragInsensitiveMouseClickListener(new MouseInputAdapter() {
             private Overlay selectedOverlay;
             Point clicked;
             AbstractUndoableAction currentAction = null;
@@ -125,7 +123,7 @@ public class ImageEditorPane extends JLayeredPane {
                     }
                 }
             }
-        };
+        });
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
     }

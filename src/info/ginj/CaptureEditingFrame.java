@@ -4,7 +4,6 @@ import info.ginj.export.GinjExporter;
 import info.ginj.export.clipboard.ClipboardExporterImpl;
 import info.ginj.export.disk.DiskExporterImpl;
 import info.ginj.tool.GinjTool;
-import info.ginj.tool.Overlay;
 import info.ginj.tool.arrow.ArrowTool;
 import info.ginj.tool.frame.FrameTool;
 import info.ginj.tool.highlight.HighlightTool;
@@ -16,8 +15,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.undo.AbstractUndoableEdit;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
@@ -40,21 +37,16 @@ public class CaptureEditingFrame extends JFrame {
     public static final int MINI_TOOL_BUTTON_ICON_HEIGHT = 10;
     public static final Insets MAIN_PANEL_INSETS = new Insets(13, 17, 10, 17);
 
-    // Caching
-    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    private final Dimension capturedImgSize;
-
     // State
     private final BufferedImage capturedImg;
     private final String captureId;
     private final JLayeredPane imagePane;
-    private final GinjMiniToolButton undoButton;
-    private final GinjMiniToolButton redoButton;
-    private final UndoManager undoManager = new UndoManager();
+    final GinjMiniToolButton undoButton;
+    final GinjMiniToolButton redoButton;
+    final UndoManager undoManager = new UndoManager();
 
-    private GinjTool currentTool;
-    private Color currentColor = Color.RED;
-    private int currentDepth = 0;
+    GinjTool currentTool;
+    Color currentColor = Color.RED;
 
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
@@ -65,7 +57,6 @@ public class CaptureEditingFrame extends JFrame {
         super();
         this.capturedImg = capturedImg;
         this.captureId = captureId;
-        capturedImgSize = new Dimension(capturedImg.getWidth(), capturedImg.getHeight());
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " Preview");
@@ -79,31 +70,10 @@ public class CaptureEditingFrame extends JFrame {
 
 
         // Prepare main image panel first because it will be needed in ActionHandlers
-        imagePane = new JLayeredPane() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.drawImage(capturedImg, 0, 0, this);
-            }
-
-            @Override
-            public Dimension getPreferredSize() {
-                return capturedImgSize;
-            }
-
-            @Override
-            public Dimension getMaximumSize() {
-                return capturedImgSize;
-            }
-        };
-
+        imagePane = new ImageEditorPane(this, capturedImg);
 
         // Absolute positioning of components over the image
         imagePane.setLayout(null);
-
-        addMouseEditingBehaviour(imagePane);
-
 
         final Container contentPane = getContentPane();
         contentPane.setLayout(new GridBagLayout());
@@ -126,11 +96,11 @@ public class CaptureEditingFrame extends JFrame {
         // Prepare overlay toolbar
         JPanel toolBar = new JPanel();
         toolBar.setLayout(new BoxLayout(toolBar, BoxLayout.Y_AXIS));
-        toolBar.setBorder(new EmptyBorder(6,6,6,6));
+        toolBar.setBorder(new EmptyBorder(6, 6, 6, 6));
         toolBar.setBackground(Util.WINDOW_BACKGROUND_COLOR);
 
         ButtonGroup toolButtonGroup = new ButtonGroup();
-        GinjTool[] tools = new GinjTool[] {new ArrowTool(), new TextTool(), new FrameTool(), new HighlightTool()};
+        GinjTool[] tools = new GinjTool[]{new ArrowTool(), new TextTool(), new FrameTool(), new HighlightTool()};
         for (GinjTool tool : tools) {
             addToolButton(toolBar, tool, toolButtonGroup);
         }
@@ -198,7 +168,6 @@ public class CaptureEditingFrame extends JFrame {
         contentPane.add(toolBar, c);
 
 
-
         // Prepare an opaque panel which will fill the main display area and host the image scrollpane
         // (the scrollpane will only occupy the center if image is smaller than the toolbars)
         JPanel mainPanel = new JPanel();
@@ -244,7 +213,7 @@ public class CaptureEditingFrame extends JFrame {
         lowerPanel.setLayout(new GridBagLayout());
         lowerPanel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
         c = new GridBagConstraints();
-        c.insets = new Insets(4,17,12,17);
+        c.insets = new Insets(4, 17, 12, 17);
         c.fill = GridBagConstraints.BOTH;
         c.weightx = 1;
         c.weighty = 1;
@@ -363,19 +332,17 @@ public class CaptureEditingFrame extends JFrame {
         }
 
         // And store this tool as currentTool if clicked
-        toolButton.addActionListener((event) -> {
-            currentTool = tool;
-        });
+        toolButton.addActionListener((event) -> currentTool = tool);
     }
 
     private Icon createRoundRectColorIcon(Color color, int width, int height) {
-        return new Icon(){
+        return new Icon() {
             @Override
             public void paintIcon(Component c, Graphics g, int x, int y) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(color);
-                g2.fillRoundRect(x, y, width, height, width/3, height/3);
+                g2.fillRoundRect(x, y, width, height, width / 3, height / 3);
                 g2.dispose();
             }
 
@@ -389,75 +356,6 @@ public class CaptureEditingFrame extends JFrame {
                 return height;
             }
         };
-    }
-
-    /*
-     * TODO add click filter like on star window
-     */
-    private void addMouseEditingBehaviour(JLayeredPane panel) {
-        MouseInputListener mouseListener = new MouseInputAdapter() {
-            private int selectedHandle = 0;
-            private Overlay selectedOverlay;
-            Point clicked;
-
-            public void mousePressed(MouseEvent e) {
-                clicked = e.getPoint();
-
-                // See if we clicked in a component
-                boolean found = false;
-                // Iterate in reverse direction to check last added (closest) first
-                for (int i = panel.getComponentCount() - 1; i >= 0; i--) {
-                    final Component component = panel.getComponent(i);
-                    if (component instanceof Overlay) {
-                        Overlay overlay = (Overlay) component;
-                        overlay.setSelected(false);
-                        if (!found) {
-                            if (overlay.isInComponent(clicked)) {
-                                overlay.setSelected(true);
-                                found = true;
-                            }
-                        }
-                    }
-                    else {
-                        System.out.println("Encountered unexpected component: " + component);
-                    }
-                }
-                if (!found) {
-                    // No component selected. Create a new one
-                    selectedOverlay = currentTool.createComponent(clicked, currentColor);
-                    selectedOverlay.setBounds(0, 0, capturedImgSize.width, capturedImgSize.height);
-                    AddOverlayAction action = new AddOverlayAction(selectedOverlay, panel);
-                    action.execute();
-                    undoManager.undoableEditHappened(new UndoableEditEvent(panel, action));
-                    selectedHandle = 0;
-                }
-                // TODO Remember the "before" state to be able to undo
-                repaint();
-            }
-
-            public void mouseDragged(MouseEvent e) {
-                selectedOverlay.moveHandle(0, e.getPoint());
-                repaint();
-            }
-
-            public void mouseReleased(MouseEvent e) {
-                if (selectedOverlay.hasNoSize()) {
-                    panel.remove(selectedOverlay);
-                }
-                else {
-                    // TODO Selection and modification
-
-                    // Add creation to undo stack
-                    ModifyOverlayAction action = new ModifyOverlayAction(selectedOverlay, panel);
-                    action.execute();
-                    undoManager.undoableEditHappened(new UndoableEditEvent(panel, action));
-                    undoButton.setEnabled(undoManager.canUndo());
-                    redoButton.setEnabled(undoManager.canRedo());
-                }
-            }
-        };
-        panel.addMouseListener(mouseListener);
-        panel.addMouseMotionListener(mouseListener);
     }
 
     private void addDraggableWindowMouseBehaviour(CaptureEditingFrame frame) {
@@ -520,18 +418,20 @@ public class CaptureEditingFrame extends JFrame {
     private void saveInHistory() {
         File historyFolder = new File("ZZhistoryFolder"); // TODO get from params
         if (!historyFolder.exists()) {
-            historyFolder.mkdirs();
+            if (!historyFolder.mkdirs()) {
+                JOptionPane.showMessageDialog(this, "Could not create history folder (" + historyFolder.getAbsolutePath() + ")", "Save error", JOptionPane.ERROR_MESSAGE);
+            }
         }
         // Save image
         File file = new File(historyFolder, captureId + ".png");
         try {
             if (!ImageIO.write(capturedImg, "png", file)) {
-                JOptionPane.showMessageDialog(this, "Capture failed (" + file.getAbsolutePath() + ")", "Screen capture error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Saving capture to history failed (" + file.getAbsolutePath() + ")", "Save error", JOptionPane.ERROR_MESSAGE);
             }
         }
         catch (IOException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, e.getMessage() + " - Full error on the console", "Screen capture error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, e.getMessage() + " - Full error on the console", "Save error", JOptionPane.ERROR_MESSAGE);
         }
 
         // TODO save overlays to XML
@@ -546,66 +446,4 @@ public class CaptureEditingFrame extends JFrame {
     private void onCustomize() {
         // TODO
     }
-
-
-    static class ModifyOverlayAction extends AbstractUndoableEdit {
-        private final Overlay overlay;
-        private final JLayeredPane panel;
-
-        public ModifyOverlayAction(Overlay overlay, JLayeredPane panel) {
-            this.overlay = overlay;
-            this.panel = panel;
-        }
-
-        public String getPresentationName() {
-            return "Modify " + overlay.getName().toLowerCase();
-        }
-
-        public void execute() {
-//            overlay.setSelected(true);
-//            panel.add(overlay, Integer.valueOf(panel.getComponentCount()));
-        }
-
-
-        public void undo() {
-            super.undo();
-            // undo the change
-        }
-
-        public void redo() {
-            super.redo();
-            execute();
-        }
-
-    }
-
-    static class AddOverlayAction extends AbstractUndoableEdit {
-        private final Overlay overlay;
-        private final JLayeredPane panel;
-
-        public AddOverlayAction(Overlay overlay, JLayeredPane panel) {
-            this.overlay = overlay;
-            this.panel = panel;
-        }
-
-        public String getPresentationName() {
-            return "Create " + overlay.getName().toLowerCase();
-        }
-
-        public void execute() {
-            overlay.setSelected(true);
-            panel.add(overlay, Integer.valueOf(panel.getComponentCount()));
-        }
-
-        public void undo() {
-            super.undo();
-            panel.remove(overlay);
-        }
-
-        public void redo() {
-            super.redo();
-            execute();
-        }
-    }
-
 }

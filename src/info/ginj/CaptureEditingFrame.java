@@ -132,28 +132,11 @@ public class CaptureEditingFrame extends JFrame {
         redoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("img/icon/redo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
 
         undoButton.setEnabled(false);
-        undoButton.addActionListener(e -> {
-            try {
-                undoManager.undo();
-            }
-            catch (CannotRedoException cre) {
-                cre.printStackTrace();
-            }
-            imagePane.repaint(); // TODO :  Is it sufficient to repaint overlays ??
-            refreshUndoRedoButtons();
-        });
+        undoButton.addActionListener(e -> attemptUndo());
 
         redoButton.setEnabled(false);
-        redoButton.addActionListener(e -> {
-            try {
-                undoManager.redo();
-            }
-            catch (CannotRedoException cre) {
-                cre.printStackTrace();
-            }
-            imagePane.repaint(); // TODO :  Is it sufficient to repaint overlays ??
-            refreshUndoRedoButtons();
-        });
+        redoButton.addActionListener(e -> attemptRedo());
+
         undoRedoPanel.add(undoButton);
         undoRedoPanel.add(redoButton);
         toolBar.add(undoRedoPanel);
@@ -384,6 +367,32 @@ public class CaptureEditingFrame extends JFrame {
         // ENHANCEMENT
         undoButton.setToolTipText(undoManager.canUndo()?undoManager.getUndoPresentationName():null);
         redoButton.setToolTipText(undoManager.canRedo()?undoManager.getRedoPresentationName():null);
+    }
+
+    public void attemptUndo() {
+        if (undoManager.canUndo()) {
+            try {
+                undoManager.undo();
+            }
+            catch (CannotRedoException cre) {
+                cre.printStackTrace();
+            }
+            imagePane.repaint();
+            refreshUndoRedoButtons();
+        }
+    }
+
+    public void attemptRedo() {
+        if (undoManager.canRedo()) {
+            try {
+                undoManager.redo();
+            }
+            catch (CannotRedoException cre) {
+                cre.printStackTrace();
+            }
+            imagePane.repaint();
+            refreshUndoRedoButtons();
+        }
     }
 
     public void addUndoableAction(AbstractUndoableAction action) {

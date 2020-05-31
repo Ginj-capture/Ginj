@@ -96,13 +96,16 @@ public abstract class Overlay extends JComponent {
     // Hit detection.
     // Note: this is similar to overriding contains(), except it is called only on click (and not on mouseover),
     public boolean containsPoint(Point p) {
-        // Render the item in an image
+        // First see if we're in a handle
+        if (isSelected() && getHandleIndexAt(p) != NO_INDEX) return true;
+
+        // No. Render the item in an image
         BufferedImage renderedImage = new BufferedImage(500, 500, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = (Graphics2D) renderedImage.getGraphics();
         drawComponent(g2d, 0, 0);
         g2d.dispose();
 
-        // Return true if the pixel at (x,y) is not transparent
+        // And Return true if the pixel at (x,y) is not transparent
         final int rgb = renderedImage.getRGB(p.x, p.y);
         return ((rgb & 0xFF000000) != 0);
     }
@@ -117,15 +120,8 @@ public abstract class Overlay extends JComponent {
                 return i;
             }
         }
-        return -1;
+        return NO_INDEX;
     }
-
-    // TODO place here all logic regarding
-    //  - mouse handling
-    //  - selection
-    //  - dragging of component, and just call moveTo or something
-    //  - dragging of handles, and just call moveHandle(pointIndex, newPoint) upon move
-
 
     public abstract String getPresentationName();
 

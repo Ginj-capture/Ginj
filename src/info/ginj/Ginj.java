@@ -3,7 +3,6 @@ package info.ginj;
 /*
 TODO Features :
  - Do rectangular overlays
- - Add key shortcuts (e.g. DEL to remove overlay, CTRL-Z for undo and CTRL-Y / CTRL-SHIFT-Z for redo)
  - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp  640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
  - Implement Window detection using JNA
  - Implement "exports"
@@ -11,7 +10,8 @@ TODO Features :
  - Implement video
 
 TODO UI:
- - Finalize Look and feel (title bar)
+ - Paint title bar
+ - Finalize Look and feel (OK button in dialogs)
  - Fix scrollbar corner + thumb icon + colors + gap
  - Upscale sun and sun-rays so that runtime downscale provides an anti-aliasing, or better yet draw it by code (gradients etc)
  - Build 3 main buttons at runtime based on circle + icons (downscale provides an anti-aliasing)

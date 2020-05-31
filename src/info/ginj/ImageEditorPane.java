@@ -8,6 +8,8 @@ import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
@@ -24,6 +26,7 @@ public class ImageEditorPane extends JLayeredPane {
         this.capturedImg = capturedImg;
         capturedImgSize = new Dimension(capturedImg.getWidth(), capturedImg.getHeight());
         addMouseEditingBehaviour();
+        addKeyboardShortcuts(this);
     }
 
     @Override
@@ -154,6 +157,58 @@ public class ImageEditorPane extends JLayeredPane {
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
     }
+
+
+    private void addKeyboardShortcuts(ImageEditorPane imageEditorPane) {
+
+        // Capture keyboard events of the whole window
+        final InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+        KeyStroke undoKey = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK);
+        inputMap.put(undoKey, "undo");
+        getActionMap().put("undo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.attemptUndo();
+            }
+        });
+
+        KeyStroke redoKey1 = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK);
+        KeyStroke redoKey2 = KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK);
+        inputMap.put(redoKey1, "redo");
+        inputMap.put(redoKey2, "redo");
+        getActionMap().put("redo", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.attemptRedo();
+            }
+        });
+
+        KeyStroke deleteKey = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+        inputMap.put(deleteKey, "delete");
+        getActionMap().put("delete", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (selectedOverlay != null) {
+                    final DeleteOverlayAction deleteOverlayAction = new DeleteOverlayAction(selectedOverlay, imageEditorPane);
+                    deleteOverlayAction.execute();
+                    frame.addUndoableAction(deleteOverlayAction);
+                    // Reselect previous one -- ENHANCEMENT
+                    if (getComponentCount() > 0) {
+                        final Component component = getComponent(0);
+                        if (component instanceof Overlay) {
+                            setSelectedOverlay((Overlay) component);
+                        }
+                    }
+                    repaint();
+                }
+            }
+        });
+
+        setFocusable(true);
+        requestFocusInWindow();
+    }
+
 
     /**
      * Sets the given overlay as "selected".

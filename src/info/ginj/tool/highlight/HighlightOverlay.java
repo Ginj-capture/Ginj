@@ -7,6 +7,11 @@ import java.awt.*;
 
 public class HighlightOverlay extends RectangleOverlay {
     @Override
+    public String getPresentationName() {
+        return "Highlight";
+    }
+
+    @Override
     public void drawComponent(Graphics2D g2d) {
         g2d.setColor(Util.getTranslucentColor(getColor()));
         g2d.fillRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);

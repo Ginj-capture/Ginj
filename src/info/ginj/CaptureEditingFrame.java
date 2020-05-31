@@ -1,5 +1,6 @@
 package info.ginj;
 
+import info.ginj.action.AbstractUndoableAction;
 import info.ginj.export.GinjExporter;
 import info.ginj.export.clipboard.ClipboardExporterImpl;
 import info.ginj.export.disk.DiskExporterImpl;
@@ -15,6 +16,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
+import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
@@ -41,9 +43,9 @@ public class CaptureEditingFrame extends JFrame {
     private final BufferedImage capturedImg;
     private final String captureId;
     private final JLayeredPane imagePane;
-    final GinjMiniToolButton undoButton;
-    final GinjMiniToolButton redoButton;
-    final UndoManager undoManager = new UndoManager();
+    private final GinjMiniToolButton undoButton;
+    private final GinjMiniToolButton redoButton;
+    private final UndoManager undoManager = new UndoManager();
 
     GinjTool currentTool;
     Color currentColor = Color.RED;
@@ -130,7 +132,6 @@ public class CaptureEditingFrame extends JFrame {
         redoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("img/icon/redo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
 
         undoButton.setEnabled(false);
-        undoButton.setToolTipText("Undo");
         undoButton.addActionListener(e -> {
             try {
                 undoManager.undo();
@@ -139,11 +140,9 @@ public class CaptureEditingFrame extends JFrame {
                 cre.printStackTrace();
             }
             imagePane.repaint(); // TODO :  Is it sufficient to repaint overlays ??
-            undoButton.setEnabled(undoManager.canUndo());
-            redoButton.setEnabled(undoManager.canRedo());
+            refreshUndoRedoButtons();
         });
 
-        redoButton.setToolTipText("Redo");
         redoButton.setEnabled(false);
         redoButton.addActionListener(e -> {
             try {
@@ -153,8 +152,7 @@ public class CaptureEditingFrame extends JFrame {
                 cre.printStackTrace();
             }
             imagePane.repaint(); // TODO :  Is it sufficient to repaint overlays ??
-            undoButton.setEnabled(undoManager.canUndo());
-            redoButton.setEnabled(undoManager.canRedo());
+            refreshUndoRedoButtons();
         });
         undoRedoPanel.add(undoButton);
         undoRedoPanel.add(redoButton);
@@ -335,6 +333,7 @@ public class CaptureEditingFrame extends JFrame {
         toolButton.addActionListener((event) -> currentTool = tool);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private Icon createRoundRectColorIcon(Color color, int width, int height) {
         return new Icon() {
             @Override
@@ -376,6 +375,21 @@ public class CaptureEditingFrame extends JFrame {
         };
         frame.addMouseListener(mouseListener);
         frame.addMouseMotionListener(mouseListener);
+    }
+
+
+    private void refreshUndoRedoButtons() {
+        undoButton.setEnabled(undoManager.canUndo());
+        redoButton.setEnabled(undoManager.canRedo());
+        // ENHANCEMENT
+        undoButton.setToolTipText(undoManager.canUndo()?undoManager.getUndoPresentationName():null);
+        redoButton.setToolTipText(undoManager.canRedo()?undoManager.getRedoPresentationName():null);
+    }
+
+    public void addUndoableAction(AbstractUndoableAction action) {
+        System.out.println("Adding undoable action: " + action.getPresentationName());
+        undoManager.undoableEditHappened(new UndoableEditEvent(imagePane, action));
+        refreshUndoRedoButtons();
     }
 
 

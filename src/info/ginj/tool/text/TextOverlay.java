@@ -10,6 +10,11 @@ public class TextOverlay extends RectangleOverlay {
     // So should this extends JPanel instead
 
     @Override
+    public String getPresentationName() {
+        return "Text";
+    }
+
+    @Override
     public void drawComponent(Graphics2D g2d) {
         g2d.setColor(getColor());
         g2d.drawRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, 4, 4);

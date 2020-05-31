@@ -19,7 +19,12 @@ public class ArrowOverlay extends Overlay {
     }
 
     @Override
-    public String getName() {
+    public String getPresentationName() {
+        return "Arrow";
+    }
+
+    @Override
+    public String toString() {
         return "Arrow form " + start + " to " + end;
     }
 

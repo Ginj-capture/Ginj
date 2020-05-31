@@ -7,16 +7,14 @@ import java.awt.image.BufferedImage;
 public abstract class Overlay extends JComponent {
     public static final RenderingHints ANTI_ALIASING_HINTS = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    public static final int HANDLE_WIDTH = 6;
-    public static final int HANDLE_HEIGHT = 6;
+    public static final int HANDLE_WIDTH = 8;
+    public static final int HANDLE_HEIGHT = 8;
+    public static final int NO_INDEX = -1;
 
     // State
     private Color color;
     private boolean selected = false;
     protected boolean dragging = false;
-
-    // Caching
-    private BufferedImage renderedImage = null;
 
     public Color getColor() {
         return color;
@@ -59,24 +57,30 @@ public abstract class Overlay extends JComponent {
 
     // Hit detection.
     // Note: this is similar to overriding contains(), except it is called only on click (and not on mouseover),
-    public boolean isInComponent(Point p) {
-        if (renderedImage == null) {
-            // Render the item in an image
-            renderedImage = new BufferedImage(500, 500, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2d = (Graphics2D) renderedImage.getGraphics();
-            drawComponent(g2d);
-            g2d.dispose();
-        }
+    public boolean containsPoint(Point p) {
+        // Render the item in an image
+        BufferedImage renderedImage = new BufferedImage(500, 500, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = (Graphics2D) renderedImage.getGraphics();
+        drawComponent(g2d);
+        g2d.dispose();
+
         // Return true if the pixel at (x,y) is not transparent
         final int rgb = renderedImage.getRGB(p.x, p.y);
         return ((rgb & 0xFF000000) != 0);
     }
 
-
-    private void clearRenderedCache() {
-        renderedImage = null;
+    public int getHandleIndexAt(Point p) {
+        final Point[] handles = getHandles();
+        for (int i = 0; i < handles.length; i++) {
+            Point handle = handles[i];
+            // Give tolerance: double handle sizes
+            if (p.x >= handle.x - HANDLE_WIDTH/2 && p.x <= handle.x + HANDLE_WIDTH/2
+                    && p.y >= handle.y - HANDLE_HEIGHT/2 && p.y <= handle.y + HANDLE_HEIGHT/2) {
+                return i;
+            }
+        }
+        return -1;
     }
-
 
     // TODO place here all logic regarding
     //  - mouse handling
@@ -84,6 +88,8 @@ public abstract class Overlay extends JComponent {
     //  - dragging of component, and just call moveTo or something
     //  - dragging of handles, and just call moveHandle(pointIndex, newPoint) upon move
 
+
+    public abstract String getPresentationName();
 
     /**
      * This method should be called just after instantiating the component
@@ -114,11 +120,24 @@ public abstract class Overlay extends JComponent {
      * @param newPosition
      */
     public final void moveHandle(int handleIndex, Point newPosition) {
-        clearRenderedCache();
-        setHandlePosition(handleIndex, newPosition);
+        if (handleIndex != NO_INDEX) {
+            // This is a move of one handle
+            setHandlePosition(handleIndex, newPosition);
+        }
+        else {
+            System.err.printf("moveHandle with a handleIndex = NO_INDEX");
+        }
     }
 
     protected abstract void setHandlePosition(int handleIndex, Point newPosition);
 
     public abstract boolean hasNoSize();
+
+    public void moveDrawing(int deltaX, int deltaY) {
+        // This is a drag'n'drop move => move all points
+        final Point[] handles = getHandles();
+        for (int i = 0; i < handles.length; i++) {
+            setHandlePosition(i, new Point(handles[i].x + deltaX, handles[i].y + deltaY));
+        }
+    }
 }

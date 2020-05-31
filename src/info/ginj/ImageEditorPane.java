@@ -1,14 +1,12 @@
 package info.ginj;
 
-import info.ginj.action.AbstractUndoableAction;
-import info.ginj.action.AddOverlayAction;
+import info.ginj.action.*;
 import info.ginj.tool.Overlay;
 import info.ginj.ui.DragInsensitiveMouseClickListener;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
-import javax.swing.event.UndoableEditEvent;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -48,20 +46,21 @@ public class ImageEditorPane extends JLayeredPane {
     private void addMouseEditingBehaviour() {
         final ImageEditorPane imagePanel = this;
         MouseInputListener mouseListener = new DragInsensitiveMouseClickListener(new MouseInputAdapter() {
+            private int selectedHandleIndex;
             Point clicked;
             AbstractUndoableAction currentAction = null;
 
             public void mousePressed(MouseEvent e) {
                 clicked = e.getPoint();
 
-                // Find selected component
+                // Find clicked component
                 setSelectedOverlay(null);
                 // Iterate in reverse direction to check closest first
                 // Note: JLayeredPane guarantees components are returned based on their layer order. See implementation of JLayeredPane.highestLayer()
                 for (Component component : imagePanel.getComponents()) {
                     if (component instanceof Overlay) {
                         Overlay overlay = (Overlay) component;
-                        if (overlay.isInComponent(clicked)) {
+                        if (overlay.containsPoint(clicked)) {
                             setSelectedOverlay(overlay);
                             break;
                         }
@@ -73,19 +72,16 @@ public class ImageEditorPane extends JLayeredPane {
                 if (selectedOverlay != null) {
                     // OK, we're in a component.
                     // See if it's in a handle
-/*
-                    int selectedHandle = selectedOverlay.getHandleNumberAt(clicked);
-                    if (selectedHandle == -1) {
+
+                    selectedHandleIndex = selectedOverlay.getHandleIndexAt(clicked);
+                    if (selectedHandleIndex == Overlay.NO_INDEX) {
                         // Initate a move
+                        currentAction = new MoveOverlayAction(selectedOverlay, e.getPoint());
                     }
                     else {
                         // Initiate a resize
-                        // Add creation to undo stack
-                        ModifyOverlayAction action = new ModifyOverlayAction(selectedOverlay, imagePanel);
-                        action.execute();
-                        frame.undoManager.undoableEditHappened(new UndoableEditEvent(imagePanel, action));
+                        currentAction = new ModifyOverlayAction(selectedOverlay, selectedHandleIndex, selectedOverlay.getHandles()[selectedHandleIndex]);
                     }
-*/
                 }
                 else {
                     // Out of all components.
@@ -94,31 +90,65 @@ public class ImageEditorPane extends JLayeredPane {
                     overlay.setBounds(0, 0, capturedImgSize.width, capturedImgSize.height);
                     currentAction = new AddOverlayAction(overlay, imagePanel);
                     currentAction.execute();
+                    selectedHandleIndex = 0;
                 }
-                // TODO Remember the "before" state to be able to undo
                 repaint();
             }
 
             public void mouseDragged(MouseEvent e) {
-                selectedOverlay.moveHandle(0, e.getPoint());
+                final Point mousePosition = e.getPoint();
+                if (selectedHandleIndex == Overlay.NO_INDEX) {
+                    // Whole component is dragged
+                    // During drag, we move the whole component (which is a canvas of the same size as the image) to follow the mouse
+                    selectedOverlay.setLocation(mousePosition.x - clicked.x, mousePosition.y - clicked.y);
+                }
+                else {
+                    // Only a handle is dragged
+                    selectedOverlay.moveHandle(selectedHandleIndex, mousePosition);
+                }
                 repaint();
             }
 
             public void mouseReleased(MouseEvent e) {
-                if (selectedOverlay.hasNoSize()) {
-                    // False operation
-                    imagePanel.remove(selectedOverlay);
-                    repaint();
+                if (currentAction == null) {
+                    System.err.println("Mouse released with no currentAction !");
                 }
                 else {
-                    if (currentAction != null) {
-                        System.out.println("Adding Action: " + currentAction.getPresentationName());
-                        frame.undoManager.undoableEditHappened(new UndoableEditEvent(imagePanel, currentAction));
-                        frame.undoButton.setEnabled(frame.undoManager.canUndo());
-                        frame.redoButton.setEnabled(frame.undoManager.canRedo());
+                    final Point released = e.getPoint();
+                    if (!hasMouseMoved(clicked, released)) {
+                        if (currentAction instanceof AddOverlayAction) {
+                            // False operation
+                            imagePanel.remove(selectedOverlay);
+                            repaint();
+                        }
+                    }
+                    else {
+                        currentAction.setTargetPoint(released);
+                        if (currentAction instanceof MoveOverlayAction) {
+                            // Upon release, we reset the canvas position to 0,0 and execute the action that moves the drawing itself on the canvas
+                            selectedOverlay.setLocation(0, 0);
+                            currentAction.execute();
+                        }
+                        frame.addUndoableAction(currentAction);
                         currentAction = null;
                     }
                 }
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e){
+                if(e.getClickCount()==2) {
+                    if (selectedOverlay != null) {
+                        // ENHANCEMENT
+                        currentAction = new BringOverlayToFrontAction(selectedOverlay, imagePanel);
+                        currentAction.execute();
+                        frame.addUndoableAction(currentAction);
+                    }
+                }
+            }
+
+            private boolean hasMouseMoved(Point clicked, Point released) {
+                return Math.abs(clicked.x - released.x) > 5 || Math.abs(clicked.y - released.y) > 5;
             }
         });
         addMouseListener(mouseListener);

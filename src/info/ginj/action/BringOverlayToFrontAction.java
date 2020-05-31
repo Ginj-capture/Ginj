@@ -3,33 +3,37 @@ package info.ginj.action;
 import info.ginj.ImageEditorPane;
 import info.ginj.tool.Overlay;
 
-public class AddOverlayAction extends AbstractUndoableAction {
+import javax.swing.*;
 
+public class BringOverlayToFrontAction extends AbstractUndoableAction {
     private final Overlay overlay;
     private final ImageEditorPane panel;
+    private final int originalLayer;
 
-    public AddOverlayAction(Overlay overlay, ImageEditorPane panel) {
+
+    public BringOverlayToFrontAction(Overlay overlay, ImageEditorPane panel) {
         super();
         this.overlay = overlay;
         this.panel = panel;
+        originalLayer = JLayeredPane.getLayer(overlay);
     }
 
     public String getPresentationName() {
-        return "create " + overlay.getPresentationName().toLowerCase();
+        return "bring " + overlay.getPresentationName().toLowerCase() + " to front";
     }
 
     public void execute() {
-        panel.setSelectedOverlay(overlay);
-        panel.add(overlay, Integer.valueOf(panel.highestLayer() + 1));
+        panel.setLayer(overlay, panel.highestLayer() + 1);
     }
 
     public void undo() {
         super.undo();
-        panel.remove(overlay);
+        panel.setLayer(overlay, originalLayer);
     }
 
     public void redo() {
         super.redo();
         execute();
     }
+
 }

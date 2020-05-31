@@ -27,7 +27,7 @@ import java.util.Map;
 public class CaptureSelectionFrame extends JFrame {
 
     public static final Color COLOR_ORANGE = new Color(251, 168, 25);
-    public static final Color COLOR_DIMMMED_SCREEN = new Color(0, 0, 0, 51);
+    public static final Color COLOR_DIMMED_SCREEN = new Color(0, 0, 0, 51);
     public static final Color COLOR_SIZE_BOX = new Color(0, 0, 0, 128);
 
     public static final int SIZE_BOX_WIDTH = 75;
@@ -169,7 +169,7 @@ public class CaptureSelectionFrame extends JFrame {
                 // Dim the rest of the screen
                 Area area = new Area(screenShape);
                 area.subtract(new Area(rectangleToDraw));
-                g2d.setColor(COLOR_DIMMMED_SCREEN);
+                g2d.setColor(COLOR_DIMMED_SCREEN);
                 g2d.fill(area);
 
                 // Draw the selection rectangle

@@ -4,20 +4,20 @@ import info.ginj.tool.Overlay;
 
 import java.awt.*;
 
-public class ModifyOverlayAction extends AbstractUndoableAction {
+public class ResizeOverlayAction extends AbstractUndoableAction {
     private final Overlay overlay;
     private final int handleIndex;
     private final Point initialPosition;
     private Point finalPosition;
 
-    public ModifyOverlayAction(Overlay overlay, int handleIndex, Point initialPosition) {
+    public ResizeOverlayAction(Overlay overlay, int handleIndex, Point initialPosition) {
         this.overlay = overlay;
         this.handleIndex = handleIndex;
         this.initialPosition = initialPosition;
     }
 
     public String getPresentationName() {
-        return "modify " + overlay.getPresentationName().toLowerCase();
+        return "resize " + overlay.getPresentationName().toLowerCase();
     }
 
     public void setTargetPoint(Point finalPosition) {

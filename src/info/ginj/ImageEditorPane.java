@@ -85,7 +85,7 @@ public class ImageEditorPane extends JLayeredPane {
                     }
                     else {
                         // Initiate a resize
-                        currentAction = new ModifyOverlayAction(selectedOverlay, selectedHandleIndex, selectedOverlay.getHandles()[selectedHandleIndex]);
+                        currentAction = new ResizeOverlayAction(selectedOverlay, selectedHandleIndex, selectedOverlay.getHandles()[selectedHandleIndex]);
                     }
                 }
                 else {

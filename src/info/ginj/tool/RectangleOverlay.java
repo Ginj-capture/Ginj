@@ -1,5 +1,7 @@
 package info.ginj.tool;
 
+import info.ginj.Coords;
+
 import java.awt.*;
 
 public abstract class RectangleOverlay extends Overlay {
@@ -33,12 +35,16 @@ public abstract class RectangleOverlay extends Overlay {
 
     /**
      * This method indicates that the given handle has moved to a new position
-     * By convention, when a component is first drawn, the end of the drawing (arrowhead or second point of rectangle) is returned with index 0
+     * By convention, handle index 0 is the release position when first drawing a component (arrow head or end of rectangle diagonal)
      * @param handleIndex
      * @param newPosition
      */
     @Override
     public void setHandlePosition(int handleIndex, Point newPosition) {
+        if (handleIndex == 0) {
+            Coords.setX2(rectangle, newPosition.x, 0);
+            Coords.setY2(rectangle, newPosition.y, 0);
+        }
         // Do it
     }
 

@@ -55,7 +55,7 @@ public abstract class Overlay extends JComponent {
         g2d.setRenderingHints(ANTI_ALIASING_HINTS);
 
         // Draw shadow;
-        if (!editInProgress) {
+        if (!editInProgress && mustDrawShadow()) {
             if (shadowImage == null) {
                 BufferedImageOp op = new GaussianFilter(8);
                 BufferedImage maskImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -82,6 +82,15 @@ public abstract class Overlay extends JComponent {
                 g.drawRect(handle.x - HANDLE_WIDTH/2, handle.y - HANDLE_HEIGHT/2, HANDLE_WIDTH, HANDLE_HEIGHT);
             }
         }
+    }
+
+    /**
+     * Indicate if this overlay must have a shadow.
+     * Can be overridden to disable shadow (e.g. for highlight)
+     * @return true by default, to draw the shadow
+     */
+    protected boolean mustDrawShadow() {
+        return true;
     }
 
     // Hit detection.

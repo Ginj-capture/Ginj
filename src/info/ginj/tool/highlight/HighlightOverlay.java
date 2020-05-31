@@ -16,4 +16,9 @@ public class HighlightOverlay extends RectangleOverlay {
         g2d.setColor(Util.getTranslucentColor(getColor()));
         g2d.fillRect(rectangle.x + xOffset, rectangle.y + yOffset, rectangle.width, rectangle.height);
     }
+
+    @Override
+    protected boolean mustDrawShadow() {
+        return false;
+    }
 }

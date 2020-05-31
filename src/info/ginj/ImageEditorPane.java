@@ -226,6 +226,7 @@ public class ImageEditorPane extends JLayeredPane {
             if (overlay != null) {
                 overlay.setSelected(true);
                 frame.setCurrentColor(overlay.getColor());
+                frame.updateColorButtonIcon();
             }
             selectedOverlay = overlay;
         }

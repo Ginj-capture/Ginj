@@ -46,6 +46,7 @@ public class CaptureEditingFrame extends JFrame {
     private final GinjMiniToolButton undoButton;
     private final GinjMiniToolButton redoButton;
     private final UndoManager undoManager = new UndoManager();
+    private final GinjToolButton colorToolButton;
 
     GinjTool currentTool;
     Color currentColor = Color.RED;
@@ -107,9 +108,9 @@ public class CaptureEditingFrame extends JFrame {
             addToolButton(toolBar, tool, toolButtonGroup);
         }
 
-        GinjToolButton colorToolButton = new GinjToolButton(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        colorToolButton = new GinjToolButton(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
         colorToolButton.addActionListener(e -> {
-            onColorButtonClick(colorToolButton);
+            onColorButtonClick();
         });
         colorToolButton.setToolTipText("Tool Color");
         toolBar.add(colorToolButton);
@@ -292,7 +293,11 @@ public class CaptureEditingFrame extends JFrame {
         this.currentColor = currentColor;
     }
 
-    private void onColorButtonClick(GinjToolButton colorToolButton) {
+    public void updateColorButtonIcon() {
+        colorToolButton.setIcon(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+    }
+
+    private void onColorButtonClick() {
         if (Color.RED.equals(currentColor)) {
             currentColor = Color.GREEN;
         }
@@ -302,7 +307,7 @@ public class CaptureEditingFrame extends JFrame {
         else {
             currentColor = Color.RED;
         }
-        colorToolButton.setIcon(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        updateColorButtonIcon();
         imagePane.setColorOfSelectedOverlay(currentColor);
     }
 
@@ -409,7 +414,7 @@ public class CaptureEditingFrame extends JFrame {
     }
 
     public void addUndoableAction(AbstractUndoableAction action) {
-        System.out.println("Adding undoable action: " + action.getPresentationName());
+        //System.out.println("Adding undoable action: " + action.getPresentationName());
         undoManager.undoableEditHappened(new UndoableEditEvent(imagePane, action));
         refreshUndoRedoButtons();
     }

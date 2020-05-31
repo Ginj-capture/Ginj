@@ -76,6 +76,8 @@ public class ImageEditorPane extends JLayeredPane {
                     // OK, we're in a component.
                     // See if it's in a handle
 
+                    selectedOverlay.setEditInProgress(true);
+
                     selectedHandleIndex = selectedOverlay.getHandleIndexAt(clicked);
                     if (selectedHandleIndex == Overlay.NO_INDEX) {
                         // Initate a move
@@ -122,7 +124,6 @@ public class ImageEditorPane extends JLayeredPane {
                         if (currentAction instanceof AddOverlayAction) {
                             // False operation
                             imagePanel.remove(selectedOverlay);
-                            repaint();
                         }
                     }
                     else {
@@ -135,6 +136,8 @@ public class ImageEditorPane extends JLayeredPane {
                         frame.addUndoableAction(currentAction);
                         currentAction = null;
                     }
+                    selectedOverlay.setEditInProgress(false);
+                    repaint();
                 }
             }
 

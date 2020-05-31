@@ -424,7 +424,8 @@ public class CaptureEditingFrame extends JFrame {
         // Always store in history, no matter the export type
         saveInHistory();
 
-        // Render image and overlays
+        // Render image and overlays, but no handles
+        imagePane.setSelectedOverlay(null);
         BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics g = renderedImage.getGraphics();
         imagePane.paint(g);
@@ -476,6 +477,8 @@ public class CaptureEditingFrame extends JFrame {
         }
 
         // TODO save overlays to XML
+
+        // TODO save thumbnail with overlays
 
     }
 

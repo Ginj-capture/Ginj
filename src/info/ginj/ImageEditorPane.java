@@ -230,6 +230,7 @@ public class ImageEditorPane extends JLayeredPane {
             }
             selectedOverlay = overlay;
         }
+        repaint();
     }
 
     public void setColorOfSelectedOverlay(Color color) {

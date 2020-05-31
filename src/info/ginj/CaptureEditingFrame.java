@@ -42,7 +42,7 @@ public class CaptureEditingFrame extends JFrame {
     // State
     private final BufferedImage capturedImg;
     private final String captureId;
-    private final JLayeredPane imagePane;
+    private final ImageEditorPane imagePane;
     private final GinjMiniToolButton undoButton;
     private final GinjMiniToolButton redoButton;
     private final UndoManager undoManager = new UndoManager();
@@ -109,16 +109,7 @@ public class CaptureEditingFrame extends JFrame {
 
         GinjToolButton colorToolButton = new GinjToolButton(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
         colorToolButton.addActionListener(e -> {
-            if (Color.RED.equals(currentColor)) {
-                currentColor = Color.GREEN;
-            }
-            else if (Color.GREEN.equals(currentColor)) {
-                currentColor = Color.BLUE;
-            }
-            else {
-                currentColor = Color.RED;
-            }
-            colorToolButton.setIcon(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+            onColorButtonClick(colorToolButton);
         });
         colorToolButton.setToolTipText("Tool Color");
         toolBar.add(colorToolButton);
@@ -291,6 +282,28 @@ public class CaptureEditingFrame extends JFrame {
 
         // Center window
         setLocationRelativeTo(null);
+    }
+
+    public Color getCurrentColor() {
+        return currentColor;
+    }
+
+    public void setCurrentColor(Color currentColor) {
+        this.currentColor = currentColor;
+    }
+
+    private void onColorButtonClick(GinjToolButton colorToolButton) {
+        if (Color.RED.equals(currentColor)) {
+            currentColor = Color.GREEN;
+        }
+        else if (Color.GREEN.equals(currentColor)) {
+            currentColor = Color.BLUE;
+        }
+        else {
+            currentColor = Color.RED;
+        }
+        colorToolButton.setIcon(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        imagePane.setColorOfSelectedOverlay(currentColor);
     }
 
     private void addToolButton(JPanel toolBar, GinjTool tool, ButtonGroup group) {

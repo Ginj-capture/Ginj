@@ -8,6 +8,7 @@ TODO Features :
  - Implement "exports"
  - Implement history
  - Implement video
+ - Should undo/redo change selection inside the action ? (e.g change color, resize) - or completely delelect component after operation
 
 TODO UI:
  - Paint title bar

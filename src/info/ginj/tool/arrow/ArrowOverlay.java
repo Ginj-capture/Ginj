@@ -29,11 +29,8 @@ public class ArrowOverlay extends Overlay {
     }
 
     @Override
-    public void drawComponent(Graphics2D g2d) {
-        drawArrowLine(g2d, start.x, start.y, end.x, end.y);
-        if (!dragging) {
-            // TODO draw shadow;
-        }
+    public void drawComponent(Graphics2D g2d, int xOffset, int yOffset) {
+        drawArrowLine(g2d, start.x + xOffset, start.y + yOffset, end.x + xOffset, end.y + yOffset);
     }
 
     /**

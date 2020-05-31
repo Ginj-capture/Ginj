@@ -1,8 +1,11 @@
 package info.ginj.tool;
 
+import com.jhlabs.image.GaussianFilter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 
 public abstract class Overlay extends JComponent {
     public static final RenderingHints ANTI_ALIASING_HINTS = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -14,7 +17,9 @@ public abstract class Overlay extends JComponent {
     // State
     private Color color;
     private boolean selected = false;
-    protected boolean dragging = false;
+    protected boolean editInProgress = true; // Creation is an edit.
+    private BufferedImage shadowImage;
+
 
     public Color getColor() {
         return color;
@@ -32,12 +37,15 @@ public abstract class Overlay extends JComponent {
         this.selected = selected;
     }
 
-    public boolean isDragging() {
-        return dragging;
+    public boolean isEditInProgress() {
+        return editInProgress;
     }
 
-    public void setDragging(boolean dragging) {
-        this.dragging = dragging;
+    public void setEditInProgress(boolean editInProgress) {
+        this.editInProgress = editInProgress;
+        if (editInProgress) {
+            shadowImage = null;
+        }
     }
 
     @Override
@@ -45,7 +53,28 @@ public abstract class Overlay extends JComponent {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHints(ANTI_ALIASING_HINTS);
-        drawComponent(g2d);
+
+        // Draw shadow;
+        if (!editInProgress) {
+            if (shadowImage == null) {
+                BufferedImageOp op = new GaussianFilter(8);
+                BufferedImage maskImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+                final Graphics2D maskImageG2D = maskImage.createGraphics();
+                drawComponent(maskImageG2D, 3, 3);
+                maskImageG2D.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN, 0.7f));
+                maskImageG2D.setColor(Color.BLACK);
+                maskImageG2D.fillRect(0, 0, getWidth(), getHeight());
+
+                maskImageG2D.dispose();
+                shadowImage = op.filter(maskImage, null);
+            }
+            g2d.drawImage(shadowImage, 0, 0, this);
+        }
+
+        // Draw component
+        drawComponent(g2d, 0, 0);
+
+        // Draw handles
         if (selected) {
             g.setColor(Color.BLACK);
             for (Point handle : getHandles()) {
@@ -61,7 +90,7 @@ public abstract class Overlay extends JComponent {
         // Render the item in an image
         BufferedImage renderedImage = new BufferedImage(500, 500, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = (Graphics2D) renderedImage.getGraphics();
-        drawComponent(g2d);
+        drawComponent(g2d, 0, 0);
         g2d.dispose();
 
         // Return true if the pixel at (x,y) is not transparent
@@ -101,10 +130,11 @@ public abstract class Overlay extends JComponent {
 
     /**
      * This method should only draw the component itself
-     *
-     * @param g
+     *  @param g
+     * @param xOffset
+     * @param yOffset
      */
-    public abstract void drawComponent(Graphics2D g);
+    public abstract void drawComponent(Graphics2D g, int xOffset, int yOffset);
 
     /**
      * Returns all handles of the component
@@ -123,6 +153,7 @@ public abstract class Overlay extends JComponent {
         if (handleIndex != NO_INDEX) {
             // This is a move of one handle
             setHandlePosition(handleIndex, newPosition);
+            shadowImage = null;
         }
         else {
             System.err.printf("moveHandle with a handleIndex = NO_INDEX");
@@ -139,5 +170,6 @@ public abstract class Overlay extends JComponent {
         for (int i = 0; i < handles.length; i++) {
             setHandlePosition(i, new Point(handles[i].x + deltaX, handles[i].y + deltaY));
         }
+        shadowImage = null;
     }
 }

@@ -11,10 +11,7 @@ public class FrameOverlay extends RectangleOverlay {
     }
 
     @Override
-    public void drawComponent(Graphics2D g2d) {
-        g2d.drawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
-        if (!dragging) {
-            // TODO drawShadow();
-        }
+    public void drawComponent(Graphics2D g2d, int xOffset, int yOffset) {
+        g2d.drawRect(rectangle.x + xOffset, rectangle.y + yOffset, rectangle.width, rectangle.height);
     }
 }

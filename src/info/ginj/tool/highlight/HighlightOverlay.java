@@ -12,8 +12,8 @@ public class HighlightOverlay extends RectangleOverlay {
     }
 
     @Override
-    public void drawComponent(Graphics2D g2d) {
+    public void drawComponent(Graphics2D g2d, int xOffset, int yOffset) {
         g2d.setColor(Util.getTranslucentColor(getColor()));
-        g2d.fillRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+        g2d.fillRect(rectangle.x + xOffset, rectangle.y + yOffset, rectangle.width, rectangle.height);
     }
 }

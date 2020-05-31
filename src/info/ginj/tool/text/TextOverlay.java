@@ -15,13 +15,10 @@ public class TextOverlay extends RectangleOverlay {
     }
 
     @Override
-    public void drawComponent(Graphics2D g2d) {
-        g2d.setColor(getColor());
-        g2d.drawRoundRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height, 4, 4);
+    public void drawComponent(Graphics2D g2d, int xOffset, int yOffset) {
         g2d.setColor(Color.WHITE);
-        g2d.fillRoundRect(rectangle.x+2, rectangle.y+2, rectangle.width-4, rectangle.height-4, 4, 4);
-        if (!dragging) {
-            // TODO drawShadow();
-        }
+        g2d.fillRoundRect(rectangle.x+2 + xOffset, rectangle.y+2 + yOffset, rectangle.width-4, rectangle.height-4, 4, 4);
+        g2d.setColor(getColor());
+        g2d.drawRoundRect(rectangle.x + xOffset, rectangle.y + yOffset, rectangle.width, rectangle.height, 4, 4);
     }
 }

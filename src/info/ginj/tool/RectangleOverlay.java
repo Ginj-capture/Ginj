@@ -13,11 +13,6 @@ public abstract class RectangleOverlay extends Overlay {
         return this;
     }
 
-    @Override
-    public String getName() {
-        return this.getClass().getSimpleName() + " for " + rectangle.toString();
-    }
-
     /**
      * Returns all handles of the component
      * By convention, handle index 0 is the release position when first drawing a component (arrow head or end of rectangle diagonal)
@@ -63,8 +58,8 @@ public abstract class RectangleOverlay extends Overlay {
         }
     }
 
-    @Override
-    public boolean hasNoSize() {
-        return (rectangle.getWidth() == 0 && rectangle.getHeight() == 0);
+
+    public String toString() {
+        return this.getClass().getSimpleName() + " for " + rectangle.toString();
     }
 }

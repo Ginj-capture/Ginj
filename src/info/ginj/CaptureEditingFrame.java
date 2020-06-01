@@ -344,6 +344,7 @@ public class CaptureEditingFrame extends JFrame {
         toolButton.addActionListener((event) -> {
             currentTool = tool;
             imagePane.setSelectedOverlay(null);
+            updateColorButtonIcon();
         });
     }
 

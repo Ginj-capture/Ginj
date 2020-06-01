@@ -57,14 +57,14 @@ public class ImageEditorPane extends JLayeredPane {
                 clicked = e.getPoint();
 
                 // Find clicked component
-                setSelectedOverlay(null);
+                Overlay foundOverlay = null;
                 // Iterate in reverse direction to check closest first
                 // Note: JLayeredPane guarantees components are returned based on their layer order. See implementation of JLayeredPane.highestLayer()
                 for (Component component : imagePanel.getComponents()) {
                     if (component instanceof Overlay) {
                         Overlay overlay = (Overlay) component;
                         if (overlay.containsPoint(clicked)) {
-                            setSelectedOverlay(overlay);
+                            foundOverlay = overlay;
                             break;
                         }
                     }
@@ -72,6 +72,8 @@ public class ImageEditorPane extends JLayeredPane {
                         System.err.println("Encountered unexpected component: " + component);
                     }
                 }
+                selectedOverlay = foundOverlay; // Note: we only update it here
+
                 if (selectedOverlay != null) {
                     // OK, we're in a component.
                     // See if it's in a handle

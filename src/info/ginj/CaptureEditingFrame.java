@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class CaptureEditingFrame extends JFrame {
@@ -38,6 +40,7 @@ public class CaptureEditingFrame extends JFrame {
     public static final int MINI_TOOL_BUTTON_ICON_WIDTH = 10;
     public static final int MINI_TOOL_BUTTON_ICON_HEIGHT = 10;
     public static final Insets MAIN_PANEL_INSETS = new Insets(13, 17, 10, 17);
+    public static final Color DEFAULT_TOOL_COLOR = Color.RED;
 
     // State
     private final BufferedImage capturedImg;
@@ -49,7 +52,7 @@ public class CaptureEditingFrame extends JFrame {
     private final GinjToolButton colorToolButton;
 
     GinjTool currentTool;
-    Color currentColor = Color.RED;
+    private Map<String, Color> currentColorMap = new HashMap<>();
 
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
@@ -108,7 +111,7 @@ public class CaptureEditingFrame extends JFrame {
             addToolButton(toolBar, tool, toolButtonGroup);
         }
 
-        colorToolButton = new GinjToolButton(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        colorToolButton = new GinjToolButton(createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
         colorToolButton.addActionListener(e -> {
             onColorButtonClick();
         });
@@ -286,29 +289,36 @@ public class CaptureEditingFrame extends JFrame {
     }
 
     public Color getCurrentColor() {
-        return currentColor;
+        Color color = currentColorMap.get(currentTool.getName());
+        if (color != null) {
+            return color;
+        }
+        else {
+            return DEFAULT_TOOL_COLOR;
+        }
     }
 
     public void setCurrentColor(Color currentColor) {
-        this.currentColor = currentColor;
+        currentColorMap.put(currentTool.getName(), currentColor);
+        // TODO save preferences (including currentColorMap)
     }
 
     public void updateColorButtonIcon() {
-        colorToolButton.setIcon(createRoundRectColorIcon(currentColor, TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        colorToolButton.setIcon(createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
     }
 
     private void onColorButtonClick() {
-        if (Color.RED.equals(currentColor)) {
-            currentColor = Color.GREEN;
+        if (Color.RED.equals(getCurrentColor())) {
+            setCurrentColor(Color.GREEN);
         }
-        else if (Color.GREEN.equals(currentColor)) {
-            currentColor = Color.BLUE;
+        else if (Color.GREEN.equals(getCurrentColor())) {
+            setCurrentColor(Color.BLUE);
         }
         else {
-            currentColor = Color.RED;
+            setCurrentColor(Color.RED);
         }
         updateColorButtonIcon();
-        imagePane.setColorOfSelectedOverlay(currentColor);
+        imagePane.setColorOfSelectedOverlay(getCurrentColor());
     }
 
     private void addToolButton(JPanel toolBar, GinjTool tool, ButtonGroup group) {
@@ -331,7 +341,10 @@ public class CaptureEditingFrame extends JFrame {
         }
 
         // And store this tool as currentTool if clicked
-        toolButton.addActionListener((event) -> currentTool = tool);
+        toolButton.addActionListener((event) -> {
+            currentTool = tool;
+            imagePane.setSelectedOverlay(null);
+        });
     }
 
     @SuppressWarnings("SameParameterValue")

@@ -91,7 +91,7 @@ public class ImageEditorPane extends JLayeredPane {
                 else {
                     // Out of all components.
                     // Create a new one
-                    final Overlay overlay = frame.currentTool.createComponent(clicked, frame.currentColor);
+                    final Overlay overlay = frame.currentTool.createComponent(clicked, frame.getCurrentColor());
                     overlay.setBounds(0, 0, capturedImgSize.width, capturedImgSize.height);
                     currentAction = new AddOverlayAction(overlay, imagePanel);
                     currentAction.execute();

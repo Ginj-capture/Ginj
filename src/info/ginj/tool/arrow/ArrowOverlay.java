@@ -24,11 +24,6 @@ public class ArrowOverlay extends Overlay {
     }
 
     @Override
-    public String toString() {
-        return "Arrow form " + start + " to " + end;
-    }
-
-    @Override
     public void drawComponent(Graphics2D g2d, int xOffset, int yOffset) {
         drawArrowLine(g2d, start.x + xOffset, start.y + yOffset, end.x + xOffset, end.y + yOffset);
     }
@@ -53,11 +48,6 @@ public class ArrowOverlay extends Overlay {
     public void setHandlePosition(int handleIndex, Point newPosition) {
         if (handleIndex == 0) end = newPosition;
         else start = newPosition;
-    }
-
-    @Override
-    public boolean hasNoSize() {
-        return (start.x == end.x && start.y == end.y);
     }
 
 
@@ -110,7 +100,7 @@ public class ArrowOverlay extends Overlay {
 
         // HEAD
         // Thinner Stroke so that the end is less rounded
-        g2d.setStroke(new BasicStroke(headWidth/2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2d.setStroke(new BasicStroke(headWidth/2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         // Draw a polygon including the center of the triangle to achieve a slimmer look than a plain triangle
         GeneralPath polyline = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xpoints.length);
         polyline.moveTo(xpoints[0], ypoints[0]);
@@ -123,4 +113,10 @@ public class ArrowOverlay extends Overlay {
         // And draw the outline
         g2d.draw(polyline);
     }
+
+    @Override
+    public String toString() {
+        return "Arrow form " + start + " to " + end;
+    }
+
 }

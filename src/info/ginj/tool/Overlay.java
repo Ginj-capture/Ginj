@@ -7,7 +7,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 
-public abstract class Overlay extends JComponent {
+public abstract class Overlay extends JPanel {
     public static final RenderingHints ANTI_ALIASING_HINTS = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
     public static final int HANDLE_WIDTH = 8;
@@ -19,6 +19,15 @@ public abstract class Overlay extends JComponent {
     private boolean selected = false;
     protected boolean editInProgress = true; // Upon creation, the drag/drop is an edit.
     private BufferedImage shadowImage;
+
+
+    ////////////////////////////////
+    // Constructor
+
+    public Overlay() {
+        setOpaque(false);
+    }
+
 
     ////////////////////////////////
     // Accessors
@@ -53,8 +62,10 @@ public abstract class Overlay extends JComponent {
 
     /**
      * This is the main drawing method called to render the component.
-     * This method draws 1. the drop shadow (if required by the overlay and if not dragging/resizing),
-     * 2. the overlay itself, and 3. its handles (if selected)
+     * This method draws:
+     * 1. the drop shadow (if required by the overlay and if not dragging/resizing),
+     * 2. the overlay itself
+     * 3. its handles (if selected)
      * @param g the graphics canvas to draw on
      */
     @Override

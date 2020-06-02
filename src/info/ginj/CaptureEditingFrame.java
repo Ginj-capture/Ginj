@@ -300,6 +300,7 @@ public class CaptureEditingFrame extends JFrame {
 
     public void setCurrentColor(Color currentColor) {
         currentColorMap.put(currentTool.getName(), currentColor);
+        updateColorButtonIcon();
         // TODO save preferences (including currentColorMap)
     }
 
@@ -317,7 +318,6 @@ public class CaptureEditingFrame extends JFrame {
         else {
             setCurrentColor(Color.RED);
         }
-        updateColorButtonIcon();
         imagePane.setColorOfSelectedOverlay(getCurrentColor());
     }
 

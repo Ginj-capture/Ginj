@@ -72,7 +72,7 @@ public class ImageEditorPane extends JLayeredPane {
                         System.err.println("Encountered unexpected component: " + component);
                     }
                 }
-                selectedOverlay = foundOverlay; // Note: we only update it here
+                setSelectedOverlay(foundOverlay);
 
                 if (selectedOverlay != null) {
                     // OK, we're in a component.
@@ -228,7 +228,6 @@ public class ImageEditorPane extends JLayeredPane {
             if (overlay != null) {
                 overlay.setSelected(true);
                 frame.setCurrentColor(overlay.getColor());
-                frame.updateColorButtonIcon();
             }
             selectedOverlay = overlay;
         }

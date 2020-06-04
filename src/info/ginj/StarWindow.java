@@ -168,7 +168,6 @@ public class StarWindow extends JWindow {
 
 
     private void addMouseBehaviour(JComponent contentPane) {
-        JWindow window = this;
         MouseInputListener mouseInputListener = new DragInsensitiveMouseClickListener(new MouseInputAdapter() {
             private Point mousePressedPoint;
 
@@ -188,12 +187,12 @@ public class StarWindow extends JWindow {
                 mousePressedPoint = e.getPoint();
                 // If clicked happened on center of star
                 // That is if distance between click point and center is less than radius
-                if (Math.pow(window.getWidth() / 2.0 - mousePressedPoint.x, 2)
-                        + Math.pow(window.getHeight() / 2.0 - mousePressedPoint.y, 2)
+                if (Math.pow(StarWindow.this.getWidth() / 2.0 - mousePressedPoint.x, 2)
+                        + Math.pow(StarWindow.this.getHeight() / 2.0 - mousePressedPoint.y, 2)
                         < Math.pow(STAR_ONLY_RADIUS, 2)) {
                     // Start dragging
                     isDragging = true;
-                    window.repaint();
+                    StarWindow.this.repaint();
                 }
             }
 
@@ -201,18 +200,18 @@ public class StarWindow extends JWindow {
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (isDragging) {
-                    window.setLocation(getClosestPointOnScreenBorder());
+                    StarWindow.this.setLocation(getClosestPointOnScreenBorder());
                     isDragging = false;
-                    window.repaint();
+                    StarWindow.this.repaint();
                 }
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (isDragging) {
-                    window.setLocation(
-                            window.getLocation().x + e.getX() - mousePressedPoint.x,
-                            window.getLocation().y + e.getY() - mousePressedPoint.y
+                    StarWindow.this.setLocation(
+                            StarWindow.this.getLocation().x + e.getX() - mousePressedPoint.x,
+                            StarWindow.this.getLocation().y + e.getY() - mousePressedPoint.y
                     );
                 }
             }
@@ -223,7 +222,7 @@ public class StarWindow extends JWindow {
                     int hoveredButtonId = getButtonIdAtLocation(e.getX(), e.getY());
                     if (hoveredButtonId != highlightedButtonId) {
                         highlightedButtonId = hoveredButtonId;
-                        window.repaint();
+                        StarWindow.this.repaint();
                     }
                 }
             }
@@ -239,7 +238,7 @@ public class StarWindow extends JWindow {
                         case BTN_MORE -> onMore();
                     }
                     isWindowDeployed = false;
-                    window.repaint();
+                    StarWindow.this.repaint();
                 }
             }
 
@@ -260,8 +259,8 @@ public class StarWindow extends JWindow {
             }
         });
 
-        window.addMouseListener(mouseInputListener);
-        window.addMouseMotionListener(mouseInputListener);
+        StarWindow.this.addMouseListener(mouseInputListener);
+        StarWindow.this.addMouseMotionListener(mouseInputListener);
     }
 
     private void setDeployed(JComponent contentPane, boolean deployed) {

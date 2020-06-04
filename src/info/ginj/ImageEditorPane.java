@@ -47,7 +47,6 @@ public class ImageEditorPane extends JLayeredPane {
     }
 
     private void addMouseEditingBehaviour() {
-        final ImageEditorPane imagePanel = this;
         MouseInputListener mouseListener = new DragInsensitiveMouseClickListener(new MouseInputAdapter() {
             private int selectedHandleIndex;
             Point clicked;
@@ -60,7 +59,7 @@ public class ImageEditorPane extends JLayeredPane {
                 Overlay foundOverlay = null;
                 // Iterate in reverse direction to check closest first
                 // Note: JLayeredPane guarantees components are returned based on their layer order. See implementation of JLayeredPane.highestLayer()
-                for (Component component : imagePanel.getComponents()) {
+                for (Component component : ImageEditorPane.this.getComponents()) {
                     if (component instanceof Overlay) {
                         Overlay overlay = (Overlay) component;
                         if (overlay.containsPoint(clicked)) {
@@ -93,9 +92,9 @@ public class ImageEditorPane extends JLayeredPane {
                 else {
                     // Out of all components.
                     // Create a new one
-                    final Overlay overlay = frame.currentTool.createComponent(clicked, frame.getCurrentColor());
+                    final Overlay overlay = frame.currentTool.createComponent(clicked, frame.getCurrentColor(), ImageEditorPane.this);
                     overlay.setBounds(0, 0, capturedImgSize.width, capturedImgSize.height);
-                    currentAction = new AddOverlayAction(overlay, imagePanel);
+                    currentAction = new AddOverlayAction(overlay, ImageEditorPane.this);
                     currentAction.execute();
                     selectedHandleIndex = 0;
                 }
@@ -125,7 +124,7 @@ public class ImageEditorPane extends JLayeredPane {
                     if (!hasMouseMoved(clicked, released)) {
                         if (currentAction instanceof AddOverlayAction) {
                             // False operation
-                            imagePanel.remove(selectedOverlay);
+                            ImageEditorPane.this.remove(selectedOverlay);
                         }
                     }
                     else {
@@ -135,6 +134,7 @@ public class ImageEditorPane extends JLayeredPane {
                             selectedOverlay.setLocation(0, 0);
                             currentAction.execute();
                         }
+                        selectedOverlay.setSelected(true); // Seems useless but makes sure focus is given to the textarea of Text overlays
                         frame.addUndoableAction(currentAction);
                         currentAction = null;
                     }
@@ -148,7 +148,7 @@ public class ImageEditorPane extends JLayeredPane {
                 if(e.getClickCount()==2) {
                     if (selectedOverlay != null) {
                         // ENHANCEMENT
-                        currentAction = new BringOverlayToFrontAction(selectedOverlay, imagePanel);
+                        currentAction = new BringOverlayToFrontAction(selectedOverlay, ImageEditorPane.this);
                         currentAction.execute();
                         frame.addUndoableAction(currentAction);
                     }

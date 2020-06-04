@@ -1,5 +1,6 @@
 package info.ginj.tool.highlight;
 
+import info.ginj.ImageEditorPane;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
 
@@ -12,7 +13,7 @@ public class HighlightTool implements GinjTool {
     }
 
     @Override
-    public Overlay createComponent(Point initalPosition, Color initialColor) {
+    public Overlay createComponent(Point initalPosition, Color initialColor, ImageEditorPane imagePane) {
         return new HighlightOverlay().initialize(initalPosition, initialColor);
     }
 }

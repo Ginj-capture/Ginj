@@ -9,8 +9,6 @@ public class GinjButton extends JButton {
         super(imageIcon);
         setName("GinjButton"); // To be addressed in laf.xml
 
-        final GinjButton thisButton = this;
-
         addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
@@ -29,7 +27,7 @@ public class GinjButton extends JButton {
                         if (help == null || help.isEmpty()) {
                             help = " ";
                         }
-                        ((GinjButtonBar) p).setHelpText(thisButton, help);
+                        ((GinjButtonBar) p).setHelpText(GinjButton.this, help);
                         break;
                     }
                     else {

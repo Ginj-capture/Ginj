@@ -1,5 +1,6 @@
 package info.ginj.tool.arrow;
 
+import info.ginj.ImageEditorPane;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
 
@@ -12,7 +13,7 @@ public class ArrowTool implements GinjTool {
     }
 
     @Override
-    public Overlay createComponent(Point initalPosition, Color initialColor) {
+    public Overlay createComponent(Point initalPosition, Color initialColor, ImageEditorPane imagePane) {
         return new ArrowOverlay().initialize(initalPosition, initialColor);
     }
 }

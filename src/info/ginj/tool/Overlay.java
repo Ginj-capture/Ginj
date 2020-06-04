@@ -26,6 +26,7 @@ public abstract class Overlay extends JPanel {
 
     public Overlay() {
         setOpaque(false);
+        setLayout(null);
     }
 
 

@@ -50,6 +50,7 @@ public class TextOverlay extends RectangleOverlay {
             @Override
             public void focusGained(FocusEvent e) {
                 if (!isSelected()) {
+                    // Set this one as selected, but also deselect others
                     imagePane.setSelectedOverlay(TextOverlay.this);
                 }
             }

@@ -27,7 +27,7 @@ public class Util {
 
     /**
      * Lay out components of a Panel and compute its size, like pack() for a Window.
-     * This method computes the size of the given panel by adding it in a temporary window.
+     * This method computes the size of the given panel by adding it to a temporary window.
      * Warning, must be called before adding the panel to its final parent, because it will be removed from it otherwise
      * @return the size of the panel when packed
      */

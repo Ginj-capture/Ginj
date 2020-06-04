@@ -4,13 +4,14 @@ package info.ginj;
 TODO Features :
  - Implement Text overlay
  - Draw prettier handles
- - Implement color selector
- - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp  640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
- - Implement Window detection using JNA
+ - Fix rectangle resizing
+ - Implement color chooser
+ - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp 640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
+ - Implement Windows detection using JNA
  - Implement "exports"
  - Implement history
- - Implement video
- - Should undo/redo change selection inside the action ? (e.g change color, resize) - or completely delelect component after operation
+ - Implement video using ffmpeg
+ - Should undo/redo change selection inside the Action methods (e.g change color, resize) ? - or completely deselect component after operation
 
 TODO UI:
  - Paint title bar
@@ -24,8 +25,11 @@ TODO Cleanup:
  - Remove useless EASynth classes, if any
  - Remove useless icons ?
 
-TODO Options:
- - Add optional "Speech Balloon" tool ENHANCEMENT
+TODO Options ENHANCEMENT:
+ - Add optional "Speech Balloon" overlay
+ - Add optional "Line" overlay
+ - Shift should constrain handle move horizontally/vertically, Ctrl should resize symmetrically
+ - Add overlays on video
 
 */
 

@@ -13,7 +13,6 @@ import java.awt.event.MouseEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 import java.awt.font.TextAttribute;
-import java.awt.geom.Area;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,10 +24,6 @@ import java.util.Map;
  * Note: an undecorated JFrame is required instead of a JWindow, otherwise keyboard events (ESC) are not captured
  */
 public class CaptureSelectionFrame extends JFrame {
-
-    public static final Color COLOR_ORANGE = new Color(251, 168, 25);
-    public static final Color COLOR_DIMMED_SCREEN = new Color(0, 0, 0, 51);
-    public static final Color COLOR_SIZE_BOX = new Color(0, 0, 0, 128);
 
     public static final int SIZE_BOX_WIDTH = 75;
     public static final int SIZE_BOX_HEIGHT = 18;
@@ -124,7 +119,7 @@ public class CaptureSelectionFrame extends JFrame {
 
     public class CaptureMainPane extends JPanel {
         // Caching
-        private Polygon screenShape;
+        private final Image dimmedScreenImg;
         private Font font;
         private FontRenderContext fontRenderContext;
 
@@ -133,17 +128,13 @@ public class CaptureSelectionFrame extends JFrame {
                 Robot robot = new Robot();
                 Rectangle rectangle = new Rectangle(screenSize);
                 capturedScreenImg = robot.createScreenCapture(rectangle);
-
-                // Prepare a shape for the full screen
-                screenShape = new Polygon();
-                screenShape.addPoint(0, 0);
-                screenShape.addPoint(screenSize.width, 0);
-                screenShape.addPoint(screenSize.width, screenSize.height);
-                screenShape.addPoint(0, screenSize.height);
             }
             catch (AWTException e) {
                 e.printStackTrace();
             }
+
+            // Prepared a dimmed & greyscale version to be used for "unselected area"
+            dimmedScreenImg = Util.makeDimmedImage(capturedScreenImg);
         }
 
         @Override
@@ -155,7 +146,6 @@ public class CaptureSelectionFrame extends JFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
-            g2d.drawImage(capturedScreenImg, 0, 0, this);
             Point mousePosition = getMousePosition();
             Rectangle rectangleToDraw = null;
 
@@ -166,23 +156,29 @@ public class CaptureSelectionFrame extends JFrame {
             }
 
             if (rectangleToDraw != null) {
-                // Dim the rest of the screen
-                Area area = new Area(screenShape);
-                area.subtract(new Area(rectangleToDraw));
-                g2d.setColor(COLOR_DIMMED_SCREEN);
-                g2d.fill(area);
+                // Draw the dimmed image as background
+                g2d.drawImage(dimmedScreenImg, 0, 0, this);
+
+                // Draw part of the original image over the dimmed image
+                g2d.setClip(rectangleToDraw);
+                g2d.drawImage(capturedScreenImg, 0, 0, this);
+                g2d.setClip(0, 0, screenSize.width, screenSize.height);
 
                 // Draw the selection rectangle
-                g2d.setColor(COLOR_ORANGE);
+                g2d.setColor(Util.AREA_SELECTION_COLOR);
                 g2d.setStroke(new BasicStroke(2));
                 g2d.drawRect(rectangleToDraw.x, rectangleToDraw.y, rectangleToDraw.width, rectangleToDraw.height);
+            }
+            else {
+                // Draw the non-dimmed image on the whole screen
+                g2d.drawImage(capturedScreenImg, 0, 0, this);
             }
 
             if (!isInitialSelectionDone && mousePosition != null) {
                 // First selection in progress
 
                 // Draw cross lines
-                g2d.setColor(COLOR_ORANGE);
+                g2d.setColor(Util.AREA_SELECTION_COLOR);
                 g2d.setStroke(new BasicStroke(3));
                 g2d.drawLine(mousePosition.x, 0, mousePosition.x, (int) screenSize.getHeight());
                 g2d.drawLine(0, mousePosition.y, (int) screenSize.getWidth(), mousePosition.y);
@@ -206,8 +202,10 @@ public class CaptureSelectionFrame extends JFrame {
             }
 
             if (sizeText != null && mousePosition != null) {
+                // Use antialiasing
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 // Draw the selection size box
-                g2d.setColor(COLOR_SIZE_BOX);
+                g2d.setColor(Util.SELECTION_SIZE_BOX_COLOR);
                 int sizeBoxX = mousePosition.x + SIZE_BOX_OFFSET;
                 if (sizeBoxX + SIZE_BOX_WIDTH > screenSize.width) {
                     sizeBoxX = mousePosition.x - SIZE_BOX_OFFSET - SIZE_BOX_WIDTH;
@@ -219,7 +217,7 @@ public class CaptureSelectionFrame extends JFrame {
                 g2d.fillRoundRect(sizeBoxX, sizeBoxY, SIZE_BOX_WIDTH, SIZE_BOX_HEIGHT, 4, 4);
 
                 // And print size
-                g2d.setColor(COLOR_ORANGE);
+                g2d.setColor(Util.AREA_SELECTION_COLOR);
                 if (font == null) {
                     font = g2d.getFont();
                     fontRenderContext = g2d.getFontRenderContext();

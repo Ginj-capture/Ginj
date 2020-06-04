@@ -3,11 +3,17 @@ package info.ginj.ui;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
 import java.io.IOException;
 import java.net.URL;
 
 public class Util {
+    public static final Color AREA_SELECTION_COLOR = new Color(251, 185, 1);
+    public static final Color SELECTION_SIZE_BOX_COLOR = new Color(0, 0, 0, 128);
+    public static final Color UNSELECTED_AREA_DIMMED_COLOR = new Color(144, 144, 144, 112);
+
     public static final Color WINDOW_BACKGROUND_COLOR = new Color(37, 38, 40);
     public static final Color ICON_ENABLED_COLOR = new Color(243,205,77);
     public static final Color TOOLBAR_ICON_ENABLED_COLOR = new Color(238,179,8);
@@ -17,6 +23,7 @@ public class Util {
     public static final Color TEXTFIELD_BACKGROUND_COLOR = Color.WHITE;
     public static final Color TEXTFIELD_SELECTION_BACKGROUND_COLOR = new Color(153, 201, 239);
     public static final Color TEXTFIELD_SELECTION_FOREGROUND_COLOR = Color.BLACK;
+    public static final Color TEXT_TOOL_DEFAULT_FOREGROUND_COLOR = Color.BLACK;
 
     /**
      * Lay out components of a Panel and compute its size, like pack() for a Window.
@@ -76,6 +83,17 @@ public class Util {
             }
         }
         return result;
+    }
+
+    public static Image makeDimmedImage(BufferedImage image) {
+        ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
+        ColorConvertOp op = new ColorConvertOp(cs, null);
+        final BufferedImage greyScale = op.filter(image, null);
+        final Graphics graphics = greyScale.getGraphics();
+        graphics.setColor(UNSELECTED_AREA_DIMMED_COLOR);
+        graphics.fillRect(0,0,image.getWidth(), image.getHeight());
+        graphics.dispose();
+        return greyScale;
     }
 
     public static Color getTranslucentColor(Color color) {

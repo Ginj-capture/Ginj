@@ -29,7 +29,7 @@ public class Util {
      * Lay out components of a Panel and compute its size, like pack() for a Window.
      * This method computes the size of the given panel by adding it in a temporary window.
      * Warning, must be called before adding the panel to its final parent, because it will be removed from it otherwise
-     * @return
+     * @return the size of the panel when packed
      */
     public static Dimension packPanel(JPanel panel) {
         JWindow window = new JWindow();
@@ -41,10 +41,26 @@ public class Util {
         return size;
     }
 
+    /**
+     * Create an ImageIcon of the given width x height from an image loaded from the given URL
+     * @param resource the URL of the source image
+     * @param width the desired width
+     * @param height the desired height
+     * @return the scaled ImageIcon
+     */
     public static ImageIcon createIcon(URL resource, int width, int height) {
         return createIcon(resource, width, height, null);
     }
 
+    /**
+     * Create an ImageIcon of the given width x height and with the given base color from an image loaded from the given URL
+     * @param resource the URL of the source image
+     * @param width the desired width
+     * @param height the desired height
+     * @param color the desired base color to shift this image to
+     * @see #tint(BufferedImage, Color) for more info about color shift
+     * @return the scaled ImageIcon
+     */
     public static ImageIcon createIcon(URL resource, int width, int height, Color color) {
         try {
             BufferedImage image = ImageIO.read(resource);
@@ -61,6 +77,13 @@ public class Util {
         }
     }
 
+    /**
+     * Apply the given color shift to the given image.
+     * Basically, the given color will replace black in the source image, and all greyscale levels in the source will be be mapped between this color and white
+     * @param source the source image
+     * @param color the base color to shift to
+     * @return the colored image
+     */
     public static BufferedImage tint(BufferedImage source, Color color) {
         final BufferedImage result = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB);
         final int minRed = color.getRed();
@@ -85,6 +108,12 @@ public class Util {
         return result;
     }
 
+    /**
+     * Convert an image to greyscale and apply a dim effect to it.
+     * Used to show unselected area when drawing selection
+     * @param image the source image
+     * @return the dimmed result
+     */
     public static Image makeDimmedImage(BufferedImage image) {
         ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
         ColorConvertOp op = new ColorConvertOp(cs, null);
@@ -96,6 +125,11 @@ public class Util {
         return greyScale;
     }
 
+    /**
+     * Make a color translucent, that is the same RGB but with half opacity
+     * @param color the source color
+     * @return the translucent color
+     */
     public static Color getTranslucentColor(Color color) {
         // Make 50% opacity
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), 128);

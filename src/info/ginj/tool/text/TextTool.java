@@ -1,5 +1,6 @@
 package info.ginj.tool.text;
 
+import info.ginj.CaptureEditingFrame;
 import info.ginj.ImageEditorPane;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
@@ -26,10 +27,11 @@ public class TextTool implements GinjTool {
     }
 
     @Override
-    public Overlay createComponent(Point initalPosition, Color initialColor, ImageEditorPane imagePane) {
+    public Overlay createComponent(Point initalPosition, Color initialColor, CaptureEditingFrame frame, ImageEditorPane imagePane) {
         final TextOverlay overlay = new TextOverlay().initialize(initalPosition, initialColor);
         overlay.setTextColor(getTextColor());
         overlay.setImagePane(imagePane);
+        overlay.setFrame(frame);
         return overlay;
     }
 }

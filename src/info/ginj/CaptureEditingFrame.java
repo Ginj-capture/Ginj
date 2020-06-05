@@ -19,6 +19,7 @@ import javax.swing.event.MouseInputListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.UndoManager;
+import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -427,9 +428,22 @@ public class CaptureEditingFrame extends JFrame {
         }
     }
 
+    /**
+     * Add a custom action on overalys to the Undo stack
+     * @param action
+     */
     public void addUndoableAction(AbstractUndoableAction action) {
         //System.out.println("Adding undoable action: " + action.getPresentationName());
         undoManager.undoableEditHappened(new UndoableEditEvent(imagePane, action));
+        refreshUndoRedoButtons();
+    }
+
+    /**
+     * Add a standard edit in a textarea to the Undo stack
+     * @param edit
+     */
+    public void addUndoableEdit(UndoableEdit edit) {
+        undoManager.addEdit(edit);
         refreshUndoRedoButtons();
     }
 

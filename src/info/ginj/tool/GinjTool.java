@@ -1,5 +1,6 @@
 package info.ginj.tool;
 
+import info.ginj.CaptureEditingFrame;
 import info.ginj.ImageEditorPane;
 
 import java.awt.*;
@@ -16,7 +17,8 @@ public interface GinjTool {
      * @return
      * @param initalPosition
      * @param initialColor
+     * @param frame
      * @param imagePane
      */
-    Overlay createComponent(Point initalPosition, Color initialColor, ImageEditorPane imagePane);
+    Overlay createComponent(Point initalPosition, Color initialColor, CaptureEditingFrame frame, ImageEditorPane imagePane);
 }

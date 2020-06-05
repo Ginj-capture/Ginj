@@ -1,10 +1,13 @@
 package info.ginj.tool.text;
 
+import info.ginj.CaptureEditingFrame;
 import info.ginj.ImageEditorPane;
 import info.ginj.tool.RectangleOverlay;
 import info.ginj.ui.Util;
 
 import javax.swing.*;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -14,6 +17,7 @@ public class TextOverlay extends RectangleOverlay {
 
     private JTextPane textPane;
     private ImageEditorPane imagePane;
+    private CaptureEditingFrame frame;
 
     public Color getTextColor() {
         return textColor;
@@ -56,6 +60,13 @@ public class TextOverlay extends RectangleOverlay {
             }
         });
         textPane.setFocusable(true);
+        textPane.requestFocusInWindow();
+        textPane.getDocument().addUndoableEditListener(
+                new UndoableEditListener() {
+                    public void undoableEditHappened(UndoableEditEvent e) {
+                        frame.addUndoableEdit(e.getEdit());
+                    }
+                });
         add(textPane);
         return this;
     }
@@ -84,5 +95,13 @@ public class TextOverlay extends RectangleOverlay {
 
     public ImageEditorPane getImagePane() {
         return imagePane;
+    }
+
+    public void setFrame(CaptureEditingFrame frame) {
+        this.frame = frame;
+    }
+
+    public CaptureEditingFrame getFrame() {
+        return frame;
     }
 }

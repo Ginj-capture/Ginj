@@ -5,7 +5,7 @@ import info.ginj.Coords;
 import java.awt.*;
 
 public abstract class RectangleOverlay extends Overlay {
-    public static final int HANDLE_EXTERNAL_OFFSET = 3;
+    public static final int HANDLE_EXTERNAL_OFFSET = 2;
 
     protected Rectangle rectangle;
 

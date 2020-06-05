@@ -1,6 +1,7 @@
 package info.ginj.tool;
 
 import com.jhlabs.image.GaussianFilter;
+import info.ginj.ui.Util;
 
 import javax.swing.*;
 import java.awt.*;
@@ -8,17 +9,21 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 
 public abstract class Overlay extends JPanel {
-    public static final RenderingHints ANTI_ALIASING_HINTS = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    public static final RenderingHints ANTI_ALIASING_ON = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    public static final RenderingHints ANTI_ALIASING_OFF = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
     public static final int HANDLE_WIDTH = 8;
     public static final int HANDLE_HEIGHT = 8;
     public static final int NO_INDEX = -1;
 
+    // Caching
+    private BufferedImage shadowImage;
+    private BufferedImage handleImg;
+
     // State
     private Color color;
     private boolean selected = false;
     protected boolean editInProgress = true; // Upon creation, the drag/drop is an edit.
-    private BufferedImage shadowImage;
 
 
     ////////////////////////////////
@@ -73,7 +78,7 @@ public abstract class Overlay extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
-        g2d.setRenderingHints(ANTI_ALIASING_HINTS);
+        g2d.setRenderingHints(ANTI_ALIASING_ON);
 
         // Draw shadow;
         if (!isEditInProgress() && mustDrawShadow()) {
@@ -97,12 +102,39 @@ public abstract class Overlay extends JPanel {
 
         // Draw handles
         if (selected) {
-            g.setColor(Color.BLACK);
             for (Point handle : getHandles()) {
-                // TODO : better looking handles than just a square
-                g.drawRect(handle.x - HANDLE_WIDTH/2, handle.y - HANDLE_HEIGHT/2, HANDLE_WIDTH, HANDLE_HEIGHT);
+                drawHandle(g2d, handle);
             }
         }
+    }
+
+    private void drawHandle(Graphics2D graphics2D, Point point) {
+        if (handleImg == null) {
+            // Compute and cache handle graphics
+            handleImg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
+            final Graphics2D g2d = handleImg.createGraphics();
+            g2d.setRenderingHints(ANTI_ALIASING_OFF);
+            // Blueish center square
+            g2d.setColor(Util.HANDLE_CENTER_COLOR);
+            g2d.fillRect(2, 2, 6,6);
+
+            // 3D effect grey border
+            g2d.setStroke( new BasicStroke( 1 ) );
+            g2d.setColor(Util.HANDLE_GREY_1_COLOR);
+            g2d.drawLine(1, 1, 7, 1);
+            g2d.drawLine(1, 2, 1, 7);
+            g2d.setColor(Util.HANDLE_GREY_2_COLOR);
+            g2d.drawLine(0, 0, 8, 0);
+            g2d.drawLine(0, 1, 0, 8);
+            g2d.setColor(Util.HANDLE_GREY_3_COLOR);
+            g2d.drawLine(8, 1, 8, 7);
+            g2d.drawLine(1, 8, 8, 8);
+            g2d.setColor(Util.HANDLE_GREY_4_COLOR);
+            g2d.drawLine(9, 0, 9, 8);
+            g2d.drawLine(0, 9, 9, 9);
+            g2d.dispose();
+        }
+        graphics2D.drawImage(handleImg, point.x - 5, point.y - 5, null);
     }
 
     /**

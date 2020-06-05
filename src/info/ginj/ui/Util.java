@@ -25,6 +25,12 @@ public class Util {
     public static final Color TEXTFIELD_SELECTION_FOREGROUND_COLOR = Color.BLACK;
     public static final Color TEXT_TOOL_DEFAULT_FOREGROUND_COLOR = Color.BLACK;
 
+    public static final Color HANDLE_CENTER_COLOR = new Color(72, 72, 212, 128);
+    public static final Color HANDLE_GREY_1_COLOR = new Color(253, 253, 253, 128);
+    public static final Color HANDLE_GREY_2_COLOR = new Color(242, 242, 242, 128);
+    public static final Color HANDLE_GREY_3_COLOR = new Color(180, 180, 180, 128);
+    public static final Color HANDLE_GREY_4_COLOR = new Color(136, 136, 136, 128);
+
     /**
      * Lay out components of a Panel and compute its size, like pack() for a Window.
      * This method computes the size of the given panel by adding it to a temporary window.

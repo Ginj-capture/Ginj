@@ -221,7 +221,7 @@ public abstract class Overlay extends JPanel {
 
 
     /**
-     * Returns all handles of the component. Handles are squares displayed over the selected overlay, providing a way to change it's shape.
+     * Returns all handles of the component. Handles are squares displayed over the selected overlay, providing ways to change its shape.
      * By convention, when a component is first drawn, getHandles()[0] is the handle at the "end" of the drawing (arrowhead or second point of rectangle).
      * @return the array of all handles for this overlay
      */

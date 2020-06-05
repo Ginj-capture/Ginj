@@ -29,7 +29,7 @@ public class ArrowOverlay extends Overlay {
     }
 
     /**
-     * Returns all handles of the component
+     * Returns all handles of the component. Handles are squares displayed over the selected overlay, providing ways to change its shape.
      * By convention, when a component is first drawn, getHandles()[0] is the end of the drawing (arrowhead or second point of rectangle)
      * @return
      */

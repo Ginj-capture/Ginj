@@ -5,6 +5,8 @@ import info.ginj.Coords;
 import java.awt.*;
 
 public abstract class RectangleOverlay extends Overlay {
+    public static final int HANDLE_EXTERNAL_OFFSET = 3;
+
     protected Rectangle rectangle;
 
     public Overlay initialize(Point initialPoint, Color initialColor) {
@@ -22,10 +24,14 @@ public abstract class RectangleOverlay extends Overlay {
     @Override
     public Point[] getHandles() {
         return new Point[]{
-                new Point(rectangle.x + rectangle.width + 3, rectangle.y + rectangle.height + 3),
-                new Point(rectangle.x - 3, rectangle.y + rectangle.height + 3),
-                new Point(rectangle.x - 3, rectangle.y - 3),
-                new Point(rectangle.x + rectangle.width + 3, rectangle.y - 3)
+                new Point(rectangle.x + rectangle.width + HANDLE_EXTERNAL_OFFSET,
+                          rectangle.y + rectangle.height + HANDLE_EXTERNAL_OFFSET),
+                new Point(rectangle.x - HANDLE_EXTERNAL_OFFSET,
+                          rectangle.y + rectangle.height + HANDLE_EXTERNAL_OFFSET),
+                new Point(rectangle.x - HANDLE_EXTERNAL_OFFSET,
+                          rectangle.y - HANDLE_EXTERNAL_OFFSET),
+                new Point(rectangle.x + rectangle.width + HANDLE_EXTERNAL_OFFSET,
+                          rectangle.y - HANDLE_EXTERNAL_OFFSET)
         };
     }
 
@@ -40,20 +46,20 @@ public abstract class RectangleOverlay extends Overlay {
     public void setHandlePosition(int handleIndex, Point newPosition) {
         switch (handleIndex) {
             case 0 -> {
-                Coords.setX2(rectangle, newPosition.x, 0);
-                Coords.setY2(rectangle, newPosition.y, 0);
+                Coords.setX2(rectangle, newPosition.x - HANDLE_EXTERNAL_OFFSET, 0);
+                Coords.setY2(rectangle, newPosition.y - HANDLE_EXTERNAL_OFFSET, 0);
             }
             case 1 -> {
-                Coords.setX1(rectangle, newPosition.x, 0);
-                Coords.setY2(rectangle, newPosition.y, 0);
+                Coords.setX1(rectangle, newPosition.x + HANDLE_EXTERNAL_OFFSET, 0);
+                Coords.setY2(rectangle, newPosition.y - HANDLE_EXTERNAL_OFFSET, 0);
             }
             case 2 -> {
-                Coords.setX1(rectangle, newPosition.x, 0);
-                Coords.setY1(rectangle, newPosition.y, 0);
+                Coords.setX1(rectangle, newPosition.x + HANDLE_EXTERNAL_OFFSET, 0);
+                Coords.setY1(rectangle, newPosition.y + HANDLE_EXTERNAL_OFFSET, 0);
             }
             case 3 -> {
-                Coords.setX2(rectangle, newPosition.x, 0);
-                Coords.setY1(rectangle, newPosition.y, 0);
+                Coords.setX2(rectangle, newPosition.x - HANDLE_EXTERNAL_OFFSET, 0);
+                Coords.setY1(rectangle, newPosition.y + HANDLE_EXTERNAL_OFFSET, 0);
             }
         }
     }

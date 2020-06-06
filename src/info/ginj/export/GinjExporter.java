@@ -1,7 +1,7 @@
 package info.ginj.export;
 
 import javax.swing.*;
-import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.Properties;
 
 public abstract class GinjExporter {
@@ -15,5 +15,5 @@ public abstract class GinjExporter {
         return frame;
     }
 
-    public abstract void export(Image image, Properties exportSessings);
+    public abstract void export(BufferedImage image, Properties exportSettings);
 }

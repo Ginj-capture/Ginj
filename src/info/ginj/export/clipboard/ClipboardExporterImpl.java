@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
+import java.awt.image.BufferedImage;
 import java.util.Properties;
 
 /**
@@ -19,7 +20,7 @@ public class ClipboardExporterImpl extends GinjExporter implements ClipboardOwne
     }
 
     @Override
-    public void export(Image image, Properties exportSettings) {
+    public void export(BufferedImage image, Properties exportSettings) {
         TransferableImage transferableImage = new TransferableImage(image);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(transferableImage, this);

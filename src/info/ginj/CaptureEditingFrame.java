@@ -475,7 +475,9 @@ public class CaptureEditingFrame extends JFrame {
 
         // Perform export
         if (exporter != null) {
-            exporter.export(renderedImage, new Properties());
+            final Properties exportSettings = new Properties();
+            exportSettings.put("captureId", captureId);
+            exporter.export(renderedImage, exportSettings);
 
             // and close Window
             dispose();

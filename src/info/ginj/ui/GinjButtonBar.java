@@ -23,9 +23,8 @@ public class GinjButtonBar extends JPanel {
     public GinjButtonBar(boolean isDoubleBuffered) {
         super(isDoubleBuffered);
         setOpaque(true);
-        setBorder(new EmptyBorder(5, 0, 5, 0));
+        setBorder(new EmptyBorder(2, 0, 5, 0));
         setBackground(Util.WINDOW_BACKGROUND_COLOR);
-        setForeground(Util.LABEL_FOREGROUND_COLOR);
 
         setLayout(new GridBagLayout());
 
@@ -52,7 +51,14 @@ public class GinjButtonBar extends JPanel {
             }
         };
         helpLabel = new JLabel(" "); // Init it with a string so it takes some height when packing UI
+        helpLabel.setBorder(null);
+        final Insets insets = helpLabel.getInsets();
+        insets.left = 0;
+        insets.right = 0;
+        insets.top = 0;
+        insets.bottom = 0;
         helpLabel.setForeground(Util.HELP_FOREGROUND_COLOR);
+        helpLabel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
         helpPanel.add(helpLabel);
 
         // Compute helpLabel size with default layout manager of JPanel and remember it for Panel
@@ -109,7 +115,8 @@ public class GinjButtonBar extends JPanel {
         // get metrics from the JLabel
         FontMetrics metrics = helpLabel.getFontMetrics(helpLabel.getFont());
         int height = metrics.getHeight();
-        int width = metrics.stringWidth(text) + 1; // Overestimate to avoid truncation
+        // TODO this seems to be wrong: Label is not centered and overflows...
+        int width = metrics.stringWidth(text) + 1;
         // By default, center the label above the button
         final Rectangle thisButtonBounds = thisButton.getBounds();
         final int thisButtonCenterX = thisButtonBounds.x + thisButtonBounds.width / 2;

@@ -65,7 +65,8 @@ public class Ginj {
         try {
             ginjLookAndFeel.load(Ginj.class.getResourceAsStream(LAF_XML), Ginj.class);
             UIManager.setLookAndFeel(ginjLookAndFeel);
-//            UIManager.setLookAndFeel("com.easynth.designer.laf.EaSynthLookAndFeel");
+//            UIManager.setLookAndFeel(EaSynthLookAndFeel.class.getName());
+//            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         }
         catch (Exception e) {
             System.err.println("Error loading Ginj look and feel");

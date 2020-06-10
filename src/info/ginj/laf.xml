@@ -877,15 +877,9 @@
         <opaque value="true"/>
         <state value="ENABLED">
             <color type="BACKGROUND" value="#FFFFFF"/>
-            <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
-            <color type="TEXT_FOREGROUND" value="#000000"/>
-        </state>
-        <state value="DISABLED">
-            <color type="BACKGROUND" value="#F0F0F0"/>
-            <color type="TEXT_FOREGROUND" value="#999999"/>
+            <color type="FOREGROUND" value="#000000"/>
         </state>
         <state value="SELECTED">
-            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
             <color type="TEXT_BACKGROUND" value="#98C8EE"/>
         </state>
     </style>

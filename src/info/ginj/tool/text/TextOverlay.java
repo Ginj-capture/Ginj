@@ -42,12 +42,9 @@ public class TextOverlay extends RectangleOverlay {
         super.initialize(initialPoint, initialColor);
         textPane = new JTextPane();
         textPane.setForeground(initialColor);
+        // TODO current font of overlay should be a variable, initialized with the Tool's default
         textPane.setFont(new Font("Arial", Font.PLAIN, 18));
-        textPane.setText("ABCDEFGHIJKLMNO\n" +
-                "abcdefghijklmno\n" +
-                "1234567890\n" +
-                "&!§$ù%\n" +
-                "selected");
+
         textPane.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {

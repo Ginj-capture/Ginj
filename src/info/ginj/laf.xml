@@ -544,13 +544,16 @@
 
     <!-- The style for option pane component. -->
     <style id="Option Pane">
-        <imageIcon id="OptionPane_Error_Icon" path="resource/1230876526015_error.png"/>
+        <imageIcon id="OptionPane_Error_Icon" path="img/laf/icon/error.png"/>
         <property key="OptionPane.errorIcon" type="idref" value="OptionPane_Error_Icon"/>
-        <imageIcon id="OptionPane_Warn_Icon" path="resource/1230876549625_warning.png"/>
+
+        <imageIcon id="OptionPane_Warn_Icon" path="img/laf/icon/warning.png"/>
         <property key="OptionPane.warningIcon" type="idref" value="OptionPane_Warn_Icon"/>
-        <imageIcon id="OptionPane_Info_Icon" path="resource/1230876565968_information.png"/>
+
+        <imageIcon id="OptionPane_Info_Icon" path="img/laf/icon/information.png"/>
         <property key="OptionPane.informationIcon" type="idref" value="OptionPane_Info_Icon"/>
-        <imageIcon id="OptionPane_Question_Icon" path="resource/1230876580718_question.png"/>
+
+        <imageIcon id="OptionPane_Question_Icon" path="img/laf/icon/question.png"/>
         <property key="OptionPane.questionIcon" type="idref" value="OptionPane_Question_Icon"/>
         <insets top="10" left="10" bottom="10" right="10"/>
     </style>

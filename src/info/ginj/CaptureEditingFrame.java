@@ -444,9 +444,6 @@ public class CaptureEditingFrame extends JFrame {
 
 
     private void onExport(String exportType) {
-        // Always store in history, no matter the export type
-        saveInHistory();
-
         // Render image and overlays, but no handles
         imagePane.setSelectedOverlay(null);
         BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -472,10 +469,13 @@ public class CaptureEditingFrame extends JFrame {
         if (exporter != null) {
             final Properties exportSettings = new Properties();
             exportSettings.put("captureId", captureId);
-            exporter.export(renderedImage, exportSettings);
-
-            // and close Window
-            dispose();
+            if (exporter.export(renderedImage, exportSettings)) {
+                // Store image in history, no matter the export type
+                saveInHistory();
+                // and close Window
+                dispose();
+            }
+            // Otherwise, keep the window open so that the user can perform another export
         }
         else {
             JOptionPane.showMessageDialog(this, "Cannot find an exporter for type '" + exportType + "'.", "Export error", JOptionPane.ERROR_MESSAGE);

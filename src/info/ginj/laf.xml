@@ -835,65 +835,38 @@
     <style id="Text Field">
         <insets top="3" left="3" bottom="3" right="3"/>
         <opaque value="true"/>
-        <state value="ENABLED">
-            <imagePainter method="textFieldBorder" path="resource/1263604524327_border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+        <state>
+            <imagePainter method="textFieldBorder" path="img/laf/textfield_bg.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
+            <color type="BACKGROUND" value="#FFFFFF"/>
             <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
             <color type="TEXT_FOREGROUND" value="#000000"/>
-            <color type="BACKGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="textFieldBorder" path="resource/1263604559077_border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
-            <color type="TEXT_FOREGROUND" value="#999999"/>
+            <imagePainter method="textFieldBorder" path="img/laf/textfield_bg.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
             <color type="BACKGROUND" value="#F0F0F0"/>
+            <color type="TEXT_FOREGROUND" value="#999999"/>
         </state>
         <state value="SELECTED">
+            <imagePainter method="textFieldBorder" path="img/laf/textfield_bg.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
+            <color type="BACKGROUND" value="#FFFFFF"/>
             <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
             <color type="TEXT_BACKGROUND" value="#BEA08C"/>
         </state>
+        <state value="FOCUSED">
+            <imagePainter method="textFieldBorder" path="img/laf/textfield_bg_focused.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
+            <color type="BACKGROUND" value="#FFFFFF"/>
+        </state>
+
     </style>
     <bind style="Text Field" type="region" key="TextField" />
 
     <!-- The style for formatted text field component. -->
-    <style id="Formatted Text Field">
-        <insets top="3" left="3" bottom="3" right="3"/>
-        <opaque value="true"/>
-        <state value="ENABLED">
-            <imagePainter method="formattedTextFieldBorder" path="resource/1263604524327_border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
-            <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
-            <color type="TEXT_FOREGROUND" value="#000000"/>
-            <color type="BACKGROUND" value="#FFFFFF"/>
-        </state>
-        <state value="DISABLED">
-            <imagePainter method="formattedTextFieldBorder" path="resource/1263604559077_border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
-            <color type="TEXT_FOREGROUND" value="#999999"/>
-            <color type="BACKGROUND" value="#F0F0F0"/>
-        </state>
-        <state value="SELECTED">
-            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
-            <color type="TEXT_BACKGROUND" value="#BEA08C"/>
-        </state>
+    <style id="Formatted Text Field" clone="Text Field">
     </style>
     <bind style="Formatted Text Field" type="region" key="FormattedTextField" />
 
     <!-- The style for password field. -->
-    <style id="Password Field">
-        <insets top="3" left="3" bottom="3" right="3"/>
-        <opaque value="true"/>
-        <state value="ENABLED">
-            <imagePainter method="passwordFieldBorder" path="resource/1263604524327_border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
-            <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
-            <color type="TEXT_FOREGROUND" value="#000000"/>
-            <color type="BACKGROUND" value="#FFFFFF"/>
-        </state>
-        <state value="DISABLED">
-            <imagePainter method="passwordFieldBorder" path="resource/1263604559077_border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
-            <color type="TEXT_FOREGROUND" value="#999999"/>
-            <color type="BACKGROUND" value="#F0F0F0"/>
-        </state>
-        <state value="SELECTED">
-            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
-            <color type="TEXT_BACKGROUND" value="#BEA08C"/>
-        </state>
+    <style id="Password Field" clone="Text Field">
     </style>
     <bind style="Password Field" type="region" key="PasswordField" />
 

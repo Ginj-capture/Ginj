@@ -55,7 +55,7 @@ public class CaptureSelectionFrame extends JFrame {
     public CaptureSelectionFrame() {
         super();
 // Simulate a half screen to be able to debug in parallel of "full screen" capture window on top
-  screenSize.setSize(screenSize.width/2, screenSize.height);
+//screenSize.setSize(screenSize.width/2, screenSize.height);
 
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work

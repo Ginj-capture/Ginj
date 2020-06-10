@@ -18,9 +18,6 @@ public class Util {
     public static final Color ICON_ENABLED_COLOR = new Color(243,205,77);
     public static final Color TOOLBAR_ICON_ENABLED_COLOR = new Color(238,179,8);
     public static final Color HELP_FOREGROUND_COLOR = Color.WHITE;
-    public static final Color TEXTFIELD_BACKGROUND_COLOR = Color.WHITE;
-    public static final Color TEXTFIELD_SELECTION_BACKGROUND_COLOR = new Color(153, 201, 239);
-    public static final Color TEXTFIELD_SELECTION_FOREGROUND_COLOR = Color.BLACK;
     public static final Color TEXT_TOOL_DEFAULT_FOREGROUND_COLOR = Color.BLACK;
 
     public static final Color HANDLE_CENTER_COLOR = new Color(72, 72, 212, 128);

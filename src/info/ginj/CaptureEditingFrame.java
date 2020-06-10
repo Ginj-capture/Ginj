@@ -179,9 +179,6 @@ public class CaptureEditingFrame extends JFrame {
         final JLabel nameLabel = new JLabel("Name ");
         editPanel.add(nameLabel, BorderLayout.WEST);
         JTextField nameTextField = new JTextField();
-        nameTextField.setBackground(Util.TEXTFIELD_BACKGROUND_COLOR);
-        nameTextField.setSelectionColor(Util.TEXTFIELD_SELECTION_BACKGROUND_COLOR);
-        nameTextField.setSelectedTextColor(Util.TEXTFIELD_SELECTION_FOREGROUND_COLOR);
         editPanel.add(nameTextField, BorderLayout.CENTER);
 
         JPanel lowerPanel = new JPanel();

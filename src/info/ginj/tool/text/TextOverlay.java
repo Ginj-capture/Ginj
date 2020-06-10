@@ -41,9 +41,7 @@ public class TextOverlay extends RectangleOverlay {
     public TextOverlay initialize(Point initialPoint, Color initialColor) {
         super.initialize(initialPoint, initialColor);
         textPane = new JTextPane();
-        textPane.setBackground(Util.TEXTFIELD_BACKGROUND_COLOR);
         textPane.setForeground(initialColor);
-        textPane.setSelectionColor(Util.TEXTFIELD_SELECTION_BACKGROUND_COLOR);
         textPane.setFont(new Font("Arial", Font.PLAIN, 18));
         textPane.setText("ABCDEFGHIJKLMNO\n" +
                 "abcdefghijklmno\n" +

@@ -187,42 +187,6 @@
     </style>
     <bind style="Radio Button" type="region" key="RadioButton" />
 
-    <!-- The style for toggle button. -->
-    <style id="Toggle Button">
-        <insets top="4" left="6" bottom="4" right="6"/>
-        <!-- Comment this out, since the background image already has borders. -->
-        <painter idref="EaSynthPainter" method="#toggleButtonBorder"/>
-        <!-- This property will specify the arc with of the round border -->
-        <defaultsProperty key="EaSynth.button.arc.width" type="integer" value="9"/>
-        <!-- This property will specify the arc height of the round border -->
-        <defaultsProperty key="EaSynth.button.arc.height" type="integer" value="9"/>
-        <defaultsProperty key="EaSynth.button.border.color.enabled" type="idref" value="Button_Border_Color_Enabled"/>
-        <defaultsProperty key="EaSynth.button.border.color.mouseover" type="idref" value="Button_Border_Color_MouseOver"/>
-        <defaultsProperty key="EaSynth.button.border.color.pressed" type="idref" value="Button_Border_Color_Pressed"/>
-        <defaultsProperty key="EaSynth.button.border.color.disabled" type="idref" value="Button_Border_Color_Disabled"/>
-        <defaultsProperty key="EaSynth.button.border.color.default.enabled" type="idref" value="Button_Border_Color_Default_Enabled"/>
-        <defaultsProperty key="EaSynth.button.border.color.default.mouseover" type="idref" value="Button_Border_Color_Default_MouseOver"/>
-        <defaultsProperty key="EaSynth.button.border.color.default.pressed" type="idref" value="Button_Border_Color_Default_Pressed"/>
-        <defaultsProperty key="EaSynth.button.border.color.default.disabled" type="idref" value="Button_Border_Color_Default_Disabled"/>
-        <state value="ENABLED">
-            <imagePainter method="toggleButtonBackground" path="resource/1224501609875_tbutton_normal.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
-        </state>
-        <state value="MOUSE_OVER">
-            <imagePainter method="toggleButtonBackground" path="resource/1224501630593_tbutton_mouseover.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
-        </state>
-        <state value="PRESSED">
-            <imagePainter method="toggleButtonBackground" path="resource/1224501645640_tbutton_pressed.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
-        </state>
-        <state value="DISABLED">
-            <imagePainter method="toggleButtonBackground" path="resource/1224501664125_tbutton_disabled.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
-            <color type="TEXT_FOREGROUND" value="#999999"/>
-        </state>
-        <state value="SELECTED">
-            <imagePainter method="toggleButtonBackground" path="resource/1224501687187_tbutton_pressed.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
-        </state>
-    </style>
-    <bind style="Toggle Button" type="region" key="ToggleButton" />
-
     <!-- The style for color chooser component. -->
     <style id="Color Chooser">
     </style>
@@ -1156,7 +1120,38 @@
     </style>
     <bind style="GinjToolButtonStyle" type="name" key="GinjToolButton"/>
 
-    <!-- The style for square "toggle" buttons on the left (one remains depressed) -->
+    <!-- The style for regular toggle button. -->
+    <!-- Note that all toggle buttons are subclasses with names, such as GinjToolToggleButton -->
+    <!-- According to https://docs.oracle.com/javase/tutorial/uiswing/lookandfeel/synth.html -->
+    <!-- "Just as a style can be bound to multiple regions or names, multiple styles can be bound to a region or name. -->
+    <!--  These multiple styles are merged for the region or name. Precedence is given to styles defined later in the file." -->
+    <!-- So I would expect the ToggleButtonStyle and GinjToolToggleButtonStyle to be redundant as everything is defined by identical painters -->
+    <!-- However, if either the generic ToggleButtonStyle or the specific GinjToolToggleButtonStyle is removed, -->
+    <!-- then tool ToggleButtons lose their onHover styling !! -->
+    <style id="ToggleButtonStyle">
+        <!-- Space between button border and contents -->
+        <insets top="4" left="4" bottom="4" right="4"/>
+        <state value="ENABLED">
+            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+        </state>
+        <state value="MOUSE_OVER">
+            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+        </state>
+        <state value="PRESSED">
+            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_selected_hover.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+        </state>
+        <state value="DISABLED">
+            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <color type="TEXT_FOREGROUND" value="#999999"/>
+        </state>
+        <state value="SELECTED">
+            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+        </state>
+    </style>
+    <bind style="ToggleButtonStyle" type="region" key="ToggleButton" />
+
+    <!-- The style for square "tool" buttons on the left ("toggle" means one remains depressed) -->
+    <!-- This uses the default ToggleButtonStyle above -->
     <style id="GinjToolToggleButtonStyle">
         <!-- Space between button border and contents -->
         <insets top="4" left="4" bottom="4" right="4"/>
@@ -1206,14 +1201,14 @@
         <insets top="4" left="4" right="4" bottom="4"/>
         <state value="ENABLED">
             <!-- Note: sourceInsets are top, left, bottom, and right -->
-            <imagePainter method="buttonBackground" path="img/laf/colorbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="img/laf/colorbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="MOUSE_OVER">
             <!-- Note insets are wider so that part of the white center square shows up -->
-            <imagePainter method="buttonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="6 6 6 6" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="6 6 6 6" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="PRESSED">
-            <imagePainter method="buttonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="SELECTED">
             <imagePainter method="toggleButtonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>

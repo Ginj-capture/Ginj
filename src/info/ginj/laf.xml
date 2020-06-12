@@ -1157,7 +1157,7 @@
     <bind style="GinjToolButtonStyle" type="name" key="GinjToolButton"/>
 
     <!-- The style for square "toggle" buttons on the left (one remains depressed) -->
-    <style id="GinjToggleToolButtonStyle">
+    <style id="GinjToolToggleButtonStyle">
         <!-- Space between button border and contents -->
         <insets top="4" left="4" bottom="4" right="4"/>
         <state value="ENABLED">
@@ -1176,7 +1176,7 @@
             <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
-    <bind style="GinjToggleToolButtonStyle" type="name" key="GinjToggleToolButton"/>
+    <bind style="GinjToolToggleButtonStyle" type="name" key="GinjToolToggleButton"/>
 
     <!-- The style for mini square buttons on the left (undo/redo) -->
     <style id="GinjMiniToolButtonStyle">
@@ -1200,6 +1200,26 @@
     </style>
     <bind style="GinjMiniToolButtonStyle" type="name" key="GinjMiniToolButton"/>
 
+    <!-- The style for buttons in the color selection popup -->
+    <style id="GinjColorToggleButtonStyle">
+        <!-- Space between button border and contents -->
+        <insets top="4" left="4" right="4" bottom="4"/>
+        <state value="ENABLED">
+            <!-- Note: sourceInsets are top, left, bottom, and right -->
+            <imagePainter method="buttonBackground" path="img/laf/colorbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+        </state>
+        <state value="MOUSE_OVER">
+            <!-- Note insets are wider so that part of the white center square shows up -->
+            <imagePainter method="buttonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="6 6 6 6" paintCenter="true" stretch="true" center="false"/>
+        </state>
+        <state value="PRESSED">
+            <imagePainter method="buttonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+        </state>
+        <state value="SELECTED">
+            <imagePainter method="toggleButtonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+        </state>
+    </style>
+    <bind style="GinjColorToggleButtonStyle" type="name" key="GinjColorToggleButton"/>
 
 
     <!-- TODO-->

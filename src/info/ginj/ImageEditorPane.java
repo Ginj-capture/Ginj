@@ -235,7 +235,7 @@ public class ImageEditorPane extends JLayeredPane {
     }
 
     public void setColorOfSelectedOverlay(Color color) {
-        if (selectedOverlay != null) {
+        if (selectedOverlay != null && !selectedOverlay.getColor().equals(color)) {
             final ChangeOverlayColorAction action = new ChangeOverlayColorAction(selectedOverlay, color);
             frame.addUndoableAction(action);
             action.execute();

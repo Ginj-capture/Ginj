@@ -27,8 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 public class CaptureEditingFrame extends JFrame {
@@ -53,8 +51,6 @@ public class CaptureEditingFrame extends JFrame {
     private final GinjToolButton colorToolButton;
 
     GinjTool currentTool;
-    private Map<String, Color> currentColorMap = new HashMap<>();
-
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
         this(capturedImg, new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date())); // ENHANCEMENT: seconds
@@ -111,10 +107,8 @@ public class CaptureEditingFrame extends JFrame {
             addToolButton(toolBar, tool, toolButtonGroup);
         }
 
-        colorToolButton = new GinjToolButton(createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
-        colorToolButton.addActionListener(e -> {
-            onColorButtonClick();
-        });
+        colorToolButton = new GinjToolButton(Util.createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        colorToolButton.addActionListener(e -> onColorButtonClick());
         colorToolButton.setToolTipText("Tool Color");
         toolBar.add(colorToolButton);
         toolBar.add(Box.createRigidArea(new Dimension(0, 8)));
@@ -282,7 +276,7 @@ public class CaptureEditingFrame extends JFrame {
     }
 
     public Color getCurrentColor() {
-        Color color = currentColorMap.get(currentTool.getName());
+        Color color = Prefs.getColorWithSuffix(Prefs.Key.TOOL_COLOR_PREFIX, currentTool.getName());
         if (color != null) {
             return color;
         }
@@ -292,26 +286,30 @@ public class CaptureEditingFrame extends JFrame {
     }
 
     public void setCurrentColor(Color currentColor) {
-        currentColorMap.put(currentTool.getName(), currentColor);
+        Prefs.setColorWithSuffix(Prefs.Key.TOOL_COLOR_PREFIX, currentTool.getName(), currentColor);
         updateColorButtonIcon();
-        // TODO save preferences (including currentColorMap)
+        imagePane.setColorOfSelectedOverlay(currentColor);
     }
 
     public void updateColorButtonIcon() {
-        colorToolButton.setIcon(createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        colorToolButton.setIcon(Util.createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
     }
 
     private void onColorButtonClick() {
-        if (Color.RED.equals(getCurrentColor())) {
-            setCurrentColor(Color.GREEN);
-        }
-        else if (Color.GREEN.equals(getCurrentColor())) {
-            setCurrentColor(Color.BLUE);
-        }
-        else {
-            setCurrentColor(Color.RED);
-        }
-        imagePane.setColorOfSelectedOverlay(getCurrentColor());
+//        if (Color.RED.equals(getCurrentColor())) {
+//            setCurrentColor(Color.GREEN);
+//        }
+//        else if (Color.GREEN.equals(getCurrentColor())) {
+//            setCurrentColor(Color.BLUE);
+//        }
+//        else {
+//            setCurrentColor(Color.RED);
+//        }
+//        imagePane.setColorOfSelectedOverlay(getCurrentColor());
+        final ColorSelectorWindow colorSelectorWindow = new ColorSelectorWindow(this);
+        final Point colorButtonLocationOnScreen = colorToolButton.getLocationOnScreen();
+        colorSelectorWindow.setLocation(colorButtonLocationOnScreen.x, colorButtonLocationOnScreen.y + colorToolButton.getHeight());
+        colorSelectorWindow.setVisible(true);
     }
 
     private void addToolButton(JPanel toolBar, GinjTool tool, ButtonGroup group) {
@@ -341,30 +339,6 @@ public class CaptureEditingFrame extends JFrame {
         });
     }
 
-    @SuppressWarnings("SameParameterValue")
-    private Icon createRoundRectColorIcon(Color color, int width, int height) {
-        return new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(color);
-                g2.fillRoundRect(x, y, width, height, width / 3, height / 3);
-                g2.dispose();
-            }
-
-            @Override
-            public int getIconWidth() {
-                return width;
-            }
-
-            @Override
-            public int getIconHeight() {
-                return height;
-            }
-        };
-    }
-
     private void addDraggableWindowMouseBehaviour(CaptureEditingFrame frame) {
         MouseInputListener mouseListener = new MouseInputAdapter() {
             Point clicked;
@@ -390,8 +364,8 @@ public class CaptureEditingFrame extends JFrame {
         undoButton.setEnabled(undoManager.canUndo());
         redoButton.setEnabled(undoManager.canRedo());
         // ENHANCEMENT
-        undoButton.setToolTipText(undoManager.canUndo()?undoManager.getUndoPresentationName():null);
-        redoButton.setToolTipText(undoManager.canRedo()?undoManager.getRedoPresentationName():null);
+        undoButton.setToolTipText(undoManager.canUndo() ? undoManager.getUndoPresentationName() : null);
+        redoButton.setToolTipText(undoManager.canRedo() ? undoManager.getRedoPresentationName() : null);
     }
 
     public void attemptUndo() {
@@ -421,8 +395,9 @@ public class CaptureEditingFrame extends JFrame {
     }
 
     /**
-     * Add a custom action on overalys to the Undo stack
-     * @param action
+     * Add a custom action on overlays to the Undo stack
+     * <p>
+     * @param action The undoable action
      */
     public void addUndoableAction(AbstractUndoableAction action) {
         //System.out.println("Adding undoable action: " + action.getPresentationName());
@@ -431,8 +406,9 @@ public class CaptureEditingFrame extends JFrame {
     }
 
     /**
-     * Add a standard edit in a textarea to the Undo stack
-     * @param edit
+     * Add a standard edit in a textArea to the Undo stack
+     * <p>
+     * @param edit The undoable edit
      */
     public void addUndoableEdit(UndoableEdit edit) {
         undoManager.addEdit(edit);

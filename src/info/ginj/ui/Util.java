@@ -133,4 +133,64 @@ public class Util {
         // Make 50% opacity
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), 128);
     }
+
+    @SuppressWarnings("SameParameterValue")
+    public static Icon createRectColorIcon(Color color, int width, int height) {
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(color);
+                g2.fillRect(x, y, width, height);
+                g2.dispose();
+            }
+
+            @Override
+            public int getIconWidth() {
+                return width;
+            }
+
+            @Override
+            public int getIconHeight() {
+                return height;
+            }
+        };
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    public static Icon createRoundRectColorIcon(Color color, int width, int height) {
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(color);
+                g2.fillRoundRect(x, y, width, height, width / 3, height / 3);
+                g2.dispose();
+            }
+
+            @Override
+            public int getIconWidth() {
+                return width;
+            }
+
+            @Override
+            public int getIconHeight() {
+                return height;
+            }
+        };
+    }
+
+    /**
+     * Converts a color to its hex representation.
+     * <p>
+     * @see java.awt.Color#decode(String) is the opposite operation
+     * @param color the color to convert
+     * @return the hex value in the form #RRGGBB
+     */
+    public static String colorToHex(Color color) {
+        return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
+    }
+
 }

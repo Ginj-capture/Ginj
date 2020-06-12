@@ -4,7 +4,7 @@ import info.ginj.export.GinjExporter;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -38,18 +38,8 @@ public class DiskExporterImpl extends GinjExporter implements ClipboardOwner {
         fileChooser.setDialogTitle("Save capture as...");
         fileChooser.setAcceptAllFileFilterUsed(false);
         fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setFileFilter(new FileNameExtensionFilter("PNG (*.png)", "png"));
         fileChooser.setSelectedFile(new File(exportSettings.getProperty("captureId") + ".png"));
-        fileChooser.setFileFilter(new FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.getAbsolutePath().toLowerCase().endsWith(".png");
-            }
-
-            @Override
-            public String getDescription() {
-                return "PNG images";
-            }
-        });
         if (fileChooser.showSaveDialog(getFrame()) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             boolean confirm = true;

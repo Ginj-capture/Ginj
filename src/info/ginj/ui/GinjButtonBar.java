@@ -24,7 +24,6 @@ public class GinjButtonBar extends JPanel {
         super(isDoubleBuffered);
         setOpaque(true);
         setBorder(new EmptyBorder(2, 0, 5, 0));
-        setBackground(Util.WINDOW_BACKGROUND_COLOR);
 
         setLayout(new GridBagLayout());
 
@@ -57,8 +56,6 @@ public class GinjButtonBar extends JPanel {
         insets.right = 0;
         insets.top = 0;
         insets.bottom = 0;
-        helpLabel.setForeground(Util.HELP_FOREGROUND_COLOR);
-        helpLabel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
         helpPanel.add(helpLabel);
 
         // Compute helpLabel size with default layout manager of JPanel and remember it for Panel

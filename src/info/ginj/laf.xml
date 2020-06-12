@@ -798,8 +798,22 @@
     </style>
     <bind style="Tabbed Pane Tab Area" type="region" key="TabbedPaneTabArea" />
 
-    <!-- The style for label component. -->
+    <!-- The style for standard label component. -->
     <style id="Label">
+        <state value="ENABLED">
+            <color type="FOREGROUND" value="#FFFFFF"/>
+        </state>
+        <state value="DISABLED">
+            <color type="FOREGROUND" value="#999999"/>
+        </state>
+        <state value="SELECTED">
+            <color type="FOREGROUND" value="#FFFFFF"/>
+        </state>
+    </style>
+    <bind style="Label" type="region" key="Label" />
+
+    <!-- The style for custom Ginj label component. -->
+    <style id="GinjLabel">
         <insets top="3" left="3" bottom="3" right="3"/>
         <font name="Dialog" size="12" style="BOLD"/>
         <imagePainter method="labelBorder" path="img/laf/label_bg.png" sourceInsets="2 2 2 2" paintCenter="false" stretch="true" center="false"/>
@@ -807,16 +821,8 @@
             <color type="FOREGROUND" value="#FBB901"/>
             <color type="BACKGROUND" idref="Label_Background_Color"/>
         </state>
-        <state value="DISABLED">
-            <color type="FOREGROUND" value="#AD7F01"/>
-            <color type="BACKGROUND" idref="Label_Background_Color"/>
-        </state>
-        <state value="SELECTED">
-            <color type="FOREGROUND" value="#FBB901"/>
-            <color type="BACKGROUND" idref="Label_Background_Color"/>
-        </state>
     </style>
-    <bind style="Label" type="region" key="Label" />
+    <bind style="GinjLabel" type="name" key="GinjLabel" />
 
     <!-- The style for tool tip. -->
     <style id="Tool Tip">

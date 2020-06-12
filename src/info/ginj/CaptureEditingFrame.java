@@ -104,7 +104,6 @@ public class CaptureEditingFrame extends JFrame {
         JPanel toolBar = new JPanel();
         toolBar.setLayout(new BoxLayout(toolBar, BoxLayout.Y_AXIS));
         toolBar.setBorder(new EmptyBorder(6, 6, 6, 6));
-        toolBar.setBackground(Util.WINDOW_BACKGROUND_COLOR);
 
         ButtonGroup toolButtonGroup = new ButtonGroup();
         GinjTool[] tools = new GinjTool[]{new ArrowTool(), new TextTool(), new FrameTool(), new HighlightTool()};
@@ -149,7 +148,6 @@ public class CaptureEditingFrame extends JFrame {
         // (the scrollpane will only occupy the center if image is smaller than the toolbars)
         JPanel mainPanel = new JPanel();
         mainPanel.setOpaque(true);
-        mainPanel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
         mainPanel.setLayout(new GridBagLayout());
 
         // Let's be confident that the image will fit and we won't need a scrollpane
@@ -176,14 +174,13 @@ public class CaptureEditingFrame extends JFrame {
         // Prepare name editing panel
         JPanel editPanel = new JPanel();
         editPanel.setLayout(new BorderLayout());
-        final JLabel nameLabel = new JLabel("Name ");
+        final GinjLabel nameLabel = new GinjLabel("Name ");
         editPanel.add(nameLabel, BorderLayout.WEST);
         JTextField nameTextField = new JTextField();
         editPanel.add(nameTextField, BorderLayout.CENTER);
 
         JPanel lowerPanel = new JPanel();
         lowerPanel.setLayout(new GridBagLayout());
-        lowerPanel.setBackground(Util.WINDOW_BACKGROUND_COLOR);
         c = new GridBagConstraints();
         c.insets = new Insets(4, 17, 12, 17);
         c.fill = GridBagConstraints.BOTH;

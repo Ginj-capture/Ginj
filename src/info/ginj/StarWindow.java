@@ -418,6 +418,11 @@ public class StarWindow extends JWindow {
     private void onMore() {
         // TODO
         JOptionPane.showMessageDialog(null, "This should open the more window - Now exiting...");
+        quit();
+    }
+
+    private void quit() {
+        Prefs.save();
         System.exit(Ginj.ERR_STATUS_OK);
     }
 

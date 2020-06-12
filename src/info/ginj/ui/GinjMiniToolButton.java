@@ -2,6 +2,9 @@ package info.ginj.ui;
 
 import javax.swing.*;
 
+/**
+ * Small buttons in left tool bar, for Undo/Redo
+ */
 public class GinjMiniToolButton extends JButton {
     public GinjMiniToolButton() {
         this(null, null);

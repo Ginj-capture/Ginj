@@ -71,9 +71,20 @@
 <!--    <bind style="Root Pane" type="region" key="RootPane" />-->
 
     <!-- The style for panel component. -->
-    <style id="Panel">
+    <style id="PanelStyle">
     </style>
-    <bind style="Panel" type="region" key="Panel" />
+    <bind style="PanelStyle" type="region" key="Panel"/>
+
+    <style id="GinjPanelStyle">
+    </style>
+    <bind style="GinjPanelStyle" type="name" key="GinjPanel"/>
+
+    <style id="GinjBorderedPanelStyle">
+        <state>
+            <imagePainter method="panelBorder" path="img/laf/bordered_panel.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
+        </state>
+    </style>
+    <bind style="GinjBorderedPanelStyle" type="name" key="GinjBorderedPanel" />
 
     <!-- The style for arrow buttons. -->
     <style id="Arrow Button">
@@ -1028,47 +1039,8 @@
     </style>
     <bind style="backingStyle" type="region" key=".*"/>
 
-    <style id="GinjPanelStyle">
-    </style>
-    <bind style="GinjPanelStyle" type="name" key="GinjPanel"/>
-
-<!--    &lt;!&ndash; The style for regular button. &ndash;&gt;-->
-<!--    <style id="Button">-->
-<!--        <insets top="4" left="6" bottom="4" right="6"/>-->
-<!--        &lt;!&ndash; Comment this out, since the background image already have border. &ndash;&gt;-->
-<!--        <painter idref="EaSynthPainter" method="#buttonBorder"/>-->
-<!--        &lt;!&ndash; This property will specify the arc with of the round border &ndash;&gt;-->
-<!--        <defaultsProperty key="EaSynth.button.arc.width" type="integer" value="9"/>-->
-<!--        &lt;!&ndash; This property will specify the arc height of the round border &ndash;&gt;-->
-<!--        <defaultsProperty key="EaSynth.button.arc.height" type="integer" value="9"/>-->
-<!--        <defaultsProperty key="EaSynth.button.border.color.enabled" type="idref" value="Button_Border_Color_Enabled"/>-->
-<!--        <defaultsProperty key="EaSynth.button.border.color.mouseover" type="idref" value="Button_Border_Color_MouseOver"/>-->
-<!--        <defaultsProperty key="EaSynth.button.border.color.pressed" type="idref" value="Button_Border_Color_Pressed"/>-->
-<!--        <defaultsProperty key="EaSynth.button.border.color.disabled" type="idref" value="Button_Border_Color_Disabled"/>-->
-<!--        <defaultsProperty key="EaSynth.button.border.color.default.enabled" type="idref" value="Button_Border_Color_Default_Enabled"/>-->
-<!--        <defaultsProperty key="EaSynth.button.border.color.default.mouseover" type="idref" value="Button_Border_Color_Default_MouseOver"/>-->
-<!--        <defaultsProperty key="EaSynth.button.border.color.default.pressed" type="idref" value="Button_Border_Color_Default_Pressed"/>-->
-<!--        <defaultsProperty key="EaSynth.button.border.color.default.disabled" type="idref" value="Button_Border_Color_Default_Disabled"/>-->
-<!--        <state value="ENABLED">-->
-<!--            <imagePainter method="buttonBackground" path="resource/1224501453906_button_normal.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
-<!--        </state>-->
-<!--        <state value="MOUSE_OVER">-->
-<!--            <imagePainter method="buttonBackground" path="resource/1224501467750_button_mouseover.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
-<!--        </state>-->
-<!--        <state value="PRESSED">-->
-<!--            <imagePainter method="buttonBackground" path="resource/1224501483062_button_pressed.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
-<!--        </state>-->
-<!--        <state value="DISABLED">-->
-<!--            <imagePainter method="buttonBackground" path="resource/1224501508500_button_disabled.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
-<!--            <color type="TEXT_FOREGROUND" value="#999999"/>-->
-<!--        </state>-->
-<!--    </style>-->
-<!--    <bind style="Button" type="region" key="Button" />-->
-
-
-
-    <!-- The style for rectangular buttons at the bottom -->
-    <style id="GinjButtonStyle">
+    <!-- The style for "standard" buttons (e.g. bottom row or in Dialogs) -->
+    <style id="ButtonStyle">
         <!-- Shift the text one pixel when pressed -->
         <property key="Button.textShiftOffset" type="integer" value="1"/>
         <!-- Space between button border and contents -->
@@ -1076,26 +1048,22 @@
         <state value="ENABLED">
             <!-- Note: sourceInsets are top, left, bottom, and right -->
             <imagePainter method="buttonBackground" path="img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
-            <color type="FOREGROUND" value="#FFFFFF"/>
+            <color type="FOREGROUND" value="#FBB901"/>
         </state>
         <state value="MOUSE_OVER">
             <imagePainter method="buttonBackground" path="img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
-            <color type="FOREGROUND" value="#FFFFFF"/>
+            <color type="FOREGROUND" value="#FBB901"/>
         </state>
         <state value="PRESSED">
             <imagePainter method="buttonBackground" path="img/laf/button_bg_pressed.png" sourceInsets="4 4 4 4"/>
-<!--            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>-->
+            <color type="FOREGROUND" value="#FBB901"/>
         </state>
         <state value="DISABLED">
             <imagePainter method="buttonBackground" path="img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
-            <color type="FOREGROUND" value="#777777"/>
-            <color type="TEXT_FOREGROUND" value="#777777"/>
+            <color type="FOREGROUND" value="#BCA053"/>
         </state>
     </style>
-    <bind style="GinjButtonStyle" type="name" key="GinjButton"/>
-
-
-<bind style="GinjButtonStyle" type="region" key="Button" />
+    <bind style="ButtonStyle" type="region" key="Button" />
 
 
     <!-- The style for square "normal" buttons on the left -->

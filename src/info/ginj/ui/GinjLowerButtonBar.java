@@ -5,22 +5,22 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * A Ginj Button Bar is made of a top area for help and a bottom area for actual buttons (GinjButton),
- * plus another area at the bottom right for other components
- * When hovering over a GinjButton, the help is filled accordingly and moves above the button
+ * A Ginj Button Bar is made of a top area for help and a bottom area for actual buttons (GinjLowerButton's),
+ * plus another area at the bottom right for optional components.
+ * When hovering over a GinjLowerButton, the help is filled accordingly and moves above the button
  */
-public class GinjButtonBar extends JPanel {
+public class GinjLowerButtonBar extends JPanel {
     private final JPanel helpPanel;
     private final JLabel helpLabel;
     private final JPanel buttonPanel;
     private final JPanel otherCompPanel;
     private final Dimension helpPanelSize;
 
-    public GinjButtonBar() {
+    public GinjLowerButtonBar() {
         this(true);
     }
 
-    public GinjButtonBar(boolean isDoubleBuffered) {
+    public GinjLowerButtonBar(boolean isDoubleBuffered) {
         super(isDoubleBuffered);
         setOpaque(true);
         setBorder(new EmptyBorder(2, 0, 5, 0));
@@ -94,7 +94,7 @@ public class GinjButtonBar extends JPanel {
 
     @Override
     public Component add(Component comp) {
-        if (comp instanceof GinjButton) {
+        if (comp instanceof GinjLowerButton) {
             return buttonPanel.add(comp);
         }
         else {
@@ -105,7 +105,7 @@ public class GinjButtonBar extends JPanel {
     /**
      * Display the given text help above the given button
      */
-    public void setHelpText(GinjButton thisButton, String text) {
+    public void setHelpText(GinjLowerButton thisButton, String text) {
         helpLabel.setText(text);
 
         // Compute position of help

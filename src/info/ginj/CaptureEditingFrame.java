@@ -195,21 +195,21 @@ public class CaptureEditingFrame extends JFrame {
         JPanel actionPanel = new JPanel();
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         actionPanel.setName("GinjPanel"); // To be used as a selector in laf.xml
-        JPanel buttonBar = new GinjButtonBar();
+        JPanel buttonBar = new GinjLowerButtonBar();
 
-        GinjButton shareButton = new GinjButton("Share via X", Util.createIcon(getClass().getResource("img/icon/share.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        GinjLowerButton shareButton = new GinjLowerButton("Share via X", Util.createIcon(getClass().getResource("img/icon/share.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         shareButton.addActionListener(e -> onExport(EXPORT_TYPE_SHARE));
         buttonBar.add(shareButton);
-        GinjButton saveButton = new GinjButton("Save", Util.createIcon(getClass().getResource("img/icon/save.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        GinjLowerButton saveButton = new GinjLowerButton("Save", Util.createIcon(getClass().getResource("img/icon/save.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         saveButton.addActionListener(e -> onExport(EXPORT_TYPE_DISK));
         buttonBar.add(saveButton);
-        final JButton copyButton = new GinjButton("Copy", Util.createIcon(getClass().getResource("img/icon/copy.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton copyButton = new GinjLowerButton("Copy", Util.createIcon(getClass().getResource("img/icon/copy.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         copyButton.addActionListener(e -> onExport(EXPORT_TYPE_CLIPBOARD));
         buttonBar.add(copyButton);
-        final JButton cancelButton = new GinjButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
-        final JButton customizeButton = new GinjButton("Customize Ginj buttons", Util.createIcon(getClass().getResource("img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", Util.createIcon(getClass().getResource("img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         customizeButton.addActionListener(e -> onCustomize());
         buttonBar.add(customizeButton);
 
@@ -296,19 +296,12 @@ public class CaptureEditingFrame extends JFrame {
     }
 
     private void onColorButtonClick() {
-//        if (Color.RED.equals(getCurrentColor())) {
-//            setCurrentColor(Color.GREEN);
-//        }
-//        else if (Color.GREEN.equals(getCurrentColor())) {
-//            setCurrentColor(Color.BLUE);
-//        }
-//        else {
-//            setCurrentColor(Color.RED);
-//        }
-//        imagePane.setColorOfSelectedOverlay(getCurrentColor());
+        // Create popup color selection window
         final ColorSelectorWindow colorSelectorWindow = new ColorSelectorWindow(this);
+        // Position it under the button
         final Point colorButtonLocationOnScreen = colorToolButton.getLocationOnScreen();
         colorSelectorWindow.setLocation(colorButtonLocationOnScreen.x, colorButtonLocationOnScreen.y + colorToolButton.getHeight());
+        // And show it
         colorSelectorWindow.setVisible(true);
     }
 

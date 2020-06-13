@@ -1,8 +1,8 @@
 package info.ginj;
 
-import info.ginj.ui.GinjButton;
-import info.ginj.ui.GinjButtonBar;
 import info.ginj.ui.GinjLabel;
+import info.ginj.ui.GinjLowerButton;
+import info.ginj.ui.GinjLowerButtonBar;
 import info.ginj.ui.Util;
 
 import javax.swing.*;
@@ -72,18 +72,18 @@ public class CaptureSelectionFrame extends JFrame {
         actionPanel = new JPanel(); // To add a margin around buttonBar
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         actionPanel.setName("GinjPanel"); // To be used as a selector in laf.xml
-        JPanel buttonBar = new GinjButtonBar();
+        JPanel buttonBar = new GinjLowerButtonBar();
 
-        imageButton = new GinjButton("Capture image", Util.createIcon(getClass().getResource("img/icon/image.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        imageButton = new GinjLowerButton("Capture image", Util.createIcon(getClass().getResource("img/icon/image.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         imageButton.addActionListener(e -> onCaptureImage());
         buttonBar.add(imageButton);
-        videoButton = new GinjButton("Capture video", Util.createIcon(getClass().getResource("img/icon/video.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        videoButton = new GinjLowerButton("Capture video", Util.createIcon(getClass().getResource("img/icon/video.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         videoButton.addActionListener(e -> onCaptureVideo());
         buttonBar.add(videoButton);
-        final JButton redoButton = new GinjButton("Redo selection", Util.createIcon(getClass().getResource("img/icon/redo_selection.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton redoButton = new GinjLowerButton("Redo selection", Util.createIcon(getClass().getResource("img/icon/redo_selection.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         redoButton.addActionListener(e -> onRedo());
         buttonBar.add(redoButton);
-        final JButton cancelButton = new GinjButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
         captureSizeLabel = new GinjLabel("9999 x 9999");

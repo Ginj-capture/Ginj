@@ -3,11 +3,14 @@ package info.ginj.ui;
 import javax.swing.*;
 import java.awt.*;
 
-public class GinjButton extends JButton {
+/**
+ * Button that is part of the button bar at the bottom (GinjLowerButtonBar).
+ * Hovering causes the helpLabel above to be updated and moved.
+ */
+public class GinjLowerButton extends JButton {
 
-    public GinjButton(String help, ImageIcon imageIcon) {
+    public GinjLowerButton(String help, ImageIcon imageIcon) {
         super(imageIcon);
-        setName("GinjButton"); // To be addressed in laf.xml
 
         addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -23,11 +26,11 @@ public class GinjButton extends JButton {
             private void setParentHelp(String help) {
                 Component p = getParent();
                 while (p != null) {
-                    if (p instanceof GinjButtonBar) {
+                    if (p instanceof GinjLowerButtonBar) {
                         if (help == null || help.isEmpty()) {
                             help = " ";
                         }
-                        ((GinjButtonBar) p).setHelpText(GinjButton.this, help);
+                        ((GinjLowerButtonBar) p).setHelpText(GinjLowerButton.this, help);
                         break;
                     }
                     else {

@@ -3,18 +3,19 @@ package info.ginj;
 /*
 TODO Features :
  - Fix rectangle overlay resizing (when reducing past opposite side, rectangle slips)
- - Implement color chooser
  - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp 640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
  - Implement Windows detection using JNA
- - More work on "exports"
+ - Implement "share" export
  - Implement video using ffmpeg & Jaffree
  - Implement history
+ - Implement preference editor
  - Should undo/redo change selection inside the Action methods (e.g change color, resize) ? - or completely deselect component after operation
  - Add progress + notification when exporting copy/save (+ auto fade when mouse not over - checkbox) + Close button
+ - Persist StarWindow position
 
 TODO UI:
  - Paint title bar
- - Finalize Look and feel (background in dialogs, File chooser (save as))
+ - Finalize Look and feel (File chooser (save as), Color chooser (radio buttons and cursors), Tables)
  - Fix scrollbar corner + thumb icon + colors + gap
  - Upscale sun and sun-rays so that runtime downscale provides an anti-aliasing, or better yet draw it by code (gradients etc)
  - Build 3 main buttons at runtime based on circle + icons (downscale provides an anti-aliasing)
@@ -25,6 +26,7 @@ TODO Cleanup:
  - Remove useless icons ?
 
 TODO Options ENHANCEMENT:
+ - Improve color chooser UI
  - Add optional "Speech Balloon" overlay
  - Add optional "Line" overlay (with CTRL to constrain)
  - Shift should constrain handle move horizontally/vertically, Ctrl should resize symmetrically

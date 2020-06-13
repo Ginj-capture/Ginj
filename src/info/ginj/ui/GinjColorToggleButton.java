@@ -11,11 +11,10 @@ public class GinjColorToggleButton extends JToggleButton {
     private static final int COLOR_BUTTON_ICON_WIDTH = 16;
     private static final int COLOR_BUTTON_ICON_HEIGHT = 16;
 
-    private Color color;
+    private final Color color;
 
     public GinjColorToggleButton(Color color) {
         this(null, null, color, false);
-        this.color = color;
     }
 
     public GinjColorToggleButton(Icon icon) {
@@ -28,10 +27,14 @@ public class GinjColorToggleButton extends JToggleButton {
 
     public GinjColorToggleButton(String text, Icon icon, Color color, boolean selected) {
         super(text, icon, selected);
+        this.color = color;
+        setName("GinjColorToggleButton"); // To be addressed in laf.xml
         if (color != null) {
             setIcon(Util.createRectColorIcon(color, COLOR_BUTTON_ICON_WIDTH, COLOR_BUTTON_ICON_HEIGHT));
         }
-        setName("GinjColorToggleButton"); // To be addressed in laf.xml
+        else {
+            setIcon(Util.createRectColorIcon(Color.BLACK, COLOR_BUTTON_ICON_WIDTH, COLOR_BUTTON_ICON_HEIGHT));
+        }
     }
 
     public Color getColor() {

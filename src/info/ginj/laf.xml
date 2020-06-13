@@ -173,14 +173,17 @@
         <state value="ENABLED">
             <imageIcon id="Radio_Button_Normal" path="resource/1252458931609_radio_enabled.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Normal"/>
+            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="MOUSE_OVER">
             <imageIcon id="Radio_Button_MouseOver" path="resource/1252458949640_radio_mouseover.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_MouseOver"/>
+            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="PRESSED">
             <imageIcon id="Radio_Button_Pressed" path="resource/1252458961921_radio_pressed.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Pressed"/>
+            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED">
             <imageIcon id="Radio_Button_Disabled" path="resource/1252458992640_radio_disabled.png"/>
@@ -190,10 +193,12 @@
         <state value="SELECTED">
             <imageIcon id="Radio_Button_Selected" path="resource/1252458981875_radio_selected.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Selected"/>
+            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED and SELECTED">
             <imageIcon id="Radio_Button_Disabled_Selected" path="resource/1264211465625_radio_disabled_selected.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Disabled_Selected"/>
+            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
     </style>
     <bind style="Radio Button" type="region" key="RadioButton" />
@@ -391,7 +396,7 @@
         <defaultsProperty key="EaSynth.menu.bg.color.selected" type="idref" value="Menu_Bg_Color_Selected"/>
         <painter idref="EaSynthPainter" method="#menuBackground"/>
         <state value="ENABLED">
-            <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_FOREGROUND" value="#00FF00"/>
         </state>
         <state value="DISABLED">
             <color type="TEXT_FOREGROUND" value="#999999"/>
@@ -408,7 +413,7 @@
         <insets top="4" left="0" bottom="4" right="0"/>
         <state value="ENABLED">
             <imagePainter method="menuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
-            <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_FOREGROUND" value="#00FF00"/>
         </state>
         <state value="MOUSE_OVER">
             <imagePainter method="menuItemBackground" path="resource/1264231987812_MenuItem_Selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
@@ -438,7 +443,7 @@
         <insets top="4" left="0" bottom="4" right="0"/>
         <state value="ENABLED">
             <imagePainter method="checkBoxMenuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
-            <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_FOREGROUND" value="#00FF00"/>
             <property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_Enabled"/>
         </state>
         <state value="MOUSE_OVER">
@@ -471,7 +476,7 @@
         <insets top="4" left="0" bottom="4" right="0"/>
         <state value="ENABLED">
             <imagePainter method="radioButtonMenuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
-            <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_FOREGROUND" value="#00FF00"/>
             <property key="RadioButtonMenuItem.checkIcon" type="idref" value="RadioButtonMenuItem_Radio_Icon_Enabled"/>
         </state>
         <state value="MOUSE_OVER">
@@ -710,8 +715,8 @@
         </object>
         <property key="Table.gridColor" type="idref" value="Table_Grid_Color"/>
         <state value="ENABLED">
-            <color type="TEXT_FOREGROUND" value="#000000"/>
-            <color type="BACKGROUND" value="#FFFFFF"/>
+            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
+            <color type="BACKGROUND" value="#777777"/>
         </state>
         <state value="DISABLED">
             <color type="TEXT_FOREGROUND" value="#CCCCCC"/>
@@ -731,7 +736,7 @@
         <painter idref="EaSynthPainter" method="tableHeaderBorder"/>
         <imagePainter method="tableHeaderBackground" path="resource/1204728244468_table_header_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
         <state value="ENABLED">
-            <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED">
             <imagePainter method="tableHeaderBackground" path="resource/1204449497890_table_header_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
@@ -822,25 +827,25 @@
         <opaque value="true"/>
         <state value="ENABLED">
             <imagePainter method="textFieldBorder" path="img/laf/textfield_bg.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
-            <color type="BACKGROUND" value="#FFFFFF"/>
             <color type="FOREGROUND" value="#000000"/>
+            <color type="BACKGROUND" value="#FFFFFF"/>
         </state>
         <state value="FOCUSED">
             <imagePainter method="textFieldBorder" path="img/laf/textfield_bg_focused.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
-            <color type="BACKGROUND" value="#FFFFFF"/>
             <color type="FOREGROUND" value="#000000"/>
+            <color type="BACKGROUND" value="#FFFFFF"/>
         </state>
         <state value="SELECTED">
             <imagePainter method="textFieldBorder" path="img/laf/textfield_bg_focused.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
-            <color type="BACKGROUND" value="#FFFFFF"/>
             <color type="FOREGROUND" value="#000000"/>
-            <color type="TEXT_BACKGROUND" value="#98C8EE"/>
+            <color type="BACKGROUND" value="#FFFFFF"/>
             <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_BACKGROUND" value="#98C8EE"/>
         </state>
         <state value="DISABLED">
             <imagePainter method="textFieldBorder" path="img/laf/textfield_bg.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
-            <color type="BACKGROUND" value="#F0F0F0"/>
             <color type="FOREGROUND" value="#999999"/>
+            <color type="BACKGROUND" value="#F0F0F0"/>
         </state>
     </style>
     <bind style="Text Field" type="region" key="TextField" />
@@ -860,8 +865,8 @@
         <insets top="3" left="3" bottom="3" right="3"/>
         <opaque value="true"/>
         <state value="ENABLED">
-            <color type="BACKGROUND" value="#FFFFFF"/>
             <color type="FOREGROUND" value="#000000"/>
+            <color type="BACKGROUND" value="#FFFFFF"/>
         </state>
         <state value="SELECTED">
             <color type="TEXT_BACKGROUND" value="#98C8EE"/>
@@ -872,8 +877,8 @@
     <!-- The style for text pane component. -->
     <style id="Text Pane">
         <state value="ENABLED">
-            <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
             <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
             <color type="BACKGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED">
@@ -890,8 +895,8 @@
     <!-- The style for editor pane component. -->
     <style id="Editor Pane">
         <state value="ENABLED">
-            <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
             <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
             <color type="BACKGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED">
@@ -918,9 +923,11 @@
         <state value="ENABLED">
             <!-- Text of hovered item in a list -->
             <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED">
             <color type="TEXT_FOREGROUND" value="#999999"/>
+            <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
         </state>
         <state value="SELECTED">
             <color type="TEXT_FOREGROUND" value="#CC6600"/>
@@ -934,7 +941,7 @@
         <insets top="3" left="3" bottom="3" right="3"/>
         <imagePainter method="labelBackground" path="resource/1204728244468_table_header_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>
         <state value="ENABLED">
-            <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_FOREGROUND" value="#00FF00"/>
         </state>
         <state value="DISABLED">
             <color type="TEXT_FOREGROUND" value="#CCCCCC"/>

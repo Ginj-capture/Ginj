@@ -10,11 +10,11 @@ import java.awt.*;
  * When hovering over a GinjButton, the help is filled accordingly and moves above the button
  */
 public class GinjButtonBar extends JPanel {
-    private JPanel helpPanel;
-    private JLabel helpLabel;
-    private JPanel buttonPanel;
-    private JPanel otherCompPanel;
-    private Dimension helpPanelSize;
+    private final JPanel helpPanel;
+    private final JLabel helpLabel;
+    private final JPanel buttonPanel;
+    private final JPanel otherCompPanel;
+    private final Dimension helpPanelSize;
 
     public GinjButtonBar() {
         this(true);

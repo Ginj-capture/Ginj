@@ -35,7 +35,7 @@ public class DiskExporterImpl extends GinjExporter implements ClipboardOwner {
      * @return true if export completed, or false otherwise
      */
     @Override
-    public boolean export(BufferedImage image, Properties exportSettings) {
+    public boolean exportImage(BufferedImage image, Properties exportSettings) {
 
         // Determine where to save the file
         boolean askForLocation = Prefs.isTrue(Prefs.Key.USE_CUSTOM_LOCATION);

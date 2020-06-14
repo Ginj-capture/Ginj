@@ -28,7 +28,7 @@ public class ClipboardExporterImpl extends GinjExporter implements ClipboardOwne
      * @return true if export completed, or false otherwise
      */
     @Override
-    public boolean export(BufferedImage image, Properties exportSettings) {
+    public boolean exportImage(BufferedImage image, Properties exportSettings) {
         try {
             TransferableImage transferableImage = new TransferableImage(image);
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();

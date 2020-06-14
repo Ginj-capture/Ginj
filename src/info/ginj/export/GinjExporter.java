@@ -21,5 +21,5 @@ public abstract class GinjExporter {
      * @param exportSettings a set of properties that could contain exporter-specific parameters
      * @return true if export completed, or false otherwise
      */
-    public abstract boolean export(BufferedImage image, Properties exportSettings);
+    public abstract boolean exportImage(BufferedImage image, Properties exportSettings);
 }

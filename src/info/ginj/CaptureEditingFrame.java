@@ -435,7 +435,7 @@ public class CaptureEditingFrame extends JFrame {
         if (exporter != null) {
             final Properties exportSettings = new Properties();
             exportSettings.put("captureId", captureId);
-            if (exporter.export(renderedImage, exportSettings)) {
+            if (exporter.exportImage(renderedImage, exportSettings)) {
                 // Store image in history, no matter the export type
                 saveInHistory();
                 // and close Window

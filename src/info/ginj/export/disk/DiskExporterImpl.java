@@ -2,26 +2,21 @@ package info.ginj.export.disk;
 
 import info.ginj.Ginj;
 import info.ginj.Prefs;
+import info.ginj.export.ExportSettings;
 import info.ginj.export.GinjExporter;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
 /**
  * This exporter saves the image as a PNG file to disk, and copies its path to the clipboard
  */
-public class DiskExporterImpl extends GinjExporter implements ClipboardOwner {
+public class DiskExporterImpl extends GinjExporter {
 
     public DiskExporterImpl(JFrame frame) {
         super(frame);
@@ -31,11 +26,11 @@ public class DiskExporterImpl extends GinjExporter implements ClipboardOwner {
      * Exports the given image to disk
      *
      * @param image          the image to export
-     * @param exportSettings a set of properties that could contain exporter-specific parameters
+     * @param exportSettings a set of properties that could contain exporter- and session- specific parameters
      * @return true if export completed, or false otherwise
      */
     @Override
-    public boolean exportImage(BufferedImage image, Properties exportSettings) {
+    public boolean exportImage(BufferedImage image, ExportSettings exportSettings) {
 
         // Determine where to save the file
         boolean askForLocation = Prefs.isTrue(Prefs.Key.USE_CUSTOM_LOCATION);
@@ -62,7 +57,7 @@ public class DiskExporterImpl extends GinjExporter implements ClipboardOwner {
             }
         }
         // Default file
-        File file = new File(saveDirName, exportSettings.getProperty("captureId") + ".png");
+        File file = new File(saveDirName, getBaseFileName(exportSettings) + ".png");
 
         if (askForLocation) {
             JFileChooser fileChooser = null;
@@ -105,16 +100,9 @@ public class DiskExporterImpl extends GinjExporter implements ClipboardOwner {
             Prefs.save();
         }
 
-        // Copy path to clipboard
-        StringSelection stringSelection = new StringSelection(file.getAbsolutePath());
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(stringSelection, this);
+        copyTextToClipboard(file.getAbsolutePath());
 
         return true;
     }
 
-    @Override
-    public void lostOwnership(Clipboard clipboard, Transferable contents) {
-        // Do nothing. It's normal to lose ownership when another app copies something to the clipboard
-    }
 }

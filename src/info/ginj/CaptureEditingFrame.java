@@ -1,9 +1,11 @@
 package info.ginj;
 
 import info.ginj.action.AbstractUndoableAction;
+import info.ginj.export.ExportSettings;
 import info.ginj.export.GinjExporter;
 import info.ginj.export.clipboard.ClipboardExporterImpl;
 import info.ginj.export.disk.DiskExporterImpl;
+import info.ginj.export.dropbox.DropboxExporterImpl;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.arrow.ArrowTool;
 import info.ginj.tool.frame.FrameTool;
@@ -27,11 +29,13 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Properties;
+
+import static info.ginj.export.ExportSettings.*;
 
 public class CaptureEditingFrame extends JFrame {
     public static final String EXPORT_TYPE_DISK = "disk";
     public static final String EXPORT_TYPE_SHARE = "share";
+    public static final String EXPORT_TYPE_DROPBOX = "dropbox";
     public static final String EXPORT_TYPE_CLIPBOARD = "clipboard";
 
     public static final int TOOL_BUTTON_ICON_WIDTH = 24;
@@ -49,6 +53,7 @@ public class CaptureEditingFrame extends JFrame {
     private final GinjMiniToolButton redoButton;
     private final UndoManager undoManager = new UndoManager();
     private final GinjToolButton colorToolButton;
+    private final JTextField nameTextField;
 
     GinjTool currentTool;
 
@@ -170,7 +175,7 @@ public class CaptureEditingFrame extends JFrame {
         editPanel.setLayout(new BorderLayout());
         final GinjLabel nameLabel = new GinjLabel("Name ");
         editPanel.add(nameLabel, BorderLayout.WEST);
-        JTextField nameTextField = new JTextField();
+        nameTextField = new JTextField();
         editPanel.add(nameTextField, BorderLayout.CENTER);
 
         JPanel lowerPanel = new JPanel();
@@ -200,6 +205,9 @@ public class CaptureEditingFrame extends JFrame {
         GinjLowerButton shareButton = new GinjLowerButton("Share via X", Util.createIcon(getClass().getResource("img/icon/share.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         shareButton.addActionListener(e -> onExport(EXPORT_TYPE_SHARE));
         buttonBar.add(shareButton);
+        GinjLowerButton dropboxButton = new GinjLowerButton("Share on Dropbox", Util.createIcon(getClass().getResource("img/icon/dropbox.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        dropboxButton.addActionListener(e -> onExport(EXPORT_TYPE_DROPBOX));
+        buttonBar.add(dropboxButton);
         GinjLowerButton saveButton = new GinjLowerButton("Save", Util.createIcon(getClass().getResource("img/icon/save.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         saveButton.addActionListener(e -> onExport(EXPORT_TYPE_DISK));
         buttonBar.add(saveButton);
@@ -209,7 +217,7 @@ public class CaptureEditingFrame extends JFrame {
         final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
-        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", Util.createIcon(getClass().getResource("img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton customizeButton = new GinjLowerButton("Customize GinjHtmlOptionPane buttons", Util.createIcon(getClass().getResource("img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         customizeButton.addActionListener(e -> onCustomize());
         buttonBar.add(customizeButton);
 
@@ -423,6 +431,9 @@ public class CaptureEditingFrame extends JFrame {
             case EXPORT_TYPE_SHARE:
                 //exporter = new ShareExporterImpl(this);
                 break;
+            case EXPORT_TYPE_DROPBOX:
+                exporter = new DropboxExporterImpl(this);
+                break;
             case EXPORT_TYPE_DISK:
                 exporter = new DiskExporterImpl(this);
                 break;
@@ -433,8 +444,10 @@ public class CaptureEditingFrame extends JFrame {
 
         // Perform export
         if (exporter != null) {
-            final Properties exportSettings = new Properties();
-            exportSettings.put("captureId", captureId);
+            final ExportSettings exportSettings = new ExportSettings();
+            exportSettings.put(KEY_CAPTURE_ID, captureId);
+            exportSettings.put(KEY_CAPTURE_NAME, nameTextField.getText());
+            exportSettings.put(KEY_ACCOUNT_NUMBER, String.valueOf(1));
             if (exporter.exportImage(renderedImage, exportSettings)) {
                 // Store image in history, no matter the export type
                 saveInHistory();

@@ -10,7 +10,7 @@ TODO Features :
  - Implement history
  - Implement preference editor
  - Should undo/redo change selection inside the Action methods (e.g change color, resize) ? - or completely deselect component after operation
- - Add progress + notification when exporting copy/save (+ auto fade when mouse not over - checkbox) + Close button
+ - Exports should be made in a separate Dialog (with progress + and notification when done, + "auto fade when mouse not over" checkbox + Close button, with return to the main window in case of error
  - Persist StarWindow position
 
 TODO UI:
@@ -39,6 +39,7 @@ import info.ginj.ui.laf.GinjSynthLookAndFeel;
 import javax.swing.*;
 import javax.swing.plaf.synth.SynthLookAndFeel;
 import java.awt.*;
+import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -56,6 +57,7 @@ public class Ginj {
 
     // caching
     public static FutureTask<JFileChooser> futureFileChooser;
+    private static File tempDir;
 
     public static void main(String[] args) {
         // Determine what the GraphicsDevice can support.
@@ -103,4 +105,26 @@ public class Ginj {
         return Ginj.class.getSimpleName();
     }
 
+    public static File getTempDir() {
+        if (tempDir == null) {
+            // First invocation, check, clean or create temp dir
+            tempDir = new File(System.getProperty("java.io.tmpdir") + getAppName() + "_temp");
+            if (tempDir.exists()) {
+                // Cleanup
+                for (File file : tempDir.listFiles()) {
+                    file.delete();
+                }
+            }
+            else {
+                // Create
+                tempDir.mkdirs();
+            }
+        }
+        // And return it
+        return tempDir;
+    }
+
+    public static String getVersion() {
+        return "0.1";
+    }
 }

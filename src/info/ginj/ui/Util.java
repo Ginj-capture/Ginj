@@ -2,6 +2,7 @@ package info.ginj.ui;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
@@ -193,4 +194,34 @@ public class Util {
         return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
     }
 
+    public static JEditorPane createClickableHtmlEditorPane(String htmlMessage) {
+        // for copying style
+        JLabel label = new JLabel();
+        Font font = label.getFont();
+
+        // create some css from the label's font
+        String style = "font-family:" + font.getFamily() + ";"
+                + "font-weight:" + (font.isBold() ? "bold" : "normal") + ";"
+                + "font-size:" + font.getSize() + "pt;";
+
+        // html content
+        JEditorPane editorPane = new JEditorPane("text/html", "<html><body style=\"" + style + "\">" + htmlMessage + "</body></html>");
+        editorPane.addHyperlinkListener(e -> {
+            if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED)) {
+                try {
+                    Desktop.getDesktop().browse(e.getURL().toURI());
+                }
+                catch (Exception e1) {
+                    // noop
+                }
+            }
+        });
+        editorPane.setEditable(false);
+        return editorPane;
+    }
+
+    public static void alertExeption(JFrame frame, String title, String messagePrefix, Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(frame, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information.", title, JOptionPane.ERROR_MESSAGE);
+    }
 }

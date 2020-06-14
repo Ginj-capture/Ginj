@@ -217,7 +217,7 @@ public class CaptureEditingFrame extends JFrame {
         final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
-        final JButton customizeButton = new GinjLowerButton("Customize GinjHtmlOptionPane buttons", Util.createIcon(getClass().getResource("img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", Util.createIcon(getClass().getResource("img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         customizeButton.addActionListener(e -> onCustomize());
         buttonBar.add(customizeButton);
 

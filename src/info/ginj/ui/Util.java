@@ -201,11 +201,6 @@ public class Util {
         JLabel label = new JLabel();
         Font font = label.getFont();
 
-        // create some css from the label's font
-        String style = "font-family:" + font.getFamily() + ";"
-                + "font-weight:" + (font.isBold() ? "bold" : "normal") + ";"
-                + "font-size:" + font.getSize() + "pt;";
-
         // html content
         HTMLEditorKit kit = new HTMLEditorKit();
         StyleSheet styleSheet = kit.getStyleSheet();

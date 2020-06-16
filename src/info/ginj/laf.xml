@@ -892,23 +892,20 @@
     </style>
     <bind style="Text Pane" type="region" key="TextPane" />
 
-    <!-- The style for editor pane component. -->
-    <style id="Editor Pane">
+    <!-- The style for editor pane component (used for HTML). -->
+    <style id="EditorPaneStyle">
         <state value="ENABLED">
-            <color type="TEXT_FOREGROUND" value="#000000"/>
-            <color type="TEXT_BACKGROUND" value="#FFFFFF"/>
-            <color type="BACKGROUND" value="#FFFFFF"/>
+            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED">
             <color type="TEXT_FOREGROUND" value="#999999"/>
-            <color type="BACKGROUND" value="#F0F0F0"/>
         </state>
         <state value="SELECTED">
             <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
             <color type="TEXT_BACKGROUND" value="#98C8EE"/>
         </state>
     </style>
-    <bind style="Editor Pane" type="region" key="EditorPane" />
+    <bind style="EditorPaneStyle" type="region" key="EditorPane" />
 
     <!-- The style for spinner component. -->
     <style id="Spinner">

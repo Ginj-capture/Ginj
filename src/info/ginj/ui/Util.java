@@ -3,6 +3,8 @@ package info.ginj.ui;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
@@ -205,7 +207,17 @@ public class Util {
                 + "font-size:" + font.getSize() + "pt;";
 
         // html content
-        JEditorPane editorPane = new JEditorPane("text/html", "<html><body style=\"" + style + "\">" + htmlMessage + "</body></html>");
+        HTMLEditorKit kit = new HTMLEditorKit();
+        StyleSheet styleSheet = kit.getStyleSheet();
+        styleSheet.addRule("body {font-family:" + font.getFamily() + ";"
+                + "font-weight:" + (font.isBold() ? "bold" : "normal") + ";"
+                + "font-size:" + font.getSize() + "pt;}");
+        styleSheet.addRule("a {color: #FBB901;}");
+
+        JEditorPane editorPane = new JEditorPane();
+        editorPane.setEditorKit(kit);
+        editorPane.setText("<html><body>" + htmlMessage + "</body></html>");
+
         editorPane.addHyperlinkListener(e -> {
             if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED)) {
                 try {

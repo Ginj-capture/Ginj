@@ -2,7 +2,6 @@ package info.ginj;
 
 /*
 TODO Features :
- - Fix rectangle overlay resizing (when reducing past opposite side, rectangle slips)
  - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp 640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
  - Implement Windows detection using JNA
  - Implement "share" export

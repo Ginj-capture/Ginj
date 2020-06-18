@@ -746,31 +746,36 @@
     <bind style="Table Header" type="region" key="TableHeader" />
 
     <!-- The style for the tabbed pane component. -->
-    <style id="Tabbed Pane">
+    <style id="TabbedPaneStyle">
         <property key="TabbedPane.textIconGap" type="integer" value="2"/>
     </style>
-    <bind style="Tabbed Pane" type="region" key="TabbedPane" />
+    <bind style="TabbedPaneStyle" type="region" key="TabbedPane" />
 
     <!-- The style for the tabbed pane content. -->
-    <style id="Tabbed Pane Content">
+    <style id="TabbedPaneContentStyle">
     </style>
-    <bind style="Tabbed Pane Content" type="region" key="TabbedPaneContent" />
+    <bind style="TabbedPaneContentStyle" type="region" key="TabbedPaneContent" />
 
     <!-- The style for the tabs of tabbed pane. -->
-    <style id="Tabbed Pane Tab">
-        <insets top="5" left="5" bottom="2" right="5"/>
-        <imagePainter method="tabbedPaneTabBorder" path="resource/1204440390390_tab_border.png" sourceInsets="0 1 0 1" paintCenter="true" stretch="true" center="false"/>
+    <style id="TabbedPaneTabStyle">
+        <property key="Button.textShiftOffset" type="integer" value="1"/>
+        <insets top="6" left="5" bottom="2" right="5"/>
+<!--        <imagePainter method="tabbedPaneTabBorder" path="img/laf/tab_border.png" sourceInsets="0 1 0 1" paintCenter="true" stretch="true" center="false"/>-->
+        <!-- Note: sourceInsets are top, left, bottom, and right -->
         <state value="ENABLED">
-            <imagePainter method="tabbedPaneTabBackground" path="resource/1204726737093_tab_bg_enabled.png" sourceInsets="6 5 3 5" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="tabbedPaneTabBackground" path="img/laf/tab_bg_enabled.png" sourceInsets="3 3 3 3" paintCenter="true" stretch="true" center="false"/>
+            <color type="TEXT_FOREGROUND" value="#FBB901"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="tabbedPaneTabBackground" path="resource/1204439604828_tab_bg_disabled.png" sourceInsets="6 5 3 5" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="tabbedPaneTabBackground" path="img/laf/tab_bg_disabled.png" sourceInsets="3 3 3 3" paintCenter="true" stretch="true" center="false"/>
+            <color type="TEXT_FOREGROUND" value="#999999"/>
         </state>
         <state value="SELECTED">
-            <imagePainter method="tabbedPaneTabBackground" path="resource/1204451361468_tab_bg_selected.png" sourceInsets="6 5 3 5" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="tabbedPaneTabBackground" path="img/laf/tab_bg_selected.png" sourceInsets="3 3 3 3" paintCenter="true" stretch="true" center="false"/>
+            <color type="TEXT_FOREGROUND" value="#FBB901"/>
         </state>
     </style>
-    <bind style="Tabbed Pane Tab" type="region" key="TabbedPaneTab" />
+    <bind style="TabbedPaneTabStyle" type="region" key="TabbedPaneTab" />
 
     <!-- The style for the tab area of tabbed pane. -->
     <style id="Tabbed Pane Tab Area">

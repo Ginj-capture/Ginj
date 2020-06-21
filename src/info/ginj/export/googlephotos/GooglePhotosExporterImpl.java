@@ -9,8 +9,6 @@ import info.ginj.ui.Util;
 
 import javax.swing.*;
 
-/**
- */
 public class GooglePhotosExporterImpl extends GinjExporter {
     public GooglePhotosExporterImpl(JFrame frame) {
         super(frame);
@@ -43,7 +41,11 @@ public class GooglePhotosExporterImpl extends GinjExporter {
         }
 
         try {
-            googlePhotosService.uploadCapture(capture, accountNumber);
+            final String url = googlePhotosService.uploadCapture(capture, accountNumber);
+            if (url != null) {
+                copyTextToClipboard(url);
+                // Show message "complete"
+            }
         }
         catch (Exception e) {
             Util.alertException(getFrame(), "Google Photo Error", "There was an error exporting to Google Photos", e);

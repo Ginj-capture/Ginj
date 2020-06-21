@@ -13,5 +13,14 @@ public interface OnlineService {
 
     void checkAuthorized(String accountNumber) throws CommunicationException, AuthorizationException;
 
-    public void uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException;
+    /**
+     * Upload a capture to the online service and return its URL
+     * @param capture The captured screenshot or video
+     * @param accountNumber The account number among those for this online service
+     * @return a public URL to share to give access to the uploaded media, or null if there is no way to share.
+     * @throws AuthorizationException
+     * @throws UploadException
+     * @throws CommunicationException
+     */
+    public String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException;
 }

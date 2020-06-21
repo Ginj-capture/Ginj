@@ -5,14 +5,13 @@ import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.sharing.SharedLinkMetadata;
 import com.dropbox.core.v2.sharing.SharedLinkSettings;
 import com.dropbox.core.v2.users.FullAccount;
+import info.ginj.Capture;
 import info.ginj.Ginj;
 import info.ginj.Prefs;
-import info.ginj.export.ExportSettings;
 import info.ginj.export.GinjExporter;
 import info.ginj.ui.Util;
 
 import javax.swing.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -30,10 +29,16 @@ public class DropboxExporterImpl extends GinjExporter {
         super(frame);
     }
 
+    /**
+     * Exports the given capture
+     *
+     * @param capture        the capture to export
+     * @param accountNumber  the accountNumber to export this capture to
+     * @return true if export completed, or false otherwise
+     */
     @Override
-    public boolean exportImage(BufferedImage image, ExportSettings exportSettings) {
-        final String accountNumber = exportSettings.getProperty(ExportSettings.KEY_ACCOUNT_NUMBER);
-        final String targetFileName = "/Applications/" + Ginj.getAppName() + "/" + getBaseFileName(exportSettings) + ".png";
+    public boolean exportCapture(Capture capture, String accountNumber) {
+        final String targetFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + ".png";
         try {
             if (!authenticateIfNeeded(accountNumber)) {
                 return false;
@@ -45,7 +50,7 @@ public class DropboxExporterImpl extends GinjExporter {
 
             // TODO Upload should be done using sessions - uploadSessionStart etc.
             // Required for big files, but also for progress
-            final File fileToUpload = imageToTempFile(image, exportSettings);
+            final File fileToUpload = capture.toFile();
             if (fileToUpload.length() < 150_000_000) {
                 try (InputStream in = new FileInputStream(fileToUpload)) {
                     client.files().uploadBuilder(targetFileName).uploadAndFinish(in);
@@ -125,7 +130,7 @@ public class DropboxExporterImpl extends GinjExporter {
                 }
             }
             catch (DbxException e) {
-                Util.alertExeption(getFrame(), "Dropbox authentication", "Dropbox authentication error", e);
+                Util.alertException(getFrame(), "Dropbox authentication", "Dropbox authentication error", e);
             }
         }
         return false;

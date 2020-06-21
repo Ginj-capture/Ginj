@@ -1,15 +1,11 @@
 package info.ginj.export;
 
-import info.ginj.Ginj;
+import info.ginj.Capture;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 
 public abstract class GinjExporter {
     private JFrame frame;
@@ -22,20 +18,6 @@ public abstract class GinjExporter {
         return frame;
     }
 
-    protected String getBaseFileName(ExportSettings exportSettings) {
-        String baseFileName = exportSettings.getProperty(ExportSettings.KEY_CAPTURE_NAME);
-        if (baseFileName == null || baseFileName.isBlank()) {
-            baseFileName = exportSettings.getProperty(ExportSettings.KEY_CAPTURE_ID);
-        }
-        return baseFileName;
-    }
-
-    protected File imageToTempFile(BufferedImage image, ExportSettings exportSettings) throws IOException {
-        File file = new File(Ginj.getTempDir(), exportSettings.getProperty(ExportSettings.KEY_CAPTURE_ID) + ".png");
-        ImageIO.write(image, "png", file);
-        file.deleteOnExit();
-        return file;
-    }
 
     /**
      * Copy the given String to the clipboard
@@ -50,14 +32,13 @@ public abstract class GinjExporter {
         });
     }
 
+
     /**
-     * Exports the given image
+     * Exports the given capture
      *
-     * @param image          the image to export
-     * @param exportSettings a set of properties that could contain exporter-specific parameters
+     * @param capture        the capture to export
+     * @param accountNumber  the accountNumber to export this capture to (if relevant)
      * @return true if export completed, or false otherwise
      */
-    public abstract boolean exportImage(BufferedImage image, ExportSettings exportSettings);
-
-
+    public abstract boolean exportCapture(Capture capture, String accountNumber);
 }

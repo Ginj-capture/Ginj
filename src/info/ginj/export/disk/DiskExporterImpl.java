@@ -1,16 +1,18 @@
 package info.ginj.export.disk;
 
+import info.ginj.Capture;
 import info.ginj.Ginj;
 import info.ginj.Prefs;
-import info.ginj.export.ExportSettings;
 import info.ginj.export.GinjExporter;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -23,15 +25,14 @@ public class DiskExporterImpl extends GinjExporter {
     }
 
     /**
-     * Exports the given image to disk
+     * Saves the given capture to disk
      *
-     * @param image          the image to export
-     * @param exportSettings a set of properties that could contain exporter- and session- specific parameters
+     * @param capture        the capture to export
+     * @param accountNumber  (ignored)
      * @return true if export completed, or false otherwise
      */
     @Override
-    public boolean exportImage(BufferedImage image, ExportSettings exportSettings) {
-
+    public boolean exportCapture(Capture capture, String accountNumber) {
         // Determine where to save the file
         boolean askForLocation = Prefs.isTrue(Prefs.Key.USE_CUSTOM_LOCATION);
         String saveDirName;
@@ -57,7 +58,7 @@ public class DiskExporterImpl extends GinjExporter {
             }
         }
         // Default file
-        File file = new File(saveDirName, getBaseFileName(exportSettings) + ".png");
+        File file = new File(saveDirName, capture.getDefaultName() + ".png");
 
         if (askForLocation) {
             JFileChooser fileChooser = null;
@@ -86,7 +87,15 @@ public class DiskExporterImpl extends GinjExporter {
         }
 
         try {
-            ImageIO.write(image, "png", file);
+            if (capture.getFile() != null) {
+                try (FileChannel source = new FileInputStream(capture.getFile()).getChannel();
+                     FileChannel destination = new FileOutputStream(file).getChannel()) {
+                    destination.transferFrom(source, 0, source.size());
+                }
+            }
+            else {
+                ImageIO.write(capture.getImage(), "png", file);
+            }
         }
         catch (IOException e) {
             e.printStackTrace();

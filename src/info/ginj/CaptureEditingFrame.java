@@ -1,11 +1,11 @@
 package info.ginj;
 
 import info.ginj.action.AbstractUndoableAction;
-import info.ginj.export.ExportSettings;
 import info.ginj.export.GinjExporter;
 import info.ginj.export.clipboard.ClipboardExporterImpl;
 import info.ginj.export.disk.DiskExporterImpl;
 import info.ginj.export.dropbox.DropboxExporterImpl;
+import info.ginj.export.googlephotos.GooglePhotosExporterImpl;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.arrow.ArrowTool;
 import info.ginj.tool.frame.FrameTool;
@@ -30,12 +30,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static info.ginj.export.ExportSettings.*;
-
 public class CaptureEditingFrame extends JFrame {
     public static final String EXPORT_TYPE_DISK = "disk";
     public static final String EXPORT_TYPE_SHARE = "share";
     public static final String EXPORT_TYPE_DROPBOX = "dropbox";
+    public static final String EXPORT_TYPE_GOOGLE_PHOTOS = "googlephotos";
     public static final String EXPORT_TYPE_CLIPBOARD = "clipboard";
 
     public static final int TOOL_BUTTON_ICON_WIDTH = 24;
@@ -208,6 +207,9 @@ public class CaptureEditingFrame extends JFrame {
         GinjLowerButton dropboxButton = new GinjLowerButton("Share on Dropbox", Util.createIcon(getClass().getResource("img/icon/dropbox.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         dropboxButton.addActionListener(e -> onExport(EXPORT_TYPE_DROPBOX));
         buttonBar.add(dropboxButton);
+        GinjLowerButton googlePhotosButton = new GinjLowerButton("Share on Google Photos", Util.createIcon(getClass().getResource("img/icon/googlephotos.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        googlePhotosButton.addActionListener(e -> onExport(EXPORT_TYPE_GOOGLE_PHOTOS));
+        buttonBar.add(googlePhotosButton);
         GinjLowerButton saveButton = new GinjLowerButton("Save", Util.createIcon(getClass().getResource("img/icon/save.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         saveButton.addActionListener(e -> onExport(EXPORT_TYPE_DISK));
         buttonBar.add(saveButton);
@@ -434,6 +436,9 @@ public class CaptureEditingFrame extends JFrame {
             case EXPORT_TYPE_DROPBOX:
                 exporter = new DropboxExporterImpl(this);
                 break;
+            case EXPORT_TYPE_GOOGLE_PHOTOS:
+                exporter = new GooglePhotosExporterImpl(this);
+                break;
             case EXPORT_TYPE_DISK:
                 exporter = new DiskExporterImpl(this);
                 break;
@@ -444,11 +449,14 @@ public class CaptureEditingFrame extends JFrame {
 
         // Perform export
         if (exporter != null) {
-            final ExportSettings exportSettings = new ExportSettings();
-            exportSettings.put(KEY_CAPTURE_ID, captureId);
-            exportSettings.put(KEY_CAPTURE_NAME, nameTextField.getText());
-            exportSettings.put(KEY_ACCOUNT_NUMBER, String.valueOf(1));
-            if (exporter.exportImage(renderedImage, exportSettings)) {
+            Capture capture = new Capture();
+            capture.setType(Capture.CaptureType.IMAGE);
+            capture.setId(captureId);
+            capture.setImage(renderedImage);
+            capture.setName(nameTextField.getText());
+
+            // TODO account number
+            if (exporter.exportCapture(capture, "1")) {
                 // Store image in history, no matter the export type
                 saveInHistory();
                 // and close Window

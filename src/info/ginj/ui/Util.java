@@ -27,6 +27,10 @@ public class Util {
     public static final Color HANDLE_GREY_3_COLOR = new Color(180, 180, 180, 128);
     public static final Color HANDLE_GREY_4_COLOR = new Color(136, 136, 136, 128);
 
+    // Used for web pages
+    public static final Color LABEL_BACKGROUND_COLOR = new Color(27, 29, 30);
+    public static final Color LABEL_FOREGROUND_COLOR = new Color(222, 165, 5);
+
     /**
      * Lay out components of a Panel and compute its size, like pack() for a Window.
      * This method computes the size of the given panel by adding it to a temporary window.
@@ -227,8 +231,12 @@ public class Util {
         return editorPane;
     }
 
-    public static void alertExeption(JFrame frame, String title, String messagePrefix, Exception e) {
+    public static void alertException(JFrame frame, String title, String messagePrefix, Exception e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(frame, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information.", title, JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void alertError(JFrame frame, String title, String message) {
+        JOptionPane.showMessageDialog(frame, message, title, JOptionPane.ERROR_MESSAGE);
     }
 }

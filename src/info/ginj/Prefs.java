@@ -26,8 +26,11 @@ public class Prefs {
         // EXPORTER_DROPBOX_EXPIRES_AT("exporter.dropbox.expires.at.", "The end of validity for the Dropbox access token", false),
         // EXPORTER_DROPBOX_REFRESH_TOKEN("exporter.dropbox.refresh.token.", "The token required to refresh the Dropbox access token", false),
         EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX("exporter.dropbox.access.token.", "The token required to access Dropbox", false),
-        EXPORTER_DROPBOX_CREATE_LINK_PREFIX("exporter.dropbox.create.link.", "If true, a public shared link is created and copied to the clipboard after upload", true);
-        ;
+        EXPORTER_DROPBOX_CREATE_LINK_PREFIX("exporter.dropbox.create.link.", "If true, a public shared link is created and copied to the clipboard after upload", true),
+        EXPORTER_GOOGLE_PHOTOS_ACCESS_TOKEN_PREFIX("exporter.googlephotos.access.token.", "The last token received to access with Google Photos", false),
+        EXPORTER_GOOGLE_PHOTOS_ACCESS_EXPIRY_PREFIX("exporter.googlephotos.access.expiry.", "The expiry time of the token used to access Google Photos", false),
+        EXPORTER_GOOGLE_PHOTOS_REFRESH_TOKEN_PREFIX("exporter.googlephotos.refresh.token.", "The token to use to request a new access token for Google Photos", false),
+        EXPORTER_GOOGLE_PHOTOS_JING_ALBUM_ID_PREFIX("exporter.googlephotos.album.id.", "The ID of the Jing album", false);
 
         private final String keyString;
         private final String help;

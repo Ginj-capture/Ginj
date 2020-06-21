@@ -1,9 +1,9 @@
 open module Ginj {
     requires java.desktop;
     requires dropbox.core.sdk;
-    requires google.photos.library.client;
-    requires gax;
-    requires com.google.auth;
-    requires com.google.auth.oauth2;
-    requires com.google.common;
+    requires jdk.httpserver;
+    requires java.net.http;
+    requires httpclient5;
+    requires httpcore5;
+    requires com.google.gson;
 }

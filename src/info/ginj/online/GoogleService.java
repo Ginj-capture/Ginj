@@ -413,7 +413,7 @@ public abstract class GoogleService {
                 checkResponse(error, code, scopes);
                 // Send response
                 sendResponse(httpExchange, HTML_BODY_OPEN + "<h1>Authorization received.</h1>"
-                        + "<p>Congratulations! " + Ginj.getAppName() + " is now authorized upload and share your captures on your " + getServiceName() + " account.<br/>"
+                        + "<p>Congratulations! " + Ginj.getAppName() + " is now authorized to upload and share your captures on your " + getServiceName() + " account.<br/>"
                         + "You can revoke these authorizations at any time by visiting <a href=\"https://myaccount.google.com/permissions\">https://myaccount.google.com/permissions</a>.</p>"
                         + "<p>You may now close this Window.</p>" + BODY_HTML_CLOSE);
                 if (receivedCode == null) {

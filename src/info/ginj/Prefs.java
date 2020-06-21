@@ -134,6 +134,9 @@ public class Prefs {
         set(key, Util.colorToHex(color));
     }
 
+    public static void remove(Key key) {
+        preferences.remove(key);
+    }
 
 
     public static String getWithSuffix(Key key, String suffix) {
@@ -163,9 +166,12 @@ public class Prefs {
         preferences.setProperty(key.keyString + suffix, value);
     }
 
-
     public static void setColorWithSuffix(Key key, String suffix, Color color) {
         setWithSuffix(key, suffix, Util.colorToHex(color));
+    }
+
+    public static void removeWithSuffix(Key key, String suffix) {
+        preferences.remove(key.keyString + suffix);
     }
 
 }

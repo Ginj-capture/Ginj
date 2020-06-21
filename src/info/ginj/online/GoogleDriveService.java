@@ -11,7 +11,7 @@ public class GoogleDriveService extends GoogleService implements OnlineService {
     private static final String[] GOOGLE_DRIVE_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/drive"};
 
     @Override
-    protected String getServiceName() {
+    public String getServiceName() {
         return "Google Drive";
     }
 
@@ -30,11 +30,6 @@ public class GoogleDriveService extends GoogleService implements OnlineService {
 
     protected Prefs.Key getAccessExpiryKeyPrefix() {
         return Prefs.Key.EXPORTER_GOOGLE_DRIVE_ACCESS_EXPIRY_PREFIX;
-    }
-
-    @Override
-    public void checkAuthorized(String accountNumber) throws CommunicationException, AuthorizationException {
-        // TODO
     }
 
     @Override

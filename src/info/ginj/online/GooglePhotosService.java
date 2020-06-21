@@ -77,26 +77,27 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
         }
 
         // Step 1: Retrieve Ginj album ID, or create it if needed
+        // TODO one album per media / per day / per Ginj session / globally ?
         final String albumId = getGinjAlbumId(accountNumber);
 
         // Step 2: Upload bytes
         final String uploadToken = uploadFileBytes(file, accountNumber);
 
-        // Step 3: Create a media item in a Ginj album
+        // Step 3: Create a media item in a Ginj album -- unfortunately mediaId seems to be useless...
         String mediaId = createMediaItem(capture, accountNumber, albumId, uploadToken);
 
         // Step 4: Share the album (one cannot share a single media using the API) and return its link
-        return shareMedia(mediaId, accountNumber);
+        return shareAlbum(albumId, accountNumber);
     }
 
 
     /**
      * Implements https://developers.google.com/photos/library/reference/rest/v1/albums/share
      */
-    private String shareMedia(String id, String accountNumber) throws AuthorizationException, CommunicationException {
+    private String shareAlbum(String albumId, String accountNumber) throws AuthorizationException, CommunicationException {
         CloseableHttpClient client = HttpClients.createDefault();
 
-        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/albums/" + id + ":share");
+        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/albums/" + albumId + ":share");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
         httpPost.addHeader("Content-type", "application/json");
@@ -117,7 +118,7 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new AuthorizationException("Could not parse media sharing response as String: " + response.getEntity());
+                    throw new AuthorizationException("Could not parse album sharing response as String: " + response.getEntity());
                 }
 
                 ShareResult shareResult = new Gson().fromJson(responseText, ShareResult.class);
@@ -125,11 +126,11 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
                 return shareResult.getShareInfo().getShareableUrl();
             }
             else {
-                throw new CommunicationException("Server returned code " + getResponseError(response) + " when sharing media");
+                throw new CommunicationException("Server returned an error when sharing album: " + getResponseError(response));
             }
         }
         catch (IOException e) {
-            throw new CommunicationException("Error sharing media", e);
+            throw new CommunicationException("Error sharing album", e);
         }
     }
 
@@ -187,7 +188,7 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
                 return mediaItemResult.getMediaItem().getId();
             }
             else {
-                throw new UploadException("Server returned code " + getResponseError(response) + " when creating media");
+                throw new UploadException("Server returned an error when creating media: " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -270,7 +271,7 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
                 return album.id;
             }
             else {
-                throw new CommunicationException("Server returned code " + getResponseError(response) + " when creating album");
+                throw new CommunicationException("Server returned an error when creating album: " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -311,7 +312,7 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
                 return albumList.getNextPageToken();
             }
             else {
-                throw new CommunicationException("Server returned code " + getResponseError(response) + " when listing albums");
+                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -342,18 +343,13 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
                 }
             }
             else {
-                throw new UploadException("Server returned code " + getResponseError(response) + " when uploading file contents");
+                throw new UploadException("Server returned an error when uploading file contents: " + getResponseError(response));
             }
         }
         catch (IOException e) {
             throw new UploadException("Error uploading file contents", e);
         }
         return uploadToken;
-    }
-
-    @Override
-    public void checkAuthorized(String accountNumber) throws CommunicationException, AuthorizationException {
-        getGinjAlbumId(accountNumber);
     }
 
 

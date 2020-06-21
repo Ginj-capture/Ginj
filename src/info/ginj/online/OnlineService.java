@@ -7,11 +7,13 @@ import info.ginj.online.exception.UploadException;
 
 public interface OnlineService {
 
-    public void authorize(String accountNumber) throws AuthorizationException;
+    String getServiceName();
 
-    public void abortAuthorization();
+    void authorize(String accountNumber) throws AuthorizationException;
 
-    void checkAuthorized(String accountNumber) throws CommunicationException, AuthorizationException;
+    void abortAuthorization();
+
+    void checkAuthorizations(String accountNumber) throws CommunicationException, AuthorizationException;
 
     /**
      * Upload a capture to the online service and return its URL
@@ -22,5 +24,5 @@ public interface OnlineService {
      * @throws UploadException
      * @throws CommunicationException
      */
-    public String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException;
+    String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException;
 }

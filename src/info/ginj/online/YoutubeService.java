@@ -11,7 +11,7 @@ public class YoutubeService extends GoogleService implements OnlineService {
     private static final String[] YOUTUBE_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/youtube.upload"};
 
     @Override
-    protected String getServiceName() {
+    public String getServiceName() {
         return "Youtube";
     }
 
@@ -30,11 +30,6 @@ public class YoutubeService extends GoogleService implements OnlineService {
 
     protected Prefs.Key getAccessExpiryKeyPrefix() {
         return Prefs.Key.EXPORTER_YOUTUBE_ACCESS_EXPIRY_PREFIX;
-    }
-
-    @Override
-    public void checkAuthorized(String accountNumber) throws CommunicationException, AuthorizationException {
-        // TODO
     }
 
     @Override

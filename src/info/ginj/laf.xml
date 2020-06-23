@@ -168,40 +168,43 @@
     <bind style="Check Box" type="region" key="CheckBox" />
 
     <!-- The style for radio button. -->
-    <style id="Radio Button">
+    <style id="RadioButtonStyle">
         <property key="RadioButton.margin" type="insets" value="2 2 2 2"/>
+        <state>
+            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
+        </state>
         <state value="ENABLED">
-            <imageIcon id="Radio_Button_Normal" path="resource/1252458931609_radio_enabled.png"/>
+            <imageIcon id="Radio_Button_Normal" path="img/laf/radio_enabled.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Normal"/>
             <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="MOUSE_OVER">
-            <imageIcon id="Radio_Button_MouseOver" path="resource/1252458949640_radio_mouseover.png"/>
+            <imageIcon id="Radio_Button_MouseOver" path="img/laf/radio_mouseover.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_MouseOver"/>
             <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="PRESSED">
-            <imageIcon id="Radio_Button_Pressed" path="resource/1252458961921_radio_pressed.png"/>
+            <imageIcon id="Radio_Button_Pressed" path="img/laf/radio_pressed.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Pressed"/>
             <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED">
-            <imageIcon id="Radio_Button_Disabled" path="resource/1252458992640_radio_disabled.png"/>
+            <imageIcon id="Radio_Button_Disabled" path="img/laf/radio_disabled.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Disabled"/>
             <color type="TEXT_FOREGROUND" value="#999999"/>
         </state>
         <state value="SELECTED">
-            <imageIcon id="Radio_Button_Selected" path="resource/1252458981875_radio_selected.png"/>
+            <imageIcon id="Radio_Button_Selected" path="img/laf/radio_selected.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Selected"/>
             <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED and SELECTED">
-            <imageIcon id="Radio_Button_Disabled_Selected" path="resource/1264211465625_radio_disabled_selected.png"/>
+            <imageIcon id="Radio_Button_Disabled_Selected" path="img/laf/radio_disabled_selected.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Disabled_Selected"/>
             <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
     </style>
-    <bind style="Radio Button" type="region" key="RadioButton" />
+    <bind style="RadioButtonStyle" type="region" key="RadioButton" />
 
     <!-- The style for color chooser component. -->
     <style id="Color Chooser">

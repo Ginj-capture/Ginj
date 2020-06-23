@@ -42,7 +42,7 @@ public class Prefs {
         EXPORTER_YOUTUBE_ACCESS_EXPIRY_PREFIX("exporter.youtube.access.expiry.", "The expiry time of the token used to access Youtube", false),
         EXPORTER_YOUTUBE_REFRESH_TOKEN_PREFIX("exporter.youtube.refresh.token.", "The token to use to request a new access token to Youtube", false),
 
-        EXPORTER_GOOGLE_PHOTOS_JING_ALBUM_ID_PREFIX("exporter.googlephotos.album.id.", "The ID of the Jing album", false);
+        EXPORTER_GOOGLE_PHOTOS_ALBUM_GRANULARITY("exporter.googlephotos.album.granularity.", "One Google Photo album will be created by... (APP, DAY, SESSION, NAME, CAPTURE)" , true);
 
         private final String keyString;
         private final String help;

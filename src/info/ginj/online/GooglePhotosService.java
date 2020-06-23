@@ -26,8 +26,11 @@ import org.apache.hc.core5.net.URIBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static info.ginj.Ginj.DATE_FORMAT_PATTERN;
 
 /**
  * Handles interaction with Google Photos service
@@ -65,6 +68,15 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
     }
 
 
+    /**
+     * Upload a capture to the Google Photo service and return the URL of the shared album containing the item.
+     * @param capture The object representing the captured screenshot or video
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @return a public URL to share to give access to the uploaded media.
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
+     * @throws UploadException if an upload-specfic error occurs
+     */
     @Override
     public String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least)
@@ -76,28 +88,156 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
             throw new UploadException("Error preparing file to upload", e);
         }
 
+        final CloseableHttpClient client = HttpClients.createDefault();
+
         // Step 1: Retrieve Ginj album ID, or create it if needed
-        // TODO one album per media / per day / per Ginj session / globally ?
-        final String albumId = getGinjAlbumId(accountNumber);
+        // + Share the album (one cannot share a single media using the API)
+        final Album album = getOrCreateAlbum(client, accountNumber, capture);
 
         // Step 2: Upload bytes
-        final String uploadToken = uploadFileBytes(file, accountNumber);
+        final String uploadToken = uploadFileBytes(client, accountNumber, file);
 
-        // Step 3: Create a media item in a Ginj album -- unfortunately mediaId seems to be useless...
-        String mediaId = createMediaItem(capture, accountNumber, albumId, uploadToken);
+        // Step 3: Create a media item in the album
 
-        // Step 4: Share the album (one cannot share a single media using the API) and return its link
-        return shareAlbum(albumId, accountNumber);
+        @SuppressWarnings("unused")
+        String mediaId = createMediaItem(client, accountNumber, capture, album.getId(), uploadToken);
+        // Unfortunately, mediaId seems to be useless as we can only share the album...
+
+
+        return album.getShareInfo().getShareableUrl();
+    }
+
+    /**
+     * Retrieves the album to upload image to, or create it if needed.
+     * Also checks the album is shared, or shares it if needed.
+     *
+     * @param client the {@link CloseableHttpClient}
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @param capture The object representing the captured screenshot or video
+     * @return the retrieved or created album
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
+     */
+    private Album getOrCreateAlbum(CloseableHttpClient client, String accountNumber, Capture capture) throws AuthorizationException, CommunicationException {
+
+        // Determine target album accorging to "granularity" preference:
+        // Single album / One per day / One per Ginj session / One per capture name / one per capture id
+        String granularity = Prefs.getWithSuffix(Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ALBUM_GRANULARITY, accountNumber, "APP");
+        String albumName = Ginj.getAppName() + switch (granularity) {
+            case "APP" -> "";
+            case "DAY" -> "_" + DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(LocalDateTime.now());
+            case "SESSION" -> "_SESS_" + Ginj.getSession();
+            case "NAME" -> "_" + capture.getName();
+            case "CAPTURE" -> "_ID_" + capture.getId();
+            default -> throw new IllegalStateException("Unexpected granularity: " + granularity);
+        };
+
+        // Try to find the album in the list of existing albums
+        Album album = getAlbumByName(client, accountNumber, albumName);
+
+        // See if we found it
+        if (album != null) {
+            // Yes. See if it is shared
+            if (album.getShareInfo() == null || album.getShareInfo().getShareableUrl() == null) {
+                // No, share it
+                shareAlbum(client, accountNumber, album);
+            }
+        }
+        else {
+            // Not found. Create it
+            album = createAlbum(client, accountNumber, albumName);
+
+            shareAlbum(client, accountNumber, album);
+        }
+
+        return album;
     }
 
 
     /**
-     * Implements https://developers.google.com/photos/library/reference/rest/v1/albums/share
+     * List all application albums and return the one with the given name.
+     *
+     * @param client the {@link CloseableHttpClient}
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @param albumName the album name to find
+     * @return the album found, or null if not found
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
      */
-    private String shareAlbum(String albumId, String accountNumber) throws AuthorizationException, CommunicationException {
-        CloseableHttpClient client = HttpClients.createDefault();
+    private Album getAlbumByName(CloseableHttpClient client, String accountNumber, String albumName) throws AuthorizationException, CommunicationException {
+        AlbumList albumList = null;
+        do {
+            albumList = getNextAlbumPage(client, accountNumber, (albumList==null)?null:albumList.getNextPageToken());
+            for (Album candidate : albumList.albums) {
+                if (albumName.equals(candidate.title)) {
+                    return candidate;
+                }
+            }
+        }
+        while (albumList.getNextPageToken() != null);
 
-        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/albums/" + albumId + ":share");
+        // Not found
+        return null;
+    }
+
+    /**
+     * List a page of albums
+     * Implements https://developers.google.com/photos/library/reference/rest/v1/albums/list
+     * @param client the {@link CloseableHttpClient}
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @param pageToken the token to access a given page in the iteration, or null to start
+     * @return a page of albums
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
+     */
+    private AlbumList getNextAlbumPage(CloseableHttpClient client, String accountNumber, String pageToken) throws AuthorizationException, CommunicationException {
+        HttpGet httpGet;
+        try {
+            URIBuilder builder = new URIBuilder("https://photoslibrary.googleapis.com/v1/albums");
+            builder.setParameter("excludeNonAppCreatedData", String.valueOf(true)); // only list app-created albums (default=false)
+            // builder.setParameter("pageSize", "10"); // (default is 20)
+            if (pageToken != null) builder.setParameter("pageToken", pageToken);
+            httpGet = new HttpGet(builder.build());
+        }
+        catch (URISyntaxException e) {
+            throw new CommunicationException(e);
+        }
+
+        httpGet.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpGet.addHeader("Content-type", "application/json");
+
+        try {
+            CloseableHttpResponse response = client.execute(httpGet);
+            if (isStatusOK(response.getCode())) {
+                final String responseText;
+                try {
+                    responseText = EntityUtils.toString(response.getEntity());
+                }
+                catch (ParseException e) {
+                    throw new CommunicationException("Could not parse album list response as String: " + response.getEntity());
+                }
+                return new Gson().fromJson(responseText, AlbumList.class);
+            }
+            else {
+                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+            }
+        }
+        catch (IOException e) {
+            throw new CommunicationException(e);
+        }
+    }
+
+    /**
+     * Shares the given album
+     * Implements https://developers.google.com/photos/library/reference/rest/v1/albums/share
+     * @param client the {@link CloseableHttpClient}
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @param album the album to share. Will be modified to include ShareInfo once shared.
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
+     */
+    private void shareAlbum(CloseableHttpClient client, String accountNumber, Album album) throws AuthorizationException, CommunicationException {
+        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/albums/" + album.id + ":share");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
         httpPost.addHeader("Content-type", "application/json");
@@ -123,7 +263,10 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
 
                 ShareResult shareResult = new Gson().fromJson(responseText, ShareResult.class);
 
-                return shareResult.getShareInfo().getShareableUrl();
+                // Transplant the shareinfo to the given album
+                album.setShareInfo(shareResult.getShareInfo());
+
+                // and return it.
             }
             else {
                 throw new CommunicationException("Server returned an error when sharing album: " + getResponseError(response));
@@ -134,8 +277,151 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
         }
     }
 
-    private String createMediaItem(Capture capture, String accountNumber, String albumId, String uploadToken) throws AuthorizationException, UploadException {
-        CloseableHttpClient client = HttpClients.createDefault();
+    /**
+     * Retrieve a specific album.
+     * Implements https://developers.google.com/photos/library/reference/rest/v1/albums/get
+     * @param client the {@link CloseableHttpClient}
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @param albumId the ID of the album to retrieve
+     * @return the retrieved album
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
+     */
+    @SuppressWarnings("unused")
+    private Album getAlbumById(CloseableHttpClient client, String accountNumber, String albumId) throws AuthorizationException, CommunicationException {
+        HttpGet httpGet = new HttpGet("https://photoslibrary.googleapis.com/v1/albums/" + albumId);
+
+        httpGet.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpGet.addHeader("Content-type", "application/json");
+
+        try {
+            CloseableHttpResponse response = client.execute(httpGet);
+            if (isStatusOK(response.getCode())) {
+                final String responseText;
+                try {
+                    responseText = EntityUtils.toString(response.getEntity());
+                }
+                catch (ParseException e) {
+                    throw new CommunicationException("Could not parse album list response as String: " + response.getEntity());
+                }
+                return new Gson().fromJson(responseText, Album.class);
+            }
+            else {
+                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+            }
+        }
+        catch (IOException e) {
+            throw new CommunicationException(e);
+        }
+    }
+
+    /**
+     * Create an application album with the given name.
+     * Implements https://developers.google.com/photos/library/reference/rest/v1/albums/create
+     * @param client the {@link CloseableHttpClient}
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @param albumName the name of the album to create
+     * @return the created album
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
+     */
+    private Album createAlbum(CloseableHttpClient client, String accountNumber, String albumName) throws AuthorizationException, CommunicationException {
+        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/albums");
+
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Content-type", "application/json");
+
+        Album album = new Album();
+        album.setTitle(albumName);
+
+        final Gson gson = new Gson();
+        JsonObject json = new JsonObject();
+        json.add("album", gson.toJsonTree(album));
+
+        String jsonString = gson.toJson(json);
+
+        httpPost.setEntity(new StringEntity(jsonString));
+
+        try {
+            CloseableHttpResponse response = client.execute(httpPost);
+            if (isStatusOK(response.getCode())) {
+                final String responseText;
+                try {
+                    responseText = EntityUtils.toString(response.getEntity());
+                }
+                catch (ParseException e) {
+                    throw new CommunicationException("Could not parse album creation response as String: " + response.getEntity());
+                }
+                // Parse response back
+                return gson.fromJson(responseText, Album.class);
+            }
+            else {
+                throw new CommunicationException("Server returned an error when creating album: " + getResponseError(response));
+            }
+        }
+        catch (IOException e) {
+            throw new CommunicationException(e);
+        }
+    }
+
+    /**
+     * Upload the captured file contents to Google Photos.
+     * TODO implement chunks - see https://developers.google.com/photos/library/guides/resumable-uploads
+     * Implements https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
+     *
+     * @param client the {@link CloseableHttpClient}
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @param file to upload
+     * @return the uploadToken to be used to link this content to a media
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
+     * @throws UploadException if an upload-specfic error occurs
+     */
+    private String uploadFileBytes(CloseableHttpClient client, String accountNumber, File file) throws AuthorizationException, UploadException, CommunicationException {
+        String uploadToken;
+
+        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/uploads");
+
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Content-type", "application/octet-stream");
+        httpPost.addHeader("X-Goog-Upload-Content-Type", "mime-type");
+        httpPost.addHeader("X-Goog-Upload-Protocol", "raw");
+
+        httpPost.setEntity(new FileEntity(file, ContentType.APPLICATION_OCTET_STREAM));
+        try {
+            CloseableHttpResponse response = client.execute(httpPost);
+            if (isStatusOK(response.getCode())) {
+                try {
+                    uploadToken = EntityUtils.toString(response.getEntity());
+                }
+                catch (ParseException e) {
+                    throw new AuthorizationException("Could not parse media upload response as String: " + response.getEntity());
+                }
+            }
+            else {
+                throw new UploadException("Server returned an error when uploading file contents: " + getResponseError(response));
+            }
+        }
+        catch (IOException e) {
+            throw new CommunicationException("Error uploading file contents", e);
+        }
+        return uploadToken;
+    }
+
+    /**
+     * Creates a media entry in the given application album.
+     * Implements https://developers.google.com/photos/library/reference/rest/v1/mediaItems/batchCreate
+     * @param client the {@link CloseableHttpClient}
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @param capture The object representing the captured screenshot or video
+     * @param albumId The ID of the album to create the capture in
+     * @param uploadToken The token to the actual contents uploaded using uploadFileBytes
+     * @return the ID of the created media
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
+     * @throws UploadException if an upload-specfic error occurs
+     */
+    private String createMediaItem(CloseableHttpClient client, String accountNumber, Capture capture, String albumId, String uploadToken) throws AuthorizationException, UploadException, CommunicationException {
 
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate");
 
@@ -192,171 +478,17 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
             }
         }
         catch (IOException e) {
-            throw new UploadException("Error creating media", e);
+            throw new CommunicationException("Error creating media", e);
         }
     }
 
-    /**
-     * Retrieves the Ginj album id, or create it if needed
-     *
-     * @param accountNumber
-     * @return
-     */
-    private String getGinjAlbumId(String accountNumber) throws AuthorizationException, CommunicationException {
-        String albumId = Prefs.getWithSuffix(Prefs.Key.EXPORTER_GOOGLE_PHOTOS_JING_ALBUM_ID_PREFIX, accountNumber);
-        if (albumId == null || albumId.isBlank()) {
-
-            // Try to find application album in the list of existing albums
-
-            CloseableHttpClient client = HttpClients.createDefault();
-            String pageToken = null;
-            List<Album> albums = new ArrayList<>();
-
-            do {
-                pageToken = getNextAlbumPage(accountNumber, client, pageToken, albums);
-            }
-            while (pageToken != null);
-
-            for (Album album : albums) {
-                if (Ginj.getAppName().equals(album.title)) {
-                    System.out.println("FOUND! " + album.id + " : " + album.title);
-                    albumId = album.title;
-                }
-                else {
-                    System.out.println("(" + album.id + " : " + album.title + ")");
-                }
-            }
-
-            if (albumId == null || albumId.isBlank()) {
-                // Not found. Create it
-                albumId = createGinjAlbum(accountNumber, client);
-            }
-
-            // remember album id
-            Prefs.setWithSuffix(Prefs.Key.EXPORTER_GOOGLE_PHOTOS_JING_ALBUM_ID_PREFIX, accountNumber, albumId);
-            Prefs.save();
-        }
-        return albumId;
-    }
-
-    private String createGinjAlbum(String accountNumber, CloseableHttpClient client) throws AuthorizationException, CommunicationException {
-        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/albums");
-
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
-        httpPost.addHeader("Content-type", "application/json");
-
-        Album album = new Album();
-        album.setTitle(Ginj.getAppName());
-
-        final Gson gson = new Gson();
-        JsonObject json = new JsonObject();
-        json.add("album", gson.toJsonTree(album));
-
-        String jsonString = gson.toJson(json);
-
-        httpPost.setEntity(new StringEntity(jsonString));
-
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
-            if (isStatusOK(response.getCode())) {
-                final String responseText;
-                try {
-                    responseText = EntityUtils.toString(response.getEntity());
-                }
-                catch (ParseException e) {
-                    throw new CommunicationException("Could not parse album creation response as String: " + response.getEntity());
-                }
-                // Parse response back
-                album = gson.fromJson(responseText, Album.class);
-                return album.id;
-            }
-            else {
-                throw new CommunicationException("Server returned an error when creating album: " + getResponseError(response));
-            }
-        }
-        catch (IOException e) {
-            throw new CommunicationException(e);
-        }
-    }
-
-    private String getNextAlbumPage(String accountNumber, CloseableHttpClient client, String pageToken, List<Album> albums) throws AuthorizationException, CommunicationException {
-        HttpGet httpGet;
-        try {
-            URIBuilder builder = new URIBuilder("https://photoslibrary.googleapis.com/v1/albums");
-            builder.setParameter("excludeNonAppCreatedData", String.valueOf(false)); // optional, default is false  TODO set true
-            builder.setParameter("pageSize", "10"); // optional, default is 20 TODO leave default
-            if (pageToken != null) builder.setParameter("pageToken", pageToken); // Needed to scroll f
-            httpGet = new HttpGet(builder.build());
-        }
-        catch (URISyntaxException e) {
-            throw new CommunicationException(e);
-        }
-
-        httpGet.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
-        httpGet.addHeader("Content-type", "application/json");
-
-        try {
-            CloseableHttpResponse response = client.execute(httpGet);
-            if (isStatusOK(response.getCode())) {
-                final String responseText;
-                try {
-                    responseText = EntityUtils.toString(response.getEntity());
-                }
-                catch (ParseException e) {
-                    throw new CommunicationException("Could not parse album list response as String: " + response.getEntity());
-                }
-                AlbumList albumList = new Gson().fromJson(responseText, AlbumList.class);
-                if (albumList.albums != null) {
-                    albums.addAll(albumList.albums);
-                }
-                return albumList.getNextPageToken();
-            }
-            else {
-                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
-            }
-        }
-        catch (IOException e) {
-            throw new CommunicationException(e);
-        }
-    }
-
-    private String uploadFileBytes(File file, String accountNumber) throws AuthorizationException, UploadException {
-        String uploadToken;
-        CloseableHttpClient client = HttpClients.createDefault();
-
-        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/uploads");
-
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
-        httpPost.addHeader("Content-type", "application/octet-stream");
-        httpPost.addHeader("X-Goog-Upload-Content-Type", "mime-type");
-        httpPost.addHeader("X-Goog-Upload-Protocol", "raw");
-
-        httpPost.setEntity(new FileEntity(file, ContentType.APPLICATION_OCTET_STREAM));
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
-            if (isStatusOK(response.getCode())) {
-                try {
-                    uploadToken = EntityUtils.toString(response.getEntity());
-                }
-                catch (ParseException e) {
-                    throw new AuthorizationException("Could not parse media upload response as String: " + response.getEntity());
-                }
-            }
-            else {
-                throw new UploadException("Server returned an error when uploading file contents: " + getResponseError(response));
-            }
-        }
-        catch (IOException e) {
-            throw new UploadException("Error uploading file contents", e);
-        }
-        return uploadToken;
-    }
 
 
     ////////////////////////////////////////////////////
-    // Autogenerated pojos for complex Json parsing
+    // Autogenerated pojos for (non-Map) Json parsing
     // Created by http://jsonschema2pojo.org
     ////////////////////////////////////////////////////
+
 
     @SuppressWarnings("unused")
     public static class MediaCreationResponse {
@@ -583,98 +715,29 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
     }
 
 
-    ////////////////////
-    // Album-related
-
-    @SuppressWarnings("unused")
-    public static class Album {
-
-        @SerializedName("id")
-        @Expose
-        private String id;
-        @SerializedName("title")
-        @Expose
-        private String title;
-        @SerializedName("productUrl")
-        @Expose
-        private String productUrl;
-        @SerializedName("mediaItemsCount")
-        @Expose
-        private String mediaItemsCount;
-        @SerializedName("coverPhotoBaseUrl")
-        @Expose
-        private String coverPhotoBaseUrl;
-        @SerializedName("coverPhotoMediaItemId")
-        @Expose
-        private String coverPhotoMediaItemId;
-
-        /**
-         * No args constructor for use in serialization
-         */
-        public Album() {
-        }
-
-        public Album(String id, String title, String productUrl, String mediaItemsCount, String coverPhotoBaseUrl, String coverPhotoMediaItemId) {
-            super();
-            this.id = id;
-            this.title = title;
-            this.productUrl = productUrl;
-            this.mediaItemsCount = mediaItemsCount;
-            this.coverPhotoBaseUrl = coverPhotoBaseUrl;
-            this.coverPhotoMediaItemId = coverPhotoMediaItemId;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public String getProductUrl() {
-            return productUrl;
-        }
-
-        public void setProductUrl(String productUrl) {
-            this.productUrl = productUrl;
-        }
-
-        public String getMediaItemsCount() {
-            return mediaItemsCount;
-        }
-
-        public void setMediaItemsCount(String mediaItemsCount) {
-            this.mediaItemsCount = mediaItemsCount;
-        }
-
-        public String getCoverPhotoBaseUrl() {
-            return coverPhotoBaseUrl;
-        }
-
-        public void setCoverPhotoBaseUrl(String coverPhotoBaseUrl) {
-            this.coverPhotoBaseUrl = coverPhotoBaseUrl;
-        }
-
-        public String getCoverPhotoMediaItemId() {
-            return coverPhotoMediaItemId;
-        }
-
-        public void setCoverPhotoMediaItemId(String coverPhotoMediaItemId) {
-            this.coverPhotoMediaItemId = coverPhotoMediaItemId;
-        }
-
-    }
-
-
+    /**
+     * AlbumList example
+     * {
+     *   "albums": [
+     *     {
+     *       "id": "ABWT9pnV2YqWyhiUj4oTewsezef9BLHEyRIdNyXx6rkvwjc0gMzsl6la2CY5R_YD9JllYuOBP_OJ",
+     *       "title": "Ginj",
+     *       "productUrl": "https://photos.google.com/lr/album/ABWT9pnV2YqWyhiUj4oTewsezef9BLHEyRIdNyXx6rkvwjc0gMzsl6la2CY5R_YD9JllYuOBP_OJ",
+     *       "isWriteable": true,
+     *       "shareInfo": {
+     *         "sharedAlbumOptions": {},
+     *         "shareableUrl": "https://photos.app.goo.gl/4uskYMvDvdSfHPTD7",
+     *         "shareToken": "AOVP0rSljkRvVA9-0d0R4GsAp3WlH9zLEr3x8BoAoHdBMLA8qOe2UQnvS3PSL4_SjtpDu8dtebMlAxteF1AADUx6vrP9Xnr6vztdhHynJqFrY-QzXAwDXpTu9kWVmhkBLTg",
+     *         "isJoined": true,
+     *         "isOwned": true
+     *       },
+     *       "mediaItemsCount": "8",
+     *       "coverPhotoBaseUrl": "https://lh3.googleusercontent.com/lr/AFBm1_Zo4K2OVb-vCI1LEty3Ec7l8HemK_gJfjT1bSaISMnq8_pRe-jm7m92d6WBovPX59M7mYHQ1NSpaF842AOBYiJvT6XrIJaksi1TZNCZdcIq2MiU3AB3VZiGmVla9Vjk-HA-C2VQjHQhiIXobNZbaPcyyRSJOGKxAlSQ7lzXvglD_5VajflbWNpGATLNtZaE-JjwWRqL8pLUKsY3FfUFcqVe1olT143Tpfz6HL85mp1vqWCCQYgNkjkdyTT2vnMtMECQpRJMvGyEDPOzZn7TWCR4aRm_HrpNSy8spGAlkzUK7eVEnQmTAQq1bJEvD3jT8kLBJVCGu5yBe6BsnVWFAu4mXySS2ZJA6cohfn7p3S_gLNqCj2wPYPJOsjdUtID7IGYqssuhwNxA54xv__JZysJ6g9a8bwlD340JuZo0aZqqzP1GzJ7nC4YkauG7b33U9GzAOMy5Ed7R8XZElrIi6yyW1NX9VpQbslbDhrNdQ8LrWzkMZLD7hl4Gd5SL_-pjcsIv-BDu64XYqd_PLlUPhJ_hsFjZZQlxsbanlad0tSZuDhJZwnYzVwDm2lJPOPsTFZUTyaLO1etSd-RTbUnCVzXzSMz8Og-x6C426m5L1vYWG6ub1RVR_Yt2bBximegIUPwv4MApxRqzHV57zB2Wjnsy6_Zw3EtLtdLRaCdo8RYkO0qL09TtvgHHkgFb4pMEYp4oE5m9ay7AKtt6W2hzcNKUq5ziN3n46xK8a8qAzzdiyXvBasUSCy_MfBeYzq20oOGhiqTN9ccS_af3-pIbIHvMWwwNO4s1V-vmuLbQ-CYqRHmRZv3dDm_cFAxGWAs6aw",
+     *       "coverPhotoMediaItemId": "ABWT9pl3-DjE3dCouIYTnOSeTUUtDH3chFO0lU82ZdsIA0FwUpyTyJT0jUqckemBl4RoHZrLQMEsYfeBa4A9S0YJJVFbFdw0LQ"
+     *     }
+     *   ]
+     * }
+     */
     @SuppressWarnings("unused")
     public static class AlbumList {
 
@@ -714,24 +777,163 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
         }
     }
 
+    @SuppressWarnings("unused")
+    public static class Album {
 
-    ///////////////////////
-    //  Sharing result
-    //  Example:
-    //
-    //    {
-    //        "shareInfo":
-    //        {
-    //            "sharedAlbumOptions": {
-    //              "isCollaborative": false,
-    //              "isCommentable": false
-    //            },
-    //            "shareableUrl": "http://fqsdfsd.com",
-    //            "shareToken": "12345sqsd",
-    //            "isJoined": false,
-    //            "isOwned": true
-    //        }
-    //    }
+        @SerializedName("id")
+        @Expose
+        private String id;
+        @SerializedName("title")
+        @Expose
+        private String title;
+        @SerializedName("productUrl")
+        @Expose
+        private String productUrl;
+        @SerializedName("isWriteable")
+        @Expose
+        private Boolean isWriteable;
+        @SerializedName("shareInfo")
+        @Expose
+        private ShareInfo shareInfo;
+        @SerializedName("mediaItemsCount")
+        @Expose
+        private String mediaItemsCount;
+        @SerializedName("coverPhotoBaseUrl")
+        @Expose
+        private String coverPhotoBaseUrl;
+        @SerializedName("coverPhotoMediaItemId")
+        @Expose
+        private String coverPhotoMediaItemId;
+
+        /**
+         * No args constructor for use in serialization
+         *
+         */
+        public Album() {
+        }
+
+        public Album(String id, String title, String productUrl, Boolean isWriteable, ShareInfo shareInfo, String mediaItemsCount, String coverPhotoBaseUrl, String coverPhotoMediaItemId) {
+            super();
+            this.id = id;
+            this.title = title;
+            this.productUrl = productUrl;
+            this.isWriteable = isWriteable;
+            this.shareInfo = shareInfo;
+            this.mediaItemsCount = mediaItemsCount;
+            this.coverPhotoBaseUrl = coverPhotoBaseUrl;
+            this.coverPhotoMediaItemId = coverPhotoMediaItemId;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public String getProductUrl() {
+            return productUrl;
+        }
+
+        public void setProductUrl(String productUrl) {
+            this.productUrl = productUrl;
+        }
+
+        public Boolean getIsWriteable() {
+            return isWriteable;
+        }
+
+        public void setIsWriteable(Boolean isWriteable) {
+            this.isWriteable = isWriteable;
+        }
+
+        public ShareInfo getShareInfo() {
+            return shareInfo;
+        }
+
+        public void setShareInfo(ShareInfo shareInfo) {
+            this.shareInfo = shareInfo;
+        }
+
+        public String getMediaItemsCount() {
+            return mediaItemsCount;
+        }
+
+        public void setMediaItemsCount(String mediaItemsCount) {
+            this.mediaItemsCount = mediaItemsCount;
+        }
+
+        public String getCoverPhotoBaseUrl() {
+            return coverPhotoBaseUrl;
+        }
+
+        public void setCoverPhotoBaseUrl(String coverPhotoBaseUrl) {
+            this.coverPhotoBaseUrl = coverPhotoBaseUrl;
+        }
+
+        public String getCoverPhotoMediaItemId() {
+            return coverPhotoMediaItemId;
+        }
+
+        public void setCoverPhotoMediaItemId(String coverPhotoMediaItemId) {
+            this.coverPhotoMediaItemId = coverPhotoMediaItemId;
+        }
+
+    }
+
+    /**
+     * ShareResult example:
+     *
+     * {
+     *     "shareInfo":
+     *     {
+     *         "sharedAlbumOptions": {
+     *         "isCollaborative": false,
+     *                 "isCommentable": false
+     *     },
+     *         "shareableUrl": "http://fqsdfsd.com",
+     *             "shareToken": "12345sqsd",
+     *             "isJoined": false,
+     *             "isOwned": true
+     *     }
+     * }
+     */
+    @SuppressWarnings("unused")
+    public static class ShareResult {
+
+        @SerializedName("shareInfo")
+        @Expose
+        private ShareInfo shareInfo;
+
+        /**
+         * No args constructor for use in serialization
+         */
+        public ShareResult() {
+        }
+
+        public ShareResult(ShareInfo shareInfo) {
+            super();
+            this.shareInfo = shareInfo;
+        }
+
+        public ShareInfo getShareInfo() {
+            return shareInfo;
+        }
+
+        public void setShareInfo(ShareInfo shareInfo) {
+            this.shareInfo = shareInfo;
+        }
+
+    }
 
 
     @SuppressWarnings("unused")
@@ -810,33 +1012,6 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
 
     }
 
-    @SuppressWarnings("unused")
-    public static class ShareResult {
-
-        @SerializedName("shareInfo")
-        @Expose
-        private ShareInfo shareInfo;
-
-        /**
-         * No args constructor for use in serialization
-         */
-        public ShareResult() {
-        }
-
-        public ShareResult(ShareInfo shareInfo) {
-            super();
-            this.shareInfo = shareInfo;
-        }
-
-        public ShareInfo getShareInfo() {
-            return shareInfo;
-        }
-
-        public void setShareInfo(ShareInfo shareInfo) {
-            this.shareInfo = shareInfo;
-        }
-
-    }
 
     @SuppressWarnings("unused")
     public static class SharedAlbumOptions {

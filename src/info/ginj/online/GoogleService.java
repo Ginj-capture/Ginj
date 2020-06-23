@@ -52,7 +52,6 @@ public abstract class GoogleService {
     public static final int PORT_GINJ = 6193;
     public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + Util.colorToHex(Util.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + Util.colorToHex(Util.LABEL_FOREGROUND_COLOR) + ";} a{color:" + Util.colorToHex(Util.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";
-    public static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd_HH_mm_ss";
     private static final String GOOGLE_CLIENT_APP_ID = "805469689820-c3drai5blocq5ae120md067te73ejv49.apps.googleusercontent.com";
     private static final String GOOGLE_NOT_SO_SECRET_CLIENT_APP_KEY = "2guKmYBdrb1nhGkMgdSrbeXl"; // "In this context, the client secret is obviously not treated as a secret." ( https://developers.google.com/identity/protocols/oauth2 )
     private static String verifier;
@@ -249,7 +248,7 @@ public abstract class GoogleService {
                 if (accessToken != null && expiresIn != null && refreshToken != null) {
 
                     LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(expiresIn.longValue());
-                    String expiryTimeStr = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(expiryTime);
+                    String expiryTimeStr = DateTimeFormatter.ofPattern(Ginj.DATETIME_FORMAT_PATTERN).format(expiryTime);
 
                     Prefs.setWithSuffix(getAccessTokenKeyPrefix(), accountNumber, accessToken);
                     Prefs.setWithSuffix(getAccessExpiryKeyPrefix(), accountNumber, expiryTimeStr);
@@ -277,7 +276,7 @@ public abstract class GoogleService {
         }
 
         // Let's take a 1-minute security margin
-        String nowStr = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(LocalDateTime.now().plusMinutes(1));
+        String nowStr = DateTimeFormatter.ofPattern(Ginj.DATETIME_FORMAT_PATTERN).format(LocalDateTime.now().plusMinutes(1));
         if (nowStr.compareTo(expiryStr) > 0) {
             // Token is expired (or will be in 1 minute). Ask a new one
             accessToken = refreshAccessToken(accountNumber);
@@ -333,7 +332,7 @@ public abstract class GoogleService {
 
                 if (accessToken != null && expiresIn != null) {
                     LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(expiresIn.longValue());
-                    String expiryTimeStr = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(expiryTime);
+                    String expiryTimeStr = DateTimeFormatter.ofPattern(Ginj.DATETIME_FORMAT_PATTERN).format(expiryTime);
 
                     Prefs.setWithSuffix(getAccessTokenKeyPrefix(), accountNumber, accessToken);
                     Prefs.setWithSuffix(getAccessExpiryKeyPrefix(), accountNumber, expiryTimeStr);

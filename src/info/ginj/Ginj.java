@@ -39,6 +39,8 @@ import javax.swing.*;
 import javax.swing.plaf.synth.SynthLookAndFeel;
 import java.awt.*;
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -54,9 +56,13 @@ public class Ginj {
     public static final int ERR_STATUS_LOAD_IMG = -3;
     public static final int ERR_STATUS_OK = 0;
 
+    public static final String DATETIME_FORMAT_PATTERN = "yyyy-MM-dd_HH-mm-ss";
+    public static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+
     // caching
-    public static FutureTask<JFileChooser> futureFileChooser;
+    private static final String session = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(LocalDateTime.now());
     private static File tempDir;
+    public static FutureTask<JFileChooser> futureFileChooser;
 
     public static void main(String[] args) {
         // Determine what the GraphicsDevice can support.
@@ -125,5 +131,9 @@ public class Ginj {
 
     public static String getVersion() {
         return "0.1";
+    }
+
+    public static String getSession() {
+        return session;
     }
 }

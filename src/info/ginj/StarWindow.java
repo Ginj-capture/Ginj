@@ -410,8 +410,10 @@ public class StarWindow extends JWindow {
 
 
     private void onHistory() {
-        // TODO
-        JOptionPane.showMessageDialog(null, "Not implemented yet", "History", JOptionPane.INFORMATION_MESSAGE);
+        //JOptionPane.showMessageDialog(null, "Not implemented yet", "History", JOptionPane.INFORMATION_MESSAGE);
+        HistoryFrame historyFrame = new HistoryFrame();
+        historyFrame.setLocationRelativeTo(null);
+        historyFrame.setVisible(true);
     }
 
 

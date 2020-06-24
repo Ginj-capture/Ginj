@@ -58,6 +58,12 @@
             <int>140</int><int>125</int><int>100</int><int>255</int>
         </object>
         <defaultsProperty key="TitledBorder.titleColor" type="idref" value="TitledBorder_TextColor"/>
+        <state>
+            <!-- Default color -->
+            <!-- Note that removing this default color makes non-hovered radio button texts black. Don't ask why. -->
+            <!-- Radio buttons should react to TEXT_FOREGROUND, but even setting it to white in all states keeps using black for non-hovered, unselected... -->
+            <color type="FOREGROUND" value="#FFFFFF"/>
+        </state>
     </style>
     <bind style="Default" type="region" key=".*" />
 
@@ -170,38 +176,33 @@
     <!-- The style for radio button. -->
     <style id="RadioButtonStyle">
         <property key="RadioButton.margin" type="insets" value="2 2 2 2"/>
-        <state>
-            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
-        </state>
+        <imageIcon id="Radio_Button_Normal" path="img/laf/radio_enabled.png"/>
+        <imageIcon id="Radio_Button_MouseOver" path="img/laf/radio_mouseover.png"/>
+        <imageIcon id="Radio_Button_Pressed" path="img/laf/radio_pressed.png"/>
+        <imageIcon id="Radio_Button_Disabled" path="img/laf/radio_disabled.png"/>
+        <imageIcon id="Radio_Button_Selected" path="img/laf/radio_selected.png"/>
+        <imageIcon id="Radio_Button_Disabled_Selected" path="img/laf/radio_disabled_selected.png"/>
         <state value="ENABLED">
-            <imageIcon id="Radio_Button_Normal" path="img/laf/radio_enabled.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Normal"/>
-            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="MOUSE_OVER">
-            <imageIcon id="Radio_Button_MouseOver" path="img/laf/radio_mouseover.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_MouseOver"/>
-            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="PRESSED">
-            <imageIcon id="Radio_Button_Pressed" path="img/laf/radio_pressed.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Pressed"/>
-            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED">
-            <imageIcon id="Radio_Button_Disabled" path="img/laf/radio_disabled.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Disabled"/>
             <color type="TEXT_FOREGROUND" value="#999999"/>
         </state>
         <state value="SELECTED">
-            <imageIcon id="Radio_Button_Selected" path="img/laf/radio_selected.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Selected"/>
-            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
+        </state>
+        <state value="MOUSE_OVER and SELECTED">
+            <property key="RadioButton.icon" type="idref" value="Radio_Button_Selected"/>
         </state>
         <state value="DISABLED and SELECTED">
-            <imageIcon id="Radio_Button_Disabled_Selected" path="img/laf/radio_disabled_selected.png"/>
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Disabled_Selected"/>
-            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
     </style>
     <bind style="RadioButtonStyle" type="region" key="RadioButton" />

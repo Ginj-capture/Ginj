@@ -29,7 +29,7 @@ public class ClipboardExporterImpl extends GinjExporter {
      */
     @Override
     public boolean exportCapture(Capture capture, String accountNumber) {
-        if (capture.getType() == Capture.CaptureType.VIDEO) {
+        if (capture.isVideo()) {
             Util.alertError(getFrame(), "Export error", "Video contents cannot be copied to the clipboard");
             return false;
         }

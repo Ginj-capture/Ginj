@@ -450,7 +450,7 @@ public class CaptureEditingFrame extends JFrame {
         // Perform export
         if (exporter != null) {
             Capture capture = new Capture();
-            capture.setType(Capture.CaptureType.IMAGE);
+            capture.setVideo(false);
             capture.setId(captureId);
             capture.setImage(renderedImage);
             capture.setName(nameTextField.getText());

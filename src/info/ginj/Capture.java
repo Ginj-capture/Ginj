@@ -10,13 +10,11 @@ import java.io.IOException;
  */
 public class Capture {
 
-    public enum CaptureType {IMAGE,VIDEO}
-
     String id;
     String name;
     File file;
     BufferedImage image;
-    CaptureType type;
+    boolean isVideo;
 
     public String getId() {
         return id;
@@ -50,12 +48,18 @@ public class Capture {
         this.image = image;
     }
 
-    public CaptureType getType() {
-        return type;
+    public boolean isVideo() {
+        return isVideo;
     }
 
-    public void setType(CaptureType type) {
-        this.type = type;
+    public void setVideo(boolean video) {
+        this.isVideo = video;
+    }
+
+    // Utils
+
+    public String getType() {
+        return isVideo ?"Video":"Image";
     }
 
     /**

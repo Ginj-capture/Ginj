@@ -16,14 +16,11 @@ import info.ginj.ui.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.MouseInputAdapter;
-import javax.swing.event.MouseInputListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -69,11 +66,13 @@ public class CaptureEditingFrame extends JFrame {
         this.setTitle(Ginj.getAppName() + " Preview");
         // this.setIconImage(); TODO
 
-        // Make it transparent
+        // No window title bar or border.
+        // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
         setUndecorated(true);
+        // Make it transparent
         setBackground(new Color(0, 0, 0, 0));
         // Add default "draggable window" behaviour
-        addDraggableWindowMouseBehaviour(this);
+        Util.addDraggableWindowMouseBehaviour(this, this);
 
 
         // Prepare main image panel first because it will be needed in ActionHandlers
@@ -341,27 +340,6 @@ public class CaptureEditingFrame extends JFrame {
             updateColorButtonIcon();
         });
     }
-
-    private void addDraggableWindowMouseBehaviour(CaptureEditingFrame frame) {
-        MouseInputListener mouseListener = new MouseInputAdapter() {
-            Point clicked;
-
-            public void mousePressed(MouseEvent e) {
-                clicked = e.getPoint();
-            }
-
-            public void mouseDragged(MouseEvent e) {
-                Point position = e.getPoint();
-                Point location = frame.getLocation();
-                int x = location.x - clicked.x + position.x;
-                int y = location.y - clicked.y + position.y;
-                frame.setLocation(x, y);
-            }
-        };
-        frame.addMouseListener(mouseListener);
-        frame.addMouseMotionListener(mouseListener);
-    }
-
 
     private void refreshUndoRedoButtons() {
         undoButton.setEnabled(undoManager.canUndo());

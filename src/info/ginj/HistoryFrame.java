@@ -1,12 +1,10 @@
 package info.ginj;
 
 import info.ginj.ui.GinjLabel;
+import info.ginj.ui.Util;
 
 import javax.swing.*;
-import javax.swing.event.MouseInputAdapter;
-import javax.swing.event.MouseInputListener;
 import java.awt.*;
-import java.awt.event.MouseEvent;
 
 public class HistoryFrame extends JFrame {
 
@@ -17,9 +15,9 @@ public class HistoryFrame extends JFrame {
         this.setTitle(Ginj.getAppName() + " History");
         // this.setIconImage(); TODO
 
-        // Make it transparent
+        // No window title bar or border.
+        // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
         setUndecorated(true);
-        setBackground(new Color(0, 0, 0, 0));
 
         final Container contentPane = getContentPane();
         contentPane.setLayout(new GridBagLayout());
@@ -32,7 +30,7 @@ public class HistoryFrame extends JFrame {
         JLabel testLabel = new JLabel("History");
         titleBar.add(testLabel, BorderLayout.CENTER);
         JButton closeButton = new JButton("X");
-        closeButton.addActionListener(e -> {dispose();});
+        closeButton.addActionListener(e -> onClose());
         titleBar.add(closeButton, BorderLayout.EAST);
 
         c = new GridBagConstraints();
@@ -93,7 +91,7 @@ public class HistoryFrame extends JFrame {
         contentPane.add(statusPanel, c);
 
         // Add default "draggable window" behaviour
-        addDraggableWindowMouseBehaviour(this, titleBar);
+        Util.addDraggableWindowMouseBehaviour(this, titleBar);
 
         // Lay out components again
         pack();
@@ -103,34 +101,8 @@ public class HistoryFrame extends JFrame {
     }
 
 
-    private void addDraggableWindowMouseBehaviour(HistoryFrame frame, JComponent handle) {
-        MouseInputListener mouseListener = new MouseInputAdapter() {
-            Point clicked;
-
-            public void mousePressed(MouseEvent e) {
-                clicked = e.getPoint();
-            }
-
-            public void mouseDragged(MouseEvent e) {
-                Point position = e.getPoint();
-                Point location = frame.getLocation();
-                int x = location.x - clicked.x + position.x;
-                int y = location.y - clicked.y + position.y;
-                frame.setLocation(x, y);
-            }
-        };
-        handle.addMouseListener(mouseListener);
-        handle.addMouseMotionListener(mouseListener);
-    }
-
-
-
-    private void onCancel() {
+    private void onClose() {
         // Close window
         dispose();
-    }
-
-    private void onCustomize() {
-        // TODO
     }
 }

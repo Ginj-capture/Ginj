@@ -3,10 +3,13 @@ package info.ginj.ui;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.MouseInputListener;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.awt.color.ColorSpace;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.io.IOException;
@@ -238,5 +241,25 @@ public class Util {
 
     public static void alertError(JFrame frame, String title, String message) {
         JOptionPane.showMessageDialog(frame, message, title, JOptionPane.ERROR_MESSAGE);
+    }
+
+    public static void addDraggableWindowMouseBehaviour(JFrame frame, Component handle) {
+        MouseInputListener mouseListener = new MouseInputAdapter() {
+            Point clicked;
+
+            public void mousePressed(MouseEvent e) {
+                clicked = e.getPoint();
+            }
+
+            public void mouseDragged(MouseEvent e) {
+                Point position = e.getPoint();
+                Point location = frame.getLocation();
+                int x = location.x - clicked.x + position.x;
+                int y = location.y - clicked.y + position.y;
+                frame.setLocation(x, y);
+            }
+        };
+        handle.addMouseListener(mouseListener);
+        handle.addMouseMotionListener(mouseListener);
     }
 }

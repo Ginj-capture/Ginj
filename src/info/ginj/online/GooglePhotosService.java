@@ -17,14 +17,16 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -34,8 +36,7 @@ import static info.ginj.Ginj.DATE_FORMAT_PATTERN;
 
 /**
  * Handles interaction with Google Photos service
- * See also
- * https://developers.google.com/photos/library/guides/authorization
+ * See also https://developers.google.com/photos/library/guides/authorization
  * <p>
  * TODO: when creating account, remember to tell user that Ginj medias are uploaded in full quality and will count in the user quota
  * TODO: videos must be max 10GB
@@ -44,6 +45,7 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
 
     // "Access to create an album, share it, upload media items to it, and join a shared album."
     private static final String[] GOOGLE_PHOTOS_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/photoslibrary.appendonly", "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata", "https://www.googleapis.com/auth/photoslibrary.sharing"};
+    public static final ByteArrayEntity EMPTY_ENTITY = new ByteArrayEntity(new byte[]{}, ContentType.APPLICATION_OCTET_STREAM);
 
     @Override
     public String getServiceName() {
@@ -79,10 +81,9 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
      */
     @Override
     public String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException {
-        // We need an actual file (for now at least)
-        final File file;
+        // We need an actual file (for now at least). Make sure we have or create one
         try {
-            file = capture.toFile();
+            capture.toFile();
         }
         catch (IOException e) {
             throw new UploadException("Error preparing file to upload", e);
@@ -95,14 +96,12 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
         final Album album = getOrCreateAlbum(client, accountNumber, capture);
 
         // Step 2: Upload bytes
-        final String uploadToken = uploadFileBytes(client, accountNumber, file);
+        final String uploadToken = uploadFileBytes(client, accountNumber, capture);
 
         // Step 3: Create a media item in the album
-
         @SuppressWarnings("unused")
         String mediaId = createMediaItem(client, accountNumber, capture, album.getId(), uploadToken);
         // Unfortunately, mediaId seems to be useless as we can only share the album...
-
 
         return album.getShareInfo().getShareableUrl();
     }
@@ -119,7 +118,6 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
      * @throws CommunicationException if an url, network or decoding error occurs
      */
     private Album getOrCreateAlbum(CloseableHttpClient client, String accountNumber, Capture capture) throws AuthorizationException, CommunicationException {
-
         // Determine target album accorging to "granularity" preference:
         // Single album / One per day / One per Ginj session / One per capture name / one per capture id
         String granularity = Prefs.getWithSuffix(Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ALBUM_GRANULARITY, accountNumber, "APP");
@@ -133,6 +131,7 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
         };
 
         // Try to find the album in the list of existing albums
+        logProgress("Getting album", 6);
         Album album = getAlbumByName(client, accountNumber, albumName);
 
         // See if we found it
@@ -140,13 +139,17 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
             // Yes. See if it is shared
             if (album.getShareInfo() == null || album.getShareInfo().getShareableUrl() == null) {
                 // No, share it
+                logProgress("Sharing album", 8);
                 shareAlbum(client, accountNumber, album);
             }
         }
         else {
             // Not found. Create it
+            logProgress("Creating album", 5);
             album = createAlbum(client, accountNumber, albumName);
 
+            // And, share it
+            logProgress("Sharing album", 4);
             shareAlbum(client, accountNumber, album);
         }
 
@@ -366,7 +369,6 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
 
     /**
      * Upload the captured file contents to Google Photos.
-     * TODO implement chunks - see https://developers.google.com/photos/library/guides/resumable-uploads
      * Implements https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
      *
      * @param client the {@link CloseableHttpClient}
@@ -377,7 +379,7 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
      * @throws CommunicationException if an url, network or decoding error occurs
      * @throws UploadException if an upload-specfic error occurs
      */
-    private String uploadFileBytes(CloseableHttpClient client, String accountNumber, File file) throws AuthorizationException, UploadException, CommunicationException {
+    private String uploadFileBytesSimple(CloseableHttpClient client, String accountNumber, File file) throws AuthorizationException, UploadException, CommunicationException {
         String uploadToken;
 
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/uploads");
@@ -395,7 +397,7 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
                     uploadToken = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new AuthorizationException("Could not parse media upload response as String: " + response.getEntity());
+                    throw new CommunicationException("Could not parse media upload response as String: " + response.getEntity());
                 }
             }
             else {
@@ -405,6 +407,138 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
         catch (IOException e) {
             throw new CommunicationException("Error uploading file contents", e);
         }
+        return uploadToken;
+    }
+
+    /**
+     * Upload the captured file contents to Google Photos in "resumable" mode
+     * Implements https://developers.google.com/photos/library/guides/resumable-uploads
+     *
+     * @param client the {@link CloseableHttpClient}
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @param capture to upload
+     * @return the uploadToken to be used to link this content to a media
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
+     * @throws UploadException if an upload-specfic error occurs
+     */
+    private String uploadFileBytes(CloseableHttpClient client, String accountNumber, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
+        String uploadToken = null;
+
+        final File file = capture.getFile();
+
+        // Step 1: Initiating an upload session
+        logProgress("Uploading", 10);
+        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/uploads");
+
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
+        httpPost.addHeader("X-Goog-Upload-Command", "start");
+        httpPost.addHeader("X-Goog-Upload-Content-Type", capture.isVideo() ? "video/mp4" : "image/png");
+        httpPost.addHeader("X-Goog-Upload-File-Name", capture.getName());
+        httpPost.addHeader("X-Goog-Upload-Protocol", "resumable");
+        httpPost.addHeader("X-Goog-Upload-Raw-Size", file.length());
+
+        String uploadUrl;
+        int chunkGranularityBytes;
+
+        httpPost.setEntity(EMPTY_ENTITY);
+
+        try {
+            CloseableHttpResponse response = client.execute(httpPost);
+            if (isStatusOK(response.getCode())) {
+                try {
+                    final Header uploadUrlHeader = response.getHeader("X-Goog-Upload-URL");
+                    final Header chunkGranularityHeader = response.getHeader("X-Goog-Upload-Chunk-Granularity");
+                    if (uploadUrlHeader != null && chunkGranularityHeader != null) {
+                        // Step 2: "Saving" the session URL
+                        uploadUrl = uploadUrlHeader.getValue();
+                        try {
+                            chunkGranularityBytes = Integer.parseInt(chunkGranularityHeader.getValue());
+                        }
+                        catch (NumberFormatException e) {
+                            throw new CommunicationException("Could not parse X-Goog-Upload-Chunk-Granularity=" + chunkGranularityHeader.getValue() + " as integer");
+                        }
+                    }
+                    else {
+                        throw new CommunicationException("Server did not return the expected headers: X-Goog-Upload-URL=" + uploadUrlHeader + " and X-Goog-Upload-Chunk-Granularity=" + chunkGranularityHeader);
+                    }
+                }
+                catch (ProtocolException e) {
+                    throw new CommunicationException("Protocol exception initializing upload: " + response.getEntity());
+                }
+            }
+            else {
+                throw new UploadException("Server returned an error when uploading file contents: " + getResponseError(response));
+            }
+        }
+        catch (IOException e) {
+            throw new CommunicationException("Error uploading file contents", e);
+        }
+
+        // Step 3: Uploading the file
+
+        int maxChunkSize = 262144; // 256k
+        maxChunkSize = (maxChunkSize/chunkGranularityBytes) * chunkGranularityBytes;
+        byte[] buffer = new byte[maxChunkSize];
+        int offset = 0;
+        long remainingBytes = file.length();
+        InputStream is;
+        try {
+            is = new FileInputStream(file);
+        }
+        catch (FileNotFoundException e) {
+            throw new UploadException("File not found: " + file.getAbsolutePath());
+        }
+        while (remainingBytes > 0) {
+            String command = (remainingBytes > maxChunkSize) ? "upload" : "upload, finalize";
+            int chunkSize = (int) Math.min(maxChunkSize, remainingBytes);
+            final int bytesRead;
+            try {
+                bytesRead = is.read(buffer, offset, chunkSize);
+            }
+            catch (IOException e) {
+                throw new UploadException("Could not read bytes from file");
+            }
+
+            logProgress("Uploading", (int) (10 + (80 * offset)/file.length()));
+
+            httpPost = new HttpPost(uploadUrl);
+            httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+            //httpPost.addHeader("Content-Length", chunkSize); // Don't put it here, it causes a "dupe header" error as there is an entity.
+            httpPost.addHeader("X-Goog-Upload-Command", command);
+            httpPost.addHeader("X-Goog-Upload-Offset", offset);
+
+            httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
+
+            try {
+                CloseableHttpResponse response = client.execute(httpPost);
+                if (isStatusOK(response.getCode())) {
+                    try {
+                        uploadToken = EntityUtils.toString(response.getEntity());
+                    }
+                    catch (ParseException e) {
+                        throw new CommunicationException("Could not parse media upload response as String: " + response.getEntity());
+                    }
+                }
+                else {
+                    final String responseError = getResponseError(response);
+                    if ((response.getCode() / 100) == 5) {
+                        // Error 5xx
+                        throw new UploadException("Resuming not implemented yet: " + responseError);
+                    }
+                    throw new UploadException("Server returned an error when uploading file contents: " + responseError);
+                }
+            }
+            catch (IOException e) {
+                throw new CommunicationException("Error uploading file contents", e);
+            }
+
+
+            offset += bytesRead;
+            remainingBytes = file.length() - offset;
+        }
+
         return uploadToken;
     }
 
@@ -423,6 +557,7 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
      */
     private String createMediaItem(CloseableHttpClient client, String accountNumber, Capture capture, String albumId, String uploadToken) throws AuthorizationException, UploadException, CommunicationException {
 
+        logProgress("Creating media", 95);
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));

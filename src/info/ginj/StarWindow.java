@@ -410,6 +410,22 @@ public class StarWindow extends JWindow {
 
 
     private void onHistory() {
+//        ExportFrame historyFrame = new ExportFrame(this, null, null);
+//
+//        Thread t = new Thread(() -> {
+//            int i = 1;
+//            try {
+//                while (i <= 100) {
+//                    historyFrame.log("Making progress... " + i, i, i * 500, 50000);
+//                    i++;
+//                    Thread.sleep(100);
+//                }
+//                historyFrame.complete("Complete");
+//            } catch (InterruptedException ex) {
+//                historyFrame.log("Cancelled");
+//            }
+//        });
+//        t.start();
         HistoryFrame historyFrame = new HistoryFrame();
         historyFrame.setVisible(true);
     }

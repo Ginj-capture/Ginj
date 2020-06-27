@@ -48,7 +48,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * <p>
  * TODO: only keep a single HttpClient ?
  */
-public abstract class GoogleService {
+public abstract class GoogleService extends AbstractOnlineService {
     public static final int PORT_GINJ = 6193;
     public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + Util.colorToHex(Util.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + Util.colorToHex(Util.LABEL_FOREGROUND_COLOR) + ";} a{color:" + Util.colorToHex(Util.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";
@@ -107,6 +107,7 @@ public abstract class GoogleService {
             // Step 2: Send a request to Google's OAuth 2.0 server
 
             // Open that page in the user's default browser
+            logProgress("Launching browser");
             Desktop.getDesktop().browse(new URI(url));
 
             // (Step 3: Google prompts user for consent)
@@ -119,7 +120,7 @@ public abstract class GoogleService {
                 //noinspection BusyWait
                 Thread.sleep(100);
             }
-            // When we get here, it's because of either abort requested, response received, or time-out
+            // When we get here, it's because of either an abort request, a response, or a time-out
             if (!abortRequested) {
                 if (receivedCode != null) {
                     // Step 5: Exchange authorization code for refresh and access tokens
@@ -155,6 +156,7 @@ public abstract class GoogleService {
     }
 
     public void checkAuthorizations(String accountNumber) throws CommunicationException, AuthorizationException {
+        logProgress("Checking authorizations", 2);
         CloseableHttpClient client = HttpClients.createDefault();
         HttpGet httpGet;
         try {
@@ -215,6 +217,8 @@ public abstract class GoogleService {
     }
 
     private void exchangeCodeForTokens(String code, String accountNumber) throws AuthorizationException {
+        logProgress("Getting tokens");
+
         CloseableHttpClient client = HttpClients.createDefault();
 
         HttpPost httpPost = new HttpPost("https://oauth2.googleapis.com/token");

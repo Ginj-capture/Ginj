@@ -29,21 +29,27 @@ public class DropboxExporterImpl extends GinjExporter {
         super(frame);
     }
 
+    @Override
+    public boolean prepare(Capture capture, String accountNumber) {
+        logProgress("Checking authorization", 5);
+        return authorizeIfNeeded(accountNumber);
+    }
+
     /**
      * Exports the given capture
+     * This method is run in its own thread and should not access the GUI directly. All interaction
+     * should go through synchronized objects or be enclosed in a SwingUtilities.invokeLater() logic
+     *
+     * TODO re-implement using home-made http layer
      *
      * @param capture        the capture to export
      * @param accountNumber  the accountNumber to export this capture to
-     * @return true if export completed, or false otherwise
      */
     @Override
-    public boolean exportCapture(Capture capture, String accountNumber) {
+    public void exportCapture(Capture capture, String accountNumber) {
+        logProgress("Preparing pload", 10);
         final String targetFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + ".png";
         try {
-            if (!authenticateIfNeeded(accountNumber)) {
-                return false;
-            }
-
             String accessToken = Prefs.getWithSuffix(Prefs.Key.EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX, accountNumber);
             DbxRequestConfig config = new DbxRequestConfig(Ginj.getAppName() + "/" + Ginj.getVersion());
             DbxClientV2 client = new DbxClientV2(config, accessToken); // TODO move to exportSettings to support multi-account
@@ -53,37 +59,39 @@ public class DropboxExporterImpl extends GinjExporter {
             final File fileToUpload = capture.toFile();
             if (fileToUpload.length() < 150_000_000) {
                 try (InputStream in = new FileInputStream(fileToUpload)) {
+                    logProgress("Uploading file", 50);
                     client.files().uploadBuilder(targetFileName).uploadAndFinish(in);
                     if (Prefs.isTrueWithSuffix(Prefs.Key.EXPORTER_DROPBOX_CREATE_LINK_PREFIX, accountNumber)) {
                         final SharedLinkMetadata sharedLinkMetadata = client.sharing().createSharedLinkWithSettings(targetFileName, new SharedLinkSettings());
-                        copyTextToClipboard(sharedLinkMetadata.getUrl());
+                        copyTextToClipboard(sharedLinkMetadata.getUrl()); // TODO make this optional ?
+                        complete("Upload successful. A link to your capture was copied to the clipboard");
                     }
-                    return true;
                 }
             }
             else {
-                throw new Exception("Upload of big files not implemented yet");
+                failed("Upload of big files not implemented yet");
             }
         }
         catch (Exception e) {
-            System.err.println("Error uploading to Dropbox: " + e.getMessage());
-            e.printStackTrace();
+            Util.alertException(getFrame(), "Upload error", "Error uploading to Dropbox: ", e);
+            failed("Upload error");
         }
-        return false;
     }
 
     /**
      * This method checks that Dropbox authentication is valid, and if not, an authentication procedure is performed.
      *
+     * TODO re-implement using home-made http layer
+     *
      * @param accountNumber the number of this account (in case multiple Dropbox accounts are configured
      * @return true if authentication was successful.
      */
-    public boolean authenticateIfNeeded(String accountNumber) {
+    public boolean authorizeIfNeeded(String accountNumber) {
         String userToken = Prefs.getWithSuffix(Prefs.Key.EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX, accountNumber);
         if (userToken != null) {
             String userName = null;
             try {
-                userName = checkAuthentication(userToken);
+                userName = checkAuthorization(userToken);
             }
             catch (Exception e) {
                 // noop
@@ -118,7 +126,7 @@ public class DropboxExporterImpl extends GinjExporter {
             try {
                 DbxAuthFinish authFinish = pkceWebAuth.finishFromCode(code);
                 userToken = authFinish.getAccessToken();
-                String userName = checkAuthentication(userToken);
+                String userName = checkAuthorization(userToken);
                 if (userName != null) {
                     Prefs.setWithSuffix(Prefs.Key.EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX, accountNumber, userToken);
                     Prefs.setWithSuffix(Prefs.Key.EXPORTER_DROPBOX_USERNAME_PREFIX, accountNumber, userName);
@@ -177,7 +185,7 @@ public class DropboxExporterImpl extends GinjExporter {
      * @return the name of the account's owner
      * @throws DbxException in case authentication failed
      */
-    private String checkAuthentication(String accessToken) throws DbxException {
+    private String checkAuthorization(String accessToken) throws DbxException {
         // Create Dropbox client
         DbxRequestConfig config = new DbxRequestConfig(Ginj.getAppName() + "/" + Ginj.getVersion());
         DbxClientV2 client = new DbxClientV2(config, accessToken);

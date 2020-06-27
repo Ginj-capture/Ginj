@@ -234,15 +234,6 @@ public class Util {
         return editorPane;
     }
 
-    public static void alertException(JFrame frame, String title, String messagePrefix, Exception e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(frame, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information.", title, JOptionPane.ERROR_MESSAGE);
-    }
-
-    public static void alertError(JFrame frame, String title, String message) {
-        JOptionPane.showMessageDialog(frame, message, title, JOptionPane.ERROR_MESSAGE);
-    }
-
     public static void addDraggableWindowMouseBehaviour(JFrame frame, Component handle) {
         MouseInputListener mouseListener = new MouseInputAdapter() {
             Point clicked;
@@ -262,4 +253,16 @@ public class Util {
         handle.addMouseListener(mouseListener);
         handle.addMouseMotionListener(mouseListener);
     }
+
+    // Convenience methods to display a message from a separate Thread
+    public static void alertException(JFrame frame, String title, String messagePrefix, Exception e) {
+        e.printStackTrace();
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information.", title, JOptionPane.ERROR_MESSAGE));
+    }
+
+    public static void alertError(JFrame frame, String title, String message) {
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, message, title, JOptionPane.ERROR_MESSAGE));
+    }
+
+
 }

@@ -1,6 +1,6 @@
 package info.ginj;
 
-import info.ginj.ui.GinjLabel;
+import info.ginj.ui.GinjBorderedLabel;
 import info.ginj.ui.Util;
 
 import javax.swing.*;
@@ -56,17 +56,19 @@ public class HistoryFrame extends JFrame {
 
 
         // Prepare an opaque panel which will fill the main display area and host the history scrollpane
+
+
+
+
+        // Note: see ListDialogRunner test
+
+
+
+
         JPanel mainPanel = new JPanel();
         mainPanel.setOpaque(true);
         mainPanel.setLayout(new GridLayout(2,1));
 
-        final JRadioButton jRadioButton = new JRadioButton("Test A");
-        jRadioButton.addActionListener(e -> {
-            System.out.println(e);
-        });
-        mainPanel.add(jRadioButton);
-
-        mainPanel.add(new JRadioButton("Test B"));
         mainPanel.setPreferredSize(new Dimension(600, 400));
 
         c = new GridBagConstraints();
@@ -81,7 +83,7 @@ public class HistoryFrame extends JFrame {
         // Prepare status bar
         JPanel statusPanel = new JPanel();
         statusPanel.setLayout(new BorderLayout());
-        final GinjLabel nameLabel = new GinjLabel("This is the history");
+        final GinjBorderedLabel nameLabel = new GinjBorderedLabel("This is the history");
         statusPanel.add(nameLabel, BorderLayout.WEST);
 
         c = new GridBagConstraints();

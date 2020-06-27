@@ -1,6 +1,6 @@
 package info.ginj;
 
-import info.ginj.ui.GinjLabel;
+import info.ginj.ui.GinjBorderedLabel;
 import info.ginj.ui.GinjLowerButton;
 import info.ginj.ui.GinjLowerButtonBar;
 import info.ginj.ui.Util;
@@ -49,7 +49,7 @@ public class CaptureSelectionFrame extends JFrame {
     private boolean isInitialSelectionDone;
 
     private final JPanel actionPanel;
-    private final GinjLabel captureSizeLabel;
+    private final GinjBorderedLabel captureSizeLabel;
     private final JButton imageButton;
     private final JButton videoButton;
 
@@ -86,7 +86,7 @@ public class CaptureSelectionFrame extends JFrame {
         final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
-        captureSizeLabel = new GinjLabel("9999 x 9999");
+        captureSizeLabel = new GinjBorderedLabel("9999 x 9999");
         buttonBar.add(captureSizeLabel);
 
         actionPanel.add(buttonBar);

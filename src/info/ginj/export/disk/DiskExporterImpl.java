@@ -4,15 +4,14 @@ import info.ginj.Capture;
 import info.ginj.Ginj;
 import info.ginj.Prefs;
 import info.ginj.export.GinjExporter;
+import info.ginj.ui.Util;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -20,19 +19,24 @@ import java.util.concurrent.ExecutionException;
  */
 public class DiskExporterImpl extends GinjExporter {
 
+    private File targetFile;
+
     public DiskExporterImpl(JFrame frame) {
         super(frame);
     }
 
     /**
-     * Saves the given capture to disk
+     * Prepares the exporter for the export.
+     * This method is run in Swing's Event Dispatching Thread before launching the actual export.
+     * If needed, we prompt user for target file.
      *
-     * @param capture        the capture to export
-     * @param accountNumber  (ignored)
-     * @return true if export completed, or false otherwise
+     * @param capture       the capture to export
+     * @param accountNumber the accountNumber to export this capture to (if relevant)
+     * @return true if we should continue, false to cancel export
      */
     @Override
-    public boolean exportCapture(Capture capture, String accountNumber) {
+    public boolean prepare(Capture capture, String accountNumber) {
+        logProgress("Determining target file", 5);
         // Determine where to save the file
         boolean askForLocation = Prefs.isTrue(Prefs.Key.USE_CUSTOM_LOCATION);
         String saveDirName;
@@ -58,60 +62,85 @@ public class DiskExporterImpl extends GinjExporter {
             }
         }
         // Default file
-        File file = new File(saveDirName, capture.getDefaultName() + ".png");
+        targetFile = new File(saveDirName, capture.getDefaultName() + ".png");
 
-        if (askForLocation) {
-            JFileChooser fileChooser = null;
-            // TODO does this bring real performance boost commpared to fileChooser = new JFileChooser(); ?
-            try {
-                fileChooser = Ginj.futureFileChooser.get();
-            }
-            catch (InterruptedException | ExecutionException e) {
-                JOptionPane.showMessageDialog(getFrame(), "Error opening file chooser: " + e.getMessage());
-                e.printStackTrace();
-            }
-            fileChooser.setDialogTitle("Save capture as...");
-            fileChooser.setAcceptAllFileFilterUsed(false);
-            fileChooser.setMultiSelectionEnabled(false);
-            fileChooser.setFileFilter(new FileNameExtensionFilter("PNG (*.png)", "png"));
-            fileChooser.setSelectedFile(file);
-
-            if (fileChooser.showSaveDialog(getFrame()) == JFileChooser.APPROVE_OPTION) {
-                file = fileChooser.getSelectedFile();
-                if (file.exists()) {
-                    if (JOptionPane.showConfirmDialog(getFrame(), "Are you sure you want to overwrite: " + file.getAbsolutePath() + "\n?", "File exists", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION) {
-                        return false;
-                    }
-                }
-            }
+        if (!askForLocation) {
+            // OK, we're done.
+            return true;
         }
 
+        // Ask for location
+        JFileChooser fileChooser;
         try {
-            if (capture.getFile() != null) {
-                try (FileChannel source = new FileInputStream(capture.getFile()).getChannel();
-                     FileChannel destination = new FileOutputStream(file).getChannel()) {
-                    destination.transferFrom(source, 0, source.size());
-                }
-            }
-            else {
-                ImageIO.write(capture.getImage(), "png", file);
-            }
+            // TODO does this bring real performance boost compared to fileChooser = new JFileChooser(); ?
+            fileChooser = Ginj.futureFileChooser.get();
         }
-        catch (IOException e) {
+        catch (InterruptedException | ExecutionException e) {
+            JOptionPane.showMessageDialog(getFrame(), "Error opening file chooser: " + e.getMessage());
             e.printStackTrace();
-            JOptionPane.showMessageDialog(getFrame(), "Encoutered an error while saving image as\n" + file.getAbsolutePath() + "\n" + e.getMessage() + "\nMore info is available on the Java console", "Save Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        fileChooser.setDialogTitle("Save capture as...");
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setFileFilter(new FileNameExtensionFilter("PNG (*.png)", "png"));
+        fileChooser.setSelectedFile(targetFile);
+
+        if (fileChooser.showSaveDialog(getFrame()) != JFileChooser.APPROVE_OPTION) {
+            // Cancelled, closed or error
             return false;
         }
 
-        if (askForLocation) {
+        targetFile = fileChooser.getSelectedFile();
+        if (!targetFile.exists()) {
+            // Selected file does not exist, go ahead
+            return true;
+        }
+
+        // File exists, return true if user accepts overwrite
+        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(getFrame(), "Are you sure you want to overwrite: " + targetFile.getAbsolutePath() + "\n?", "File exists", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     * Saves the given capture to disk
+     * This method is run in its own thread and should not access the GUI directly. All interaction
+     * should go through synchronized objects or be enclosed in a SwingUtilities.invokeLater() logic
+     *
+     * @param capture       the capture to export
+     * @param accountNumber (ignored)
+     */
+    @Override
+    public void exportCapture(Capture capture, String accountNumber) {
+        try {
+            logProgress("Saving image", 50);
+            if (capture.getImage() != null) {
+                ImageIO.write(capture.getImage(), "png", targetFile);
+            }
+            else {
+                // TODO make this a block copy loop that can be cancelled
+                Files.copy(capture.getFile().toPath(), targetFile.toPath());
+            }
+        }
+        catch (IOException e) {
+            Util.alertException(getFrame(), "Save Error", "Encountered an error while saving image as\n'" + targetFile.getAbsolutePath() + "'\n" + e.getMessage() + "\nMore info is available on the Java console", e);
+            failed("Save error");
+            return;
+        }
+
+        if (Prefs.isTrue(Prefs.Key.USE_CUSTOM_LOCATION)) {
             // Remember selected path
-            Prefs.set(Prefs.Key.LAST_CUSTOM_SAVE_LOCATION_DIR, file.getParent());
+            Prefs.set(Prefs.Key.LAST_CUSTOM_SAVE_LOCATION_DIR, targetFile.getParent());
             Prefs.save();
         }
 
-        copyTextToClipboard(file.getAbsolutePath());
-
-        return true;
+        copyTextToClipboard(targetFile.getAbsolutePath());
+        complete("Path copied to clipboard");
+        return;
     }
 
 }

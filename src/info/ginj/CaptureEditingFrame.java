@@ -13,7 +13,6 @@ import info.ginj.tool.highlight.HighlightTool;
 import info.ginj.tool.text.TextTool;
 import info.ginj.ui.*;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.UndoableEditEvent;
@@ -22,8 +21,6 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -171,7 +168,7 @@ public class CaptureEditingFrame extends JFrame {
         // Prepare name editing panel
         JPanel editPanel = new JPanel();
         editPanel.setLayout(new BorderLayout());
-        final GinjLabel nameLabel = new GinjLabel("Name ");
+        final GinjBorderedLabel nameLabel = new GinjBorderedLabel("Name ");
         editPanel.add(nameLabel, BorderLayout.WEST);
         nameTextField = new JTextField();
         editPanel.add(nameTextField, BorderLayout.CENTER);
@@ -433,43 +430,24 @@ public class CaptureEditingFrame extends JFrame {
             capture.setImage(renderedImage);
             capture.setName(nameTextField.getText());
 
+            ExportFrame exportFrame = new ExportFrame(this, capture, exporter);
+            exporter.setExportMonitor(exportFrame);
+            // Note the chicken/egg problem:
+            // - Frame needs the Exporter to start and control it
+            // - Exporter needs the Frame to update UI (progress and message)
+            // There's a risk of a circular reference preventing GC, that's why all exit points of the ExportFrame set the exporter field to null
+
+            exportFrame.setVisible(true);
+
             // TODO account number
-            if (exporter.exportCapture(capture, "1")) {
-                // Store image in history, no matter the export type
-                saveInHistory();
-                // and close Window
-                dispose();
+            if (exportFrame.startExport("1")) {
+                // Hide this window during export. It will be "re-opened" in case of failure or cancellation
+                setVisible(false);
             }
-            // Otherwise, keep the window open so that the user can perform another export
         }
         else {
             JOptionPane.showMessageDialog(this, "Cannot find an exporter for type '" + exportType + "'.", "Export error", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    private void saveInHistory() {
-        File historyFolder = new File("ZZhistoryFolder"); // TODO get from params
-        if (!historyFolder.exists()) {
-            if (!historyFolder.mkdirs()) {
-                JOptionPane.showMessageDialog(this, "Could not create history folder (" + historyFolder.getAbsolutePath() + ")", "Save error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-        // Save image
-        File file = new File(historyFolder, captureId + ".png");
-        try {
-            if (!ImageIO.write(capturedImg, "png", file)) {
-                JOptionPane.showMessageDialog(this, "Saving capture to history failed (" + file.getAbsolutePath() + ")", "Save error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, e.getMessage() + " - Full error on the console", "Save error", JOptionPane.ERROR_MESSAGE);
-        }
-
-        // TODO save overlays to XML
-
-        // TODO save thumbnail with overlays
-
     }
 
     private void onCancel() {

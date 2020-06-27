@@ -22,18 +22,22 @@ public class ClipboardExporterImpl extends GinjExporter {
 
     /**
      * Copies the given capture to the clipboard
+     * This method is run in its own thread and should not access the GUI directly. All interaction
+     * should go through synchronized objects or be enclosed in a SwingUtilities.invokeLater() logic
      *
      * @param capture        the capture to export
      * @param accountNumber  (ignored)
      * @return true if export completed, or false otherwise
      */
     @Override
-    public boolean exportCapture(Capture capture, String accountNumber) {
+    public void exportCapture(Capture capture, String accountNumber) {
         if (capture.isVideo()) {
             Util.alertError(getFrame(), "Export error", "Video contents cannot be copied to the clipboard");
-            return false;
+            failed("Error copying capture");
+            return;
         }
         try {
+            logProgress("Reading file", 50);
             Image image = capture.getImage();
             if (image == null) {
                 image = ImageIO.read(capture.getFile());
@@ -43,11 +47,11 @@ public class ClipboardExporterImpl extends GinjExporter {
             clipboard.setContents(transferableImage, (clipboard1, contents) -> {
                 // Do nothing. It's normal to lose ownership when another app copies something to the clipboard
             });
-            return true;
+            complete("Image copied to clipboard");
         }
         catch (Exception e) {
             Util.alertException(getFrame(), "Export error", "There was an error copying image to the clipboard", e);
-            return false;
+            failed("Error copying capture");
         }
     }
 }

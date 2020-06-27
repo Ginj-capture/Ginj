@@ -2,6 +2,9 @@ package info.ginj.ui;
 
 import javax.swing.*;
 
+/**
+ * Standard label, but yellow
+ */
 public class GinjLabel extends JLabel {
     public GinjLabel(String text) {
         this(text, null, LEADING);

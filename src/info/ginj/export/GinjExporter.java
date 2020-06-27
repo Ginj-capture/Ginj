@@ -9,7 +9,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// TODO merge OnlineService and GinjExporter.
 public abstract class GinjExporter implements Cancellable {
     private final JFrame frame;
     private ExportMonitor exportMonitor;

@@ -1,4 +1,4 @@
-package info.ginj.online;
+package info.ginj.export.online;
 
 public class Account {
     private String name;

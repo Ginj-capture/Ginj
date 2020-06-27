@@ -1,4 +1,4 @@
-package info.ginj.online;
+package info.ginj.export.online.google;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -8,9 +8,11 @@ import com.google.gson.annotations.SerializedName;
 import info.ginj.Capture;
 import info.ginj.Ginj;
 import info.ginj.Prefs;
-import info.ginj.online.exception.AuthorizationException;
-import info.ginj.online.exception.CommunicationException;
-import info.ginj.online.exception.UploadException;
+import info.ginj.export.online.OnlineService;
+import info.ginj.export.online.exception.AuthorizationException;
+import info.ginj.export.online.exception.CommunicationException;
+import info.ginj.export.online.exception.UploadException;
+import info.ginj.ui.Util;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -26,6 +28,7 @@ import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
 
+import javax.swing.*;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
@@ -41,20 +44,54 @@ import static info.ginj.Ginj.DATE_FORMAT_PATTERN;
  * TODO: when creating account, remember to tell user that Ginj medias are uploaded in full quality and will count in the user quota
  * TODO: videos must be max 10GB
  */
-public class GooglePhotosService extends GoogleService implements OnlineService {
+public class GooglePhotosExporter extends GoogleExporter implements OnlineService {
 
     // "Access to create an album, share it, upload media items to it, and join a shared album."
     private static final String[] GOOGLE_PHOTOS_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/photoslibrary.appendonly", "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata", "https://www.googleapis.com/auth/photoslibrary.sharing"};
     public static final ByteArrayEntity EMPTY_ENTITY = new ByteArrayEntity(new byte[]{}, ContentType.APPLICATION_OCTET_STREAM);
 
-    @Override
+
+    public GooglePhotosExporter(JFrame frame) {
+        super(frame);
+    }
+
+
     public String getServiceName() {
         return "Google Photos";
     }
 
+    /**
+     * Uploads the given capture to Google Photos
+     * This method is run in its own thread and should not access the GUI directly. All interaction
+     * should go through synchronized objects or be enclosed in a SwingUtilities.invokeLater() logic
+     *
+     * @param capture       the capture to export
+     * @param accountNumber the accountNumber to export this capture to (if relevant)
+     */
     @Override
+    public void exportCapture(Capture capture, String accountNumber) {
+        try {
+            final String albumUrl = uploadCapture(capture, accountNumber);
+            if (albumUrl != null) {
+                copyTextToClipboard(albumUrl);
+                // Indicate export is complete.
+                complete("Upload successful. A link to the album containing your capture was copied to the clipboard");
+            }
+        }
+        catch (Exception e) {
+            Util.alertException(getFrame(), getServiceName() + "Error", "There was an error exporting to " + getServiceName(), e);
+        }
+    }
+
+
+    
+    ///////////////////////////////////////
+    // Low level
+
+
+
     public String[] getRequiredScopes() {
-        return GooglePhotosService.GOOGLE_PHOTOS_REQUIRED_SCOPES;
+        return GOOGLE_PHOTOS_REQUIRED_SCOPES;
     }
 
     protected Prefs.Key getRefreshTokenKeyPrefix() {
@@ -1187,4 +1224,6 @@ public class GooglePhotosService extends GoogleService implements OnlineService 
         }
 
     }
+
+
 }

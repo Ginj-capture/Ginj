@@ -1,6 +1,6 @@
-package info.ginj.online.exception;
+package info.ginj.export.online.exception;
 
-public class CommunicationException extends OnlineServiceExption {
+public class CommunicationException extends OnlineServiceException {
     public CommunicationException() {
         super();
     }

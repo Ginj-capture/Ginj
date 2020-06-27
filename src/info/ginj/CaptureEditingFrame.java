@@ -4,8 +4,8 @@ import info.ginj.action.AbstractUndoableAction;
 import info.ginj.export.GinjExporter;
 import info.ginj.export.clipboard.ClipboardExporterImpl;
 import info.ginj.export.disk.DiskExporterImpl;
-import info.ginj.export.dropbox.DropboxExporterImpl;
-import info.ginj.export.googlephotos.GooglePhotosExporterImpl;
+import info.ginj.export.online.dropbox.DropboxExporter;
+import info.ginj.export.online.google.GooglePhotosExporter;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.arrow.ArrowTool;
 import info.ginj.tool.frame.FrameTool;
@@ -409,10 +409,10 @@ public class CaptureEditingFrame extends JFrame {
                 //exporter = new ShareExporterImpl(this);
                 break;
             case EXPORT_TYPE_DROPBOX:
-                exporter = new DropboxExporterImpl(this);
+                exporter = new DropboxExporter(this);
                 break;
             case EXPORT_TYPE_GOOGLE_PHOTOS:
-                exporter = new GooglePhotosExporterImpl(this);
+                exporter = new GooglePhotosExporter(this);
                 break;
             case EXPORT_TYPE_DISK:
                 exporter = new DiskExporterImpl(this);

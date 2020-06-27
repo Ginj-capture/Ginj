@@ -1,14 +1,11 @@
-package info.ginj.online;
+package info.ginj.export.online;
 
 import info.ginj.Capture;
-import info.ginj.export.ExportMonitor;
-import info.ginj.online.exception.AuthorizationException;
-import info.ginj.online.exception.CommunicationException;
-import info.ginj.online.exception.UploadException;
+import info.ginj.export.online.exception.AuthorizationException;
+import info.ginj.export.online.exception.CommunicationException;
+import info.ginj.export.online.exception.UploadException;
 
 public interface OnlineService {
-
-    void setExportMonitor(ExportMonitor exportMonitor);
 
     String getServiceName();
 

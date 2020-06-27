@@ -1,6 +1,6 @@
-package info.ginj.online.exception;
+package info.ginj.export.online.exception;
 
-public class AuthorizationException extends OnlineServiceExption {
+public class AuthorizationException extends OnlineServiceException {
     public AuthorizationException() {
     }
 

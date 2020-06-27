@@ -1,12 +1,13 @@
-package info.ginj.online;
+package info.ginj.export.online.google;
 
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import info.ginj.Ginj;
 import info.ginj.Prefs;
-import info.ginj.online.exception.AuthorizationException;
-import info.ginj.online.exception.CommunicationException;
+import info.ginj.export.online.AbstractOnlineExporter;
+import info.ginj.export.online.exception.AuthorizationException;
+import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.ui.Util;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -20,6 +21,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.net.URIBuilder;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -48,7 +50,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * <p>
  * TODO: only keep a single HttpClient ?
  */
-public abstract class GoogleService extends AbstractOnlineService {
+public abstract class GoogleExporter extends AbstractOnlineExporter {
     public static final int PORT_GINJ = 6193;
     public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + Util.colorToHex(Util.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + Util.colorToHex(Util.LABEL_FOREGROUND_COLOR) + ";} a{color:" + Util.colorToHex(Util.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";
@@ -58,6 +60,10 @@ public abstract class GoogleService extends AbstractOnlineService {
     private static String receivedCode = null;
     private static boolean abortRequested = false;
     HttpServer server;
+
+    public GoogleExporter(JFrame frame) {
+        super(frame);
+    }
 
     public abstract String getServiceName();
 
@@ -99,7 +105,7 @@ public abstract class GoogleService extends AbstractOnlineService {
             url += "&response_type=code";
             url += "&code_challenge=" + challenge;
             url += "&code_challenge_method=S256";
-            url += "&scope=" + GoogleService.encodeScopes(getRequiredScopes());
+            url += "&scope=" + GoogleExporter.encodeScopes(getRequiredScopes());
             url += "&redirect_uri=" + URLEncoder.encode("http://127.0.0.1:" + PORT_GINJ + "/google", UTF_8); // for local server
             // url += "&redirect_uri=" + URLEncoder.encode("urn:ietf:wg:oauth:2.0:oob", UTF_8); // for Copy/paste.
             //System.out.println(url);
@@ -235,7 +241,7 @@ public abstract class GoogleService extends AbstractOnlineService {
         try {
             CloseableHttpResponse response = client.execute(httpPost);
 
-            if (GoogleService.isStatusOK(response.getCode())) {
+            if (GoogleExporter.isStatusOK(response.getCode())) {
                 final String responseText;
                 try {
                     responseText = EntityUtils.toString(response.getEntity());
@@ -314,7 +320,7 @@ public abstract class GoogleService extends AbstractOnlineService {
 
         try {
             CloseableHttpResponse response = client.execute(httpPost);
-            if (GoogleService.isStatusOK(response.getCode())) {
+            if (GoogleExporter.isStatusOK(response.getCode())) {
                 final String responseText;
                 try {
                     responseText = EntityUtils.toString(response.getEntity());
@@ -407,7 +413,7 @@ public abstract class GoogleService extends AbstractOnlineService {
         server.createContext("/google", httpExchange ->
         {
             // Check the response
-            Map<String, String> params = GoogleService.queryToMap(httpExchange.getRequestURI().getQuery());
+            Map<String, String> params = GoogleExporter.queryToMap(httpExchange.getRequestURI().getQuery());
             final String error = params.get("error");
             final String code = params.get("code");
             final String scopes = params.get("scope");

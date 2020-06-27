@@ -1,6 +1,6 @@
-package info.ginj.online.exception;
+package info.ginj.export.online.exception;
 
-public class UploadException extends OnlineServiceExption {
+public class UploadException extends OnlineServiceException {
     public UploadException() {
     }
 

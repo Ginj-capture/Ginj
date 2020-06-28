@@ -40,7 +40,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
 
     @Override
-    public String getServiceName() {
+    public String getExporterName() {
         return "Dropbox";
     }
 
@@ -69,22 +69,25 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         return DROPBOX_REVOKE_URL;
     }
 
-    protected Prefs.Key getRefreshTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_DROPBOX_REFRESH_TOKEN_PREFIX;
+    @Override
+    protected String[] getRequiredScopes() {
+        // For Dropbox, no scope means permissions defined at the app level on the site
+        return null;
     }
 
+    @Override
     protected Prefs.Key getAccessTokenKeyPrefix() {
         return Prefs.Key.EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX;
     }
 
+    @Override
     protected Prefs.Key getAccessExpiryKeyPrefix() {
         return Prefs.Key.EXPORTER_DROPBOX_ACCESS_EXPIRY_PREFIX;
     }
 
     @Override
-    protected String[] getRequiredScopes() {
-        // For Dropbox, no scope means permissions defined at the app level on the site
-        return null;
+    protected Prefs.Key getRefreshTokenKeyPrefix() {
+        return Prefs.Key.EXPORTER_DROPBOX_REFRESH_TOKEN_PREFIX;
     }
 
 
@@ -104,12 +107,13 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             final String captureUrl = uploadCapture(capture, accountNumber);
             if (captureUrl != null) {
                 copyTextToClipboard(captureUrl);
+                capture.addExport(getExporterName(), captureUrl, null); // TODO store media Id. UploadCapture should return an Export object
                 // Indicate export is complete.
                 complete("Upload successful. A link to your capture was copied to the clipboard");
             }
         }
         catch (Exception e) {
-            Util.alertException(getFrame(), getServiceName() + "Error", "There was an error exporting to " + getServiceName(), e);
+            Util.alertException(getFrame(), getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
             failed("Upload error");
         }
     }

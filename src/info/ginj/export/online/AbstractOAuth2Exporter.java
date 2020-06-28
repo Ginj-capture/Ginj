@@ -61,11 +61,11 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
 
     protected abstract String[] getRequiredScopes();
 
-    protected abstract Prefs.Key getRefreshTokenKeyPrefix();
-
     protected abstract Prefs.Key getAccessTokenKeyPrefix();
 
     protected abstract Prefs.Key getAccessExpiryKeyPrefix();
+
+    protected abstract Prefs.Key getRefreshTokenKeyPrefix();
 
 
     @Override
@@ -79,13 +79,13 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                 authorize(accountNumber);
             }
             catch (AuthorizationException | CommunicationException exception) {
-                Util.alertException(getFrame(), getServiceName() + " authorization error", "There was an error authorizing you on " + getServiceName(), e);
+                Util.alertException(getFrame(), getExporterName() + " authorization error", "There was an error authorizing you on " + getExporterName(), e);
                 failed("Authorization error");
                 return false;
             }
         }
         catch (CommunicationException e) {
-            Util.alertException(getFrame(), getServiceName() + " authorization check error", "There was an error checking authorization on " + getServiceName(), e);
+            Util.alertException(getFrame(), getExporterName() + " authorization check error", "There was an error checking authorization on " + getExporterName(), e);
             failed("Communication error");
             return false;
         }
@@ -254,7 +254,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                 checkScopesResponse(error, code, scopes);
                 // Send response
                 sendTextResponse(httpExchange, HTML_BODY_OPEN + "<h1>Authorization received.</h1>"
-                        + "<p>Congratulations! " + Ginj.getAppName() + " is now authorized to upload and share your captures on your " + getServiceName() + " account.<br/>"
+                        + "<p>Congratulations! " + Ginj.getAppName() + " is now authorized to upload and share your captures on your " + getExporterName() + " account.<br/>"
                         + "You can revoke these authorizations at any time by visiting <a href=\"" + getOAuth2RevokeUrl() + "\">" + getOAuth2RevokeUrl() + "</a>.</p>"
                         + "<p>You may now close this Window.</p>" + BODY_HTML_CLOSE);
                 if (receivedCode == null) {
@@ -266,7 +266,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
             catch (Exception e) {
                 // Send response
                 sendTextResponse(httpExchange, HTML_BODY_OPEN + "<h1>Authorization rejected.</h1>"
-                        + "<p>" + Ginj.getAppName() + " did not receive the required authorizations to access your " + getServiceName() + " account.<br/>"
+                        + "<p>" + Ginj.getAppName() + " did not receive the required authorizations to access your " + getExporterName() + " account.<br/>"
                         + "Operation cancelled.</p>"
                         + "<p>You may now close this Window.</p>" + BODY_HTML_CLOSE);
                 cancel();
@@ -286,20 +286,20 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
 
     private void checkScopesResponse(String error, String code, String scopeStr) throws AuthorizationException {
         if (error != null) {
-            throw new AuthorizationException(getServiceName() + " returned an error: " + error);
+            throw new AuthorizationException(getExporterName() + " returned an error: " + error);
         }
         if (code == null || code.isEmpty()) {
-            throw new AuthorizationException("Missing code (" + code + ") in " + getServiceName() + " response.");
+            throw new AuthorizationException("Missing code (" + code + ") in " + getExporterName() + " response.");
         }
         if (getRequiredScopes() != null) {
             if (scopeStr == null || scopeStr.isBlank()) {
-                throw new AuthorizationException("Missing scope (" + scopeStr + ") in " + getServiceName() + " response.");
+                throw new AuthorizationException("Missing scope (" + scopeStr + ") in " + getExporterName() + " response.");
             }
             List<String> missingScopes = getMissingScopes(scopeStr);
             if (missingScopes.isEmpty()) {
                 return;
             }
-            throw new AuthorizationException("The following " + getServiceName() + " authorizations are missing: " + missingScopes);
+            throw new AuthorizationException("The following " + getExporterName() + " authorizations are missing: " + missingScopes);
         }
     }
 

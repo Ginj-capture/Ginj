@@ -55,25 +55,29 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         super(frame);
     }
 
-
-    public String getServiceName() {
+    @Override
+    public String getExporterName() {
         return "Google Photos";
     }
 
-    protected Prefs.Key getRefreshTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_REFRESH_TOKEN_PREFIX;
+    @Override
+    protected String[] getRequiredScopes() {
+        return GOOGLE_PHOTOS_REQUIRED_SCOPES;
     }
 
+    @Override
     protected Prefs.Key getAccessTokenKeyPrefix() {
         return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ACCESS_TOKEN_PREFIX;
     }
 
+    @Override
     protected Prefs.Key getAccessExpiryKeyPrefix() {
         return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ACCESS_EXPIRY_PREFIX;
     }
 
-    protected String[] getRequiredScopes() {
-        return GOOGLE_PHOTOS_REQUIRED_SCOPES;
+    @Override
+    protected Prefs.Key getRefreshTokenKeyPrefix() {
+        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_REFRESH_TOKEN_PREFIX;
     }
 
 
@@ -91,12 +95,13 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             final String albumUrl = uploadCapture(capture, accountNumber);
             if (albumUrl != null) {
                 copyTextToClipboard(albumUrl);
+                capture.addExport(getExporterName(), albumUrl, null); // TODO store media Id. UploadCapture should return an Export object
                 // Indicate export is complete.
                 complete("Upload successful. A link to the album containing your capture was copied to the clipboard");
             }
         }
         catch (Exception e) {
-            Util.alertException(getFrame(), getServiceName() + "Error", "There was an error exporting to " + getServiceName(), e);
+            Util.alertException(getFrame(), getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
             failed("Upload error");
         }
     }

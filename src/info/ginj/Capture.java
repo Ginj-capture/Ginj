@@ -1,20 +1,26 @@
 package info.ginj;
 
+import info.ginj.tool.Overlay;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * A capture is something (screenshot or screen recording ready for export
+ * A capture is something (screenshot or screen recording) ready for export
  */
 public class Capture {
-
     String id;
+    boolean isVideo;
     String name;
     File file;
-    BufferedImage image;
-    boolean isVideo;
+    BufferedImage originalImage;
+    List<Overlay> overlays;
+    BufferedImage renderedImage;
+    List<Export> exports = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -22,6 +28,14 @@ public class Capture {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public boolean isVideo() {
+        return isVideo;
+    }
+
+    public void setVideo(boolean video) {
+        this.isVideo = video;
     }
 
     public String getName() {
@@ -40,37 +54,54 @@ public class Capture {
         this.file = file;
     }
 
-    public BufferedImage getImage() {
-        return image;
+    public BufferedImage getOriginalImage() {
+        return originalImage;
     }
 
-    public void setImage(BufferedImage image) {
-        this.image = image;
+    public void setOriginalImage(BufferedImage originalImage) {
+        this.originalImage = originalImage;
     }
 
-    public boolean isVideo() {
-        return isVideo;
+    public List<Overlay> getOverlays() {
+        return overlays;
     }
 
-    public void setVideo(boolean video) {
-        this.isVideo = video;
+    public void setOverlays(List<Overlay> overlays) {
+        this.overlays = overlays;
+    }
+
+    public BufferedImage getRenderedImage() {
+        return renderedImage;
+    }
+
+    public void setRenderedImage(BufferedImage renderedImage) {
+        this.renderedImage = renderedImage;
+    }
+
+    public List<Export> getExports() {
+        return exports;
+    }
+
+    public void addExport(String exporter, String url, String id) {
+        exports.add(new Export(exporter, id, url));
     }
 
     // Utils
 
     public String getType() {
-        return isVideo ?"Video":"Image";
+        return isVideo ? "Video" : "Image";
     }
 
     /**
      * Returns the file of the capture, or write the BufferedImage to a temp file and return it if file was empty
+     *
      * @return The file
      * @throws IOException in case file had to be created and an error occurred
      */
     public File toFile() throws IOException {
         if (file == null) {
             file = new File(Ginj.getTempDir(), id + ".png");
-            ImageIO.write(image, "png", file);
+            ImageIO.write(renderedImage, "png", file);
             file.deleteOnExit();
         }
         return file;
@@ -78,6 +109,7 @@ public class Capture {
 
     /**
      * Returns the name of the capture, or its id if name is empty
+     *
      * @return
      */
     public String getDefaultName() {
@@ -87,4 +119,47 @@ public class Capture {
         return name;
     }
 
+    private class Export {
+        String exporterName;
+        String path;
+        String mediaId;
+
+        public Export() {
+        }
+
+        public Export(String exporterName, String mediaId, String path) {
+            this.exporterName = exporterName;
+            this.path = path;
+            this.mediaId = mediaId;
+        }
+
+        public String getExporterName() {
+            return exporterName;
+        }
+
+        public void setExporterName(String exporterName) {
+            this.exporterName = exporterName;
+        }
+
+        /**
+         * Path can be null (clipboard), a file path (for saved files), or a URL (for shared files)
+         *
+         * @return
+         */
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
+
+        public String getMediaId() {
+            return mediaId;
+        }
+
+        public void setMediaId(String mediaId) {
+            this.mediaId = mediaId;
+        }
+    }
 }

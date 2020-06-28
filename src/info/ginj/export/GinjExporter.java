@@ -13,6 +13,8 @@ public abstract class GinjExporter implements Cancellable {
     private final JFrame frame;
     private ExportMonitor exportMonitor;
 
+    public abstract String getExporterName();
+
     private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
 
     public GinjExporter(JFrame frame) {

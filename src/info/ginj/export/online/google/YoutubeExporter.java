@@ -17,15 +17,8 @@ public class YoutubeExporter extends GoogleExporter implements OnlineExporter {
         super(frame);
     }
 
-
     @Override
-    public void exportCapture(Capture capture, String accountNumber) {
-
-    }
-
-
-    @Override
-    public String getServiceName() {
+    public String getExporterName() {
         return "Youtube";
     }
 
@@ -34,16 +27,24 @@ public class YoutubeExporter extends GoogleExporter implements OnlineExporter {
         return YOUTUBE_REQUIRED_SCOPES;
     }
 
-    protected Prefs.Key getRefreshTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_YOUTUBE_REFRESH_TOKEN_PREFIX;
-    }
-
+    @Override
     protected Prefs.Key getAccessTokenKeyPrefix() {
         return Prefs.Key.EXPORTER_YOUTUBE_ACCESS_TOKEN_PREFIX;
     }
 
+    @Override
     protected Prefs.Key getAccessExpiryKeyPrefix() {
         return Prefs.Key.EXPORTER_YOUTUBE_ACCESS_EXPIRY_PREFIX;
+    }
+
+    @Override
+    protected Prefs.Key getRefreshTokenKeyPrefix() {
+        return Prefs.Key.EXPORTER_YOUTUBE_REFRESH_TOKEN_PREFIX;
+    }
+
+    @Override
+    public void exportCapture(Capture capture, String accountNumber) {
+
     }
 
     @Override

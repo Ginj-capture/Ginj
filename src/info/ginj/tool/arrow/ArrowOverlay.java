@@ -1,5 +1,6 @@
 package info.ginj.tool.arrow;
 
+import com.google.gson.annotations.Expose;
 import info.ginj.tool.Overlay;
 
 import java.awt.*;
@@ -8,7 +9,10 @@ import java.awt.geom.Line2D;
 
 public class ArrowOverlay extends Overlay {
 
+    // Actual fields to persist and restore
+    @Expose
     private Point start;
+    @Expose
     private Point end;
 
     public Overlay initialize(Point initialPoint, Color initialColor) {

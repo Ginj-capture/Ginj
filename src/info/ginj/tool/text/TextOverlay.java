@@ -1,19 +1,30 @@
 package info.ginj.tool.text;
 
+import com.google.gson.annotations.Expose;
 import info.ginj.CaptureEditingFrame;
 import info.ginj.ImageEditorPane;
 import info.ginj.tool.RectangleOverlay;
 import info.ginj.ui.Util;
 
 import javax.swing.*;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
 public class TextOverlay extends RectangleOverlay {
-    Color textColor = Util.TEXT_TOOL_DEFAULT_FOREGROUND_COLOR;
+    // Actual fields to persist and restore
+    @Expose
+    protected String text;
+
+    // TODO Implement use of the following fields are not used yet
+    @Expose
+    protected Color textColor = Util.TEXT_TOOL_DEFAULT_FOREGROUND_COLOR;
+    @Expose
+    protected String fontName;
+    @Expose
+    protected int fontSize;
+    @Expose
+    protected int fontStyle;
 
     private JTextPane textPane;
     private ImageEditorPane imagePane;
@@ -25,6 +36,40 @@ public class TextOverlay extends RectangleOverlay {
 
     public void setTextColor(Color textColor) {
         this.textColor = textColor;
+        textPane.setForeground(textColor);
+    }
+
+    public String getFontName() {
+        return fontName;
+    }
+
+    public void setFontName(String fontName) {
+        // Store it
+        this.fontName = fontName;
+        // And update the textPane
+        textPane.setFont(new Font(fontName, fontStyle, fontSize));
+    }
+
+    public int getFontSize() {
+        return fontSize;
+    }
+
+    public void setFontSize(int fontSize) {
+        // Store it
+        this.fontSize = fontSize;
+        // And update the textPane
+        textPane.setFont(new Font(fontName, fontStyle, fontSize));
+    }
+
+    public int getFontStyle() {
+        return fontStyle;
+    }
+
+    public void setFontStyle(int fontStyle) {
+        // Store it
+        this.fontStyle = fontStyle;
+        // And update the textPane
+        textPane.setFont(new Font(fontName, fontStyle, fontSize));
     }
 
     @Override
@@ -57,11 +102,7 @@ public class TextOverlay extends RectangleOverlay {
         textPane.setFocusable(true);
         textPane.requestFocusInWindow();
         textPane.getDocument().addUndoableEditListener(
-                new UndoableEditListener() {
-                    public void undoableEditHappened(UndoableEditEvent e) {
-                        frame.addUndoableEdit(e.getEdit());
-                    }
-                });
+                e -> frame.addUndoableEdit(e.getEdit()));
         add(textPane);
         return this;
     }
@@ -82,6 +123,19 @@ public class TextOverlay extends RectangleOverlay {
         g2d.setColor(getColor());
         g2d.setStroke(new BasicStroke(6));
         g2d.drawRoundRect(rectangle.x + xOffset, rectangle.y + yOffset, rectangle.width, rectangle.height, 16, 16);
+    }
+
+    @Override
+    public void beforeSerialize() {
+        super.beforeSerialize();
+
+        // Extract information from the textPane
+        text = textPane.getText();
+    }
+
+    @Override
+    public void afterDeserialize() {
+        super.afterDeserialize();
     }
 
     public void setImagePane(ImageEditorPane imagePane) {

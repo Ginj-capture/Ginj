@@ -25,6 +25,11 @@ public class DiskExporterImpl extends GinjExporter {
         super(frame);
     }
 
+    @Override
+    public String getExporterName() {
+        return "Disk";
+    }
+
     /**
      * Prepares the exporter for the export.
      * This method is run in Swing's Event Dispatching Thread before launching the actual export.
@@ -118,8 +123,8 @@ public class DiskExporterImpl extends GinjExporter {
     public void exportCapture(Capture capture, String accountNumber) {
         try {
             logProgress("Saving image", 50);
-            if (capture.getImage() != null) {
-                ImageIO.write(capture.getImage(), "png", targetFile);
+            if (capture.getRenderedImage() != null) {
+                ImageIO.write(capture.getRenderedImage(), "png", targetFile);
             }
             else {
                 // TODO make this a block copy loop that can be cancelled
@@ -139,8 +144,8 @@ public class DiskExporterImpl extends GinjExporter {
         }
 
         copyTextToClipboard(targetFile.getAbsolutePath());
+        capture.addExport(getExporterName(), targetFile.getAbsolutePath(), null);
         complete("Path copied to clipboard");
-        return;
     }
 
 }

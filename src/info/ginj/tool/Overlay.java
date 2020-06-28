@@ -1,5 +1,6 @@
 package info.ginj.tool;
 
+import com.google.gson.annotations.Expose;
 import com.jhlabs.image.GaussianFilter;
 import info.ginj.ui.Util;
 
@@ -21,9 +22,12 @@ public abstract class Overlay extends JPanel {
     private BufferedImage handleImg;
 
     // State
-    private Color color;
-    private boolean selected = false;
     protected boolean editInProgress = true; // Upon creation, the drag/drop is an edit.
+    private boolean selected = false;
+
+    // Actual fields to persist and restore
+    @Expose
+    private Color color;
 
 
     ////////////////////////////////
@@ -267,4 +271,17 @@ public abstract class Overlay extends JPanel {
      */
     protected abstract void setHandlePosition(int handleIndex, Point newPosition);
 
+    /**
+     * This method is called before Gson serialization so that all state is persisted to @Expose'd fields
+     * Does nothing by default, can be overriden
+     */
+    public void beforeSerialize() {
+    }
+
+    /**
+     * This method is called after Gson deserialization so that all state is restored from @Expose'd fields
+     * Does nothing by default, can be overriden
+     */
+    public void afterDeserialize() {
+    }
 }

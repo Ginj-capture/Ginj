@@ -20,6 +20,11 @@ public class ClipboardExporterImpl extends GinjExporter {
         super(frame);
     }
 
+    @Override
+    public String getExporterName() {
+        return "Clipboard";
+    }
+
     /**
      * Copies the given capture to the clipboard
      * This method is run in its own thread and should not access the GUI directly. All interaction
@@ -38,7 +43,7 @@ public class ClipboardExporterImpl extends GinjExporter {
         }
         try {
             logProgress("Reading file", 50);
-            Image image = capture.getImage();
+            Image image = capture.getRenderedImage();
             if (image == null) {
                 image = ImageIO.read(capture.getFile());
             }
@@ -47,6 +52,7 @@ public class ClipboardExporterImpl extends GinjExporter {
             clipboard.setContents(transferableImage, (clipboard1, contents) -> {
                 // Do nothing. It's normal to lose ownership when another app copies something to the clipboard
             });
+            capture.addExport(getExporterName(), null, null);
             complete("Image copied to clipboard");
         }
         catch (Exception e) {

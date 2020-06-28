@@ -7,8 +7,6 @@ import info.ginj.export.online.exception.UploadException;
 
 public interface OnlineExporter {
 
-    String getServiceName();
-
     void authorize(String accountNumber) throws AuthorizationException, CommunicationException;
 
     void checkAuthorizations(String accountNumber) throws CommunicationException, AuthorizationException;

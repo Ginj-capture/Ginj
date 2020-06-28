@@ -113,7 +113,7 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
 
                 final List<String> missingScopes = getMissingScopes(scopeStr);
                 if (!missingScopes.isEmpty()) {
-                    throw new AuthorizationException("The authorizations below are missing for " + getServiceName() + ". Please re-authorize this account.\n Missing scopes: " + missingScopes);
+                    throw new AuthorizationException("The authorizations below are missing for " + getExporterName() + ". Please re-authorize this account.\n Missing scopes: " + missingScopes);
                 }
             }
             else {

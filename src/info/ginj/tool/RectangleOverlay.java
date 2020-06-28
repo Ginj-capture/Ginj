@@ -1,5 +1,6 @@
 package info.ginj.tool;
 
+import com.google.gson.annotations.Expose;
 import info.ginj.Coords;
 
 import java.awt.*;
@@ -9,6 +10,8 @@ public abstract class RectangleOverlay extends Overlay {
     private static final int MIN_RECT_WIDTH = 4;
     private static final int MIN_RECT_HEIGHT = 4;
 
+    // Actual fields to persist and restore
+    @Expose
     protected Rectangle rectangle;
 
     public Overlay initialize(Point initialPoint, Color initialColor) {

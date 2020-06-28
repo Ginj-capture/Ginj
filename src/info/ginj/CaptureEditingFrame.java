@@ -7,6 +7,7 @@ import info.ginj.export.disk.DiskExporterImpl;
 import info.ginj.export.online.dropbox.DropboxExporter;
 import info.ginj.export.online.google.GooglePhotosExporter;
 import info.ginj.tool.GinjTool;
+import info.ginj.tool.Overlay;
 import info.ginj.tool.arrow.ArrowTool;
 import info.ginj.tool.frame.FrameTool;
 import info.ginj.tool.highlight.HighlightTool;
@@ -22,7 +23,9 @@ import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class CaptureEditingFrame extends JFrame {
     public static final String EXPORT_TYPE_DISK = "disk";
@@ -215,9 +218,10 @@ public class CaptureEditingFrame extends JFrame {
         final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
-        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", Util.createIcon(getClass().getResource("img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
-        customizeButton.addActionListener(e -> onCustomize());
-        buttonBar.add(customizeButton);
+        // TODO where do we customize buttons ?
+//        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", Util.createIcon(getClass().getResource("img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+//        customizeButton.addActionListener(e -> onCustomize());
+//        buttonBar.add(customizeButton);
 
         actionPanel.add(buttonBar);
 
@@ -424,11 +428,21 @@ public class CaptureEditingFrame extends JFrame {
 
         // Perform export
         if (exporter != null) {
+            // Prepare capture object
             Capture capture = new Capture();
             capture.setVideo(false);
             capture.setId(captureId);
-            capture.setImage(renderedImage);
+            capture.setOriginalImage(capturedImg);
+            capture.setRenderedImage(renderedImage);
             capture.setName(nameTextField.getText());
+
+            List<Overlay> overlays = new ArrayList<>();
+            for (Component component : imagePane.getComponents()) {
+                if (component instanceof Overlay) {
+                    overlays.add((Overlay) component);
+                }
+            }
+            capture.setOverlays(overlays);
 
             ExportFrame exportFrame = new ExportFrame(this, capture, exporter);
             exporter.setExportMonitor(exportFrame);

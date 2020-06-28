@@ -129,6 +129,17 @@ public class Ginj {
         return tempDir;
     }
 
+    static File getHistoryFolder() {
+        String historyPath = Prefs.get(Prefs.Key.CAPTURE_HISTORY_PATH);
+        if (historyPath == null || historyPath.isBlank() || !new File(historyPath).exists()) {
+            historyPath = System.getProperty("user.home") + File.separator + "." + getAppName() + "_history";
+            new File(historyPath).mkdirs();
+            Prefs.set(Prefs.Key.CAPTURE_HISTORY_PATH, historyPath);
+            Prefs.save();
+        }
+        return new File(historyPath);
+    }
+
     public static String getVersion() {
         return "0.1";
     }
@@ -136,4 +147,5 @@ public class Ginj {
     public static String getSession() {
         return session;
     }
+
 }

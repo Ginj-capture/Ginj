@@ -1,5 +1,6 @@
 package info.ginj;
 
+import com.google.gson.annotations.Expose;
 import info.ginj.tool.Overlay;
 
 import javax.imageio.ImageIO;
@@ -120,8 +121,11 @@ public class Capture {
     }
 
     private class Export {
+        @Expose
         String exporterName;
+        @Expose
         String path;
+        @Expose
         String mediaId;
 
         public Export() {

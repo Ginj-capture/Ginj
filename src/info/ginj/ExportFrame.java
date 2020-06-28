@@ -1,5 +1,8 @@
 package info.ginj;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import info.ginj.export.ExportMonitor;
 import info.ginj.export.GinjExporter;
 import info.ginj.ui.GinjLabel;
@@ -8,12 +11,19 @@ import info.ginj.ui.Util;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Files;
 
 public class ExportFrame extends JFrame implements ExportMonitor {
 
+    public static final int THUMBNAIL_WIDTH = 136;
+    public static final int THUMBNAIL_HEIGHT = 91;
     private final JLabel stateLabel;
     private final JLabel sizeLabel;
     private final BoundedRangeModel progressModel;
@@ -144,7 +154,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         }
 
         // Store image in history, no matter the export type
-        saveInHistory(capture);
+        saveToHistory(capture);
 
         closeExportWindow();
 
@@ -187,39 +197,103 @@ public class ExportFrame extends JFrame implements ExportMonitor {
     }
 
 
-    private void saveInHistory(Capture capture) {
+    private boolean saveToHistory(Capture capture) {
         File historyFolder = new File("ZZhistoryFolder"); // TODO get from params
         if (!historyFolder.exists()) {
             if (!historyFolder.mkdirs()) {
-                JOptionPane.showMessageDialog(this, "Could not create history folder (" + historyFolder.getAbsolutePath() + ")", "Save error", JOptionPane.ERROR_MESSAGE);
+                Util.alertError(this, "Save error", "Could not create history folder (" + historyFolder.getAbsolutePath() + ")");
+                return false;
             }
         }
-        // Save image
-        File targetFile = new File(historyFolder, capture.getId() + ".png");
+
+        File targetFile = null;
+
+        BufferedImage sourceImage = null;
         try {
+            // Save capture itself
             if (capture.isVideo) {
                 // Move file to history
-                // TODO should move the source, not the rendered version !
+                // TODO ENHANCEMENT move the source, not the rendered version !
+                targetFile = new File(historyFolder, capture.getId() + ".mp4");
                 Files.move(capture.getFile().toPath(), targetFile.toPath());
             }
             else {
                 // Write the image to disk
-                // TODO should save the source, not the rendered version !
-                if (!ImageIO.write(capture.getImage(), "png", targetFile)) {
-                    JOptionPane.showMessageDialog(this, "Saving capture to history failed (" + targetFile.getAbsolutePath() + ")", "Save error", JOptionPane.ERROR_MESSAGE);
+                targetFile = new File(historyFolder, capture.getId() + ".png");
+                if (!ImageIO.write(capture.getOriginalImage(), "png", targetFile)) {
+                    Util.alertError(this, "Save error", "Writing capture to history failed (" + targetFile.getAbsolutePath() + ")");
+                    return false;
                 }
+                sourceImage = capture.getRenderedImage();
             }
         }
         catch (IOException e) {
-            Util.alertError(this, "Save error", "Error saving file to history");
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error '" + e.getMessage() + "'  - Full error on the console", "Save error", JOptionPane.ERROR_MESSAGE);
+            Util.alertException(this, "Save error", "Saving capture to history failed (" + targetFile.getAbsolutePath() + ")", e);
+            return false;
         }
 
-        // TODO save overlays to XML
 
-        // TODO save thumbnail with overlays
+        // Save metadata and overlays to JSON
+        targetFile = new File(historyFolder, capture.getId() + ".json");
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .create();
+        JsonObject json = new JsonObject();
+        json.addProperty("id", capture.getId());
+        json.addProperty("name", capture.getName());
+        json.addProperty("type", capture.getType());
+        json.add("exports", gson.toJsonTree(capture.getExports()));
+        // TODO ? json.addProperty("sharedOn", "Dropbox"));
+        // TODO ? json.addProperty("url", url));
 
+        // TODO finalize overlay serialization
+        json.add("overlays", gson.toJsonTree(capture.getOverlays()));
+
+        try (Writer writer = new FileWriter(targetFile)) {
+            gson.toJson(json, writer);
+        }
+        catch (IOException e) {
+            Util.alertError(this, "Save error", "Saving metadata and overlays to history failed (" + targetFile.getAbsolutePath() + ")");
+            return false;
+        }
+
+
+        // Save thumbnail
+        if (sourceImage != null) {
+            BufferedImage thumbnailImage;
+            int sourceImageWidth = sourceImage.getWidth();
+            int sourceImageHeight = sourceImage.getHeight();
+            if (sourceImageWidth > THUMBNAIL_WIDTH || sourceImageHeight > THUMBNAIL_HEIGHT) {
+                // Resize
+                double hScale = THUMBNAIL_WIDTH / ((double) sourceImageWidth);
+                double vScale = THUMBNAIL_HEIGHT / ((double) sourceImageHeight);
+                double scale = Math.min(hScale, vScale);
+
+                int targetWidth = (int) (sourceImageWidth * scale);
+                int targetHeight = (int) (sourceImageHeight * scale);
+
+                thumbnailImage = new BufferedImage(targetWidth, targetHeight, sourceImage.getType());
+                AffineTransform scaleInstance = AffineTransform.getScaleInstance(scale, scale);
+                AffineTransformOp scaleOp = new AffineTransformOp(scaleInstance, AffineTransformOp.TYPE_BILINEAR);
+                scaleOp.filter(sourceImage, thumbnailImage);
+            }
+            else {
+                thumbnailImage = sourceImage;
+            }
+
+            // Write the thumbnail to disk
+            try {
+                targetFile = new File(historyFolder, capture.getId() + ".thumb.png");
+                if (!ImageIO.write(thumbnailImage, "png", targetFile)) {
+                    Util.alertError(this, "Save error", "Saving thumbnail to history failed (" + targetFile.getAbsolutePath() + ")");
+                    return false;
+                }
+            }
+            catch (IOException e) {
+                Util.alertException(this, "Save error", "Saving thumbnail to history failed (" + targetFile.getAbsolutePath() + ")", e);
+                return false;
+            }
+        }
+        return true;
     }
-
 }

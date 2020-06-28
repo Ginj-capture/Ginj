@@ -107,4 +107,8 @@ public class HistoryFrame extends JFrame {
         // Close window
         dispose();
     }
+
+    private void onDelete(int id) {
+        // TODO ask the question: Also delete from storages (and list them) ?
+    }
 }

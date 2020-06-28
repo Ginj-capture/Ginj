@@ -243,8 +243,6 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         json.addProperty("name", capture.getName());
         json.addProperty("type", capture.getType());
         json.add("exports", gson.toJsonTree(capture.getExports()));
-        // TODO ? json.addProperty("sharedOn", "Dropbox"));
-        // TODO ? json.addProperty("url", url));
 
         // TODO finalize overlay serialization
         json.add("overlays", gson.toJsonTree(capture.getOverlays()));

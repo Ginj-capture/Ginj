@@ -61,6 +61,10 @@ public abstract class GinjExporter implements Cancellable {
     //
 
 
+    protected void logProgress(String state, int value, long currentSizeBytes, long totalSizeBytes) {
+        if (exportMonitor != null) exportMonitor.log(state, value, currentSizeBytes, totalSizeBytes);
+    }
+
     protected void logProgress(String state, int value) {
         if (exportMonitor != null) exportMonitor.log(state, value);
     }
@@ -76,6 +80,7 @@ public abstract class GinjExporter implements Cancellable {
     protected void failed(String state) {
         if (exportMonitor != null) exportMonitor.failed(state);
     }
+
 
     ////////////////////////
     // Utils
@@ -99,5 +104,9 @@ public abstract class GinjExporter implements Cancellable {
     @Override
     public void cancel() {
         cancelRequested.set(true);
+    }
+
+    protected boolean isCancelled() {
+        return cancelRequested.get();
     }
 }

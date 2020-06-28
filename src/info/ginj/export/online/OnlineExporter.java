@@ -5,13 +5,11 @@ import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 
-public interface OnlineService {
+public interface OnlineExporter {
 
     String getServiceName();
 
-    void authorize(String accountNumber) throws AuthorizationException;
-
-    void abortAuthorization();
+    void authorize(String accountNumber) throws AuthorizationException, CommunicationException;
 
     void checkAuthorizations(String accountNumber) throws CommunicationException, AuthorizationException;
 

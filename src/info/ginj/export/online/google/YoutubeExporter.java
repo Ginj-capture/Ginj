@@ -2,14 +2,14 @@ package info.ginj.export.online.google;
 
 import info.ginj.Capture;
 import info.ginj.Prefs;
-import info.ginj.export.online.OnlineService;
+import info.ginj.export.online.OnlineExporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 
 import javax.swing.*;
 
-public class YoutubeExporter extends GoogleExporter implements OnlineService {
+public class YoutubeExporter extends GoogleExporter implements OnlineExporter {
 
     private static final String[] YOUTUBE_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/youtube.upload"};
 

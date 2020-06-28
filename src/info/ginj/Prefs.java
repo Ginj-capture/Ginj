@@ -24,11 +24,11 @@ public class Prefs {
         FIXED_PALETTE_COLOR_PREFIX("fixed.palette.color.", "The color for the corresponding button in the fixed palette", true),
 
         EXPORTER_DROPBOX_USERNAME_PREFIX("exporter.dropbox.username.", "The username of the linked Dropbox account", false),
-        EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX("exporter.dropbox.access.token.", "The token required to access Dropbox", false),
         EXPORTER_DROPBOX_CREATE_LINK_PREFIX("exporter.dropbox.create.link.", "If true, a public shared link is created and copied to the clipboard after upload", true),
-        // Dropbox does not use the following fields for now. Tokens currently never expire.
-        // EXPORTER_DROPBOX_EXPIRES_AT("exporter.dropbox.expires.at.", "The end of validity for the Dropbox access token", false),
-        // EXPORTER_DROPBOX_REFRESH_TOKEN("exporter.dropbox.refresh.token.", "The token required to refresh the Dropbox access token", false),
+
+        EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX("exporter.dropbox.access.token.", "The last token received to access with Dropbox", false),
+        EXPORTER_DROPBOX_ACCESS_EXPIRY_PREFIX("exporter.dropbox.access.expiry.", "The expiry time of the token used to access Dropbox", false),
+        EXPORTER_DROPBOX_REFRESH_TOKEN_PREFIX("exporter.dropbox.refresh.token.", "The token to use to request a new access token to Dropbox", false),
 
         EXPORTER_GOOGLE_PHOTOS_ACCESS_TOKEN_PREFIX("exporter.googlephotos.access.token.", "The last token received to access with Google Photos", false),
         EXPORTER_GOOGLE_PHOTOS_ACCESS_EXPIRY_PREFIX("exporter.googlephotos.access.expiry.", "The expiry time of the token used to access Google Photos", false),

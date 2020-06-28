@@ -8,7 +8,7 @@ import com.google.gson.annotations.SerializedName;
 import info.ginj.Capture;
 import info.ginj.Ginj;
 import info.ginj.Prefs;
-import info.ginj.export.online.OnlineService;
+import info.ginj.export.online.OnlineExporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
@@ -44,7 +44,7 @@ import static info.ginj.Ginj.DATE_FORMAT_PATTERN;
  * TODO: when creating account, remember to tell user that Ginj medias are uploaded in full quality and will count in the user quota
  * TODO: videos must be max 10GB
  */
-public class GooglePhotosExporter extends GoogleExporter implements OnlineService {
+public class GooglePhotosExporter extends GoogleExporter implements OnlineExporter {
 
     // "Access to create an album, share it, upload media items to it, and join a shared album."
     private static final String[] GOOGLE_PHOTOS_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/photoslibrary.appendonly", "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata", "https://www.googleapis.com/auth/photoslibrary.sharing"};
@@ -59,6 +59,23 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineServic
     public String getServiceName() {
         return "Google Photos";
     }
+
+    protected Prefs.Key getRefreshTokenKeyPrefix() {
+        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_REFRESH_TOKEN_PREFIX;
+    }
+
+    protected Prefs.Key getAccessTokenKeyPrefix() {
+        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ACCESS_TOKEN_PREFIX;
+    }
+
+    protected Prefs.Key getAccessExpiryKeyPrefix() {
+        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ACCESS_EXPIRY_PREFIX;
+    }
+
+    protected String[] getRequiredScopes() {
+        return GOOGLE_PHOTOS_REQUIRED_SCOPES;
+    }
+
 
     /**
      * Uploads the given capture to Google Photos
@@ -80,6 +97,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineServic
         }
         catch (Exception e) {
             Util.alertException(getFrame(), getServiceName() + "Error", "There was an error exporting to " + getServiceName(), e);
+            failed("Upload error");
         }
     }
 
@@ -87,24 +105,6 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineServic
     
     ///////////////////////////////////////
     // Low level
-
-
-
-    public String[] getRequiredScopes() {
-        return GOOGLE_PHOTOS_REQUIRED_SCOPES;
-    }
-
-    protected Prefs.Key getRefreshTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_REFRESH_TOKEN_PREFIX;
-    }
-
-    protected Prefs.Key getAccessTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ACCESS_TOKEN_PREFIX;
-    }
-
-    protected Prefs.Key getAccessExpiryKeyPrefix() {
-        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ACCESS_EXPIRY_PREFIX;
-    }
 
 
     /**
@@ -538,7 +538,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineServic
                 throw new UploadException("Could not read bytes from file");
             }
 
-            logProgress("Uploading", (int) (10 + (80 * offset)/file.length()));
+            logProgress("Uploading", (int) (10 + (80 * offset)/file.length()), offset, file.length());
 
             httpPost = new HttpPost(uploadUrl);
             httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
@@ -575,6 +575,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineServic
             offset += bytesRead;
             remainingBytes = file.length() - offset;
         }
+        logProgress("Uploaded", 90, file.length(), file.length());
 
         return uploadToken;
     }

@@ -8,7 +8,7 @@ import com.dropbox.core.v2.users.FullAccount;
 import info.ginj.Capture;
 import info.ginj.Ginj;
 import info.ginj.Prefs;
-import info.ginj.export.online.AbstractOnlineExporter;
+import info.ginj.export.online.AbstractOAuth2Exporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
@@ -26,7 +26,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 
-public class DropboxExporter extends AbstractOnlineExporter {
+public class DropboxExporter extends AbstractOAuth2Exporter {
     private static final String DROPBOX_CLIENT_APP_KEY = "pdio3i9brehyjo1";
     private static final String DROPBOX_OAUTH2_AUTH_URL = "https://www.dropbox.com/oauth2/authorize";
     private static final String DROPBOX_OAUTH2_TOKEN_URL = "https://api.dropboxapi.com/oauth2/token";

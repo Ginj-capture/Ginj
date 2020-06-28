@@ -39,7 +39,7 @@ import java.util.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public abstract class AbstractOnlineExporter extends GinjExporter implements OnlineExporter {
+public abstract class AbstractOAuth2Exporter extends GinjExporter implements OnlineExporter {
     public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + Util.colorToHex(Util.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + Util.colorToHex(Util.LABEL_FOREGROUND_COLOR) + ";} a{color:" + Util.colorToHex(Util.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";
     protected static final int PORT_GINJ = 6193;
@@ -47,7 +47,7 @@ public abstract class AbstractOnlineExporter extends GinjExporter implements Onl
     protected String receivedCode = null;
     protected HttpServer server;
 
-    public AbstractOnlineExporter(JFrame frame) {
+    public AbstractOAuth2Exporter(JFrame frame) {
         super(frame);
     }
 

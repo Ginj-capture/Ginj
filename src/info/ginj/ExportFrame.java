@@ -198,7 +198,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
 
 
     private boolean saveToHistory(Capture capture) {
-        File historyFolder = new File("ZZhistoryFolder"); // TODO get from params
+        File historyFolder = Ginj.getHistoryFolder();
         if (!historyFolder.exists()) {
             if (!historyFolder.mkdirs()) {
                 Util.alertError(this, "Save error", "Could not create history folder (" + historyFolder.getAbsolutePath() + ")");
@@ -239,13 +239,8 @@ public class ExportFrame extends JFrame implements ExportMonitor {
                 .excludeFieldsWithoutExposeAnnotation()
                 .create();
         JsonObject json = new JsonObject();
-        json.addProperty("id", capture.getId());
-        json.addProperty("name", capture.getName());
-        json.addProperty("type", capture.getType());
-        json.add("exports", gson.toJsonTree(capture.getExports()));
-
+        json.add("capture", gson.toJsonTree(capture));
         // TODO finalize overlay serialization
-        json.add("overlays", gson.toJsonTree(capture.getOverlays()));
 
         try (Writer writer = new FileWriter(targetFile)) {
             gson.toJson(json, writer);
@@ -281,7 +276,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
 
             // Write the thumbnail to disk
             try {
-                targetFile = new File(historyFolder, capture.getId() + ".thumb.png");
+                targetFile = new File(historyFolder, capture.getId() + HistoryFrame.THUMB_EXTENSION);
                 if (!ImageIO.write(thumbnailImage, "png", targetFile)) {
                     Util.alertError(this, "Save error", "Saving thumbnail to history failed (" + targetFile.getAbsolutePath() + ")");
                     return false;
@@ -294,4 +289,5 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         }
         return true;
     }
+
 }

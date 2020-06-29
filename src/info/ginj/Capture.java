@@ -14,13 +14,26 @@ import java.util.List;
  * A capture is something (screenshot or screen recording) ready for export
  */
 public class Capture {
+    @Expose
     String id;
+
+    @Expose
     boolean isVideo;
+
+    @Expose
     String name;
+
+    @Expose
     File file;
+
     BufferedImage originalImage;
+
+    @Expose
     List<Overlay> overlays;
+
     BufferedImage renderedImage;
+
+    @Expose
     List<Export> exports = new ArrayList<>();
 
     public String getId() {

@@ -54,7 +54,7 @@ public class CaptureEditingFrame extends JFrame {
     GinjTool currentTool;
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
-        this(capturedImg, new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss").format(new Date())); // ENHANCEMENT: seconds
+        this(capturedImg, new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())); // ENHANCEMENT: seconds
     }
 
     public CaptureEditingFrame(BufferedImage capturedImg, String captureId) {
@@ -432,8 +432,8 @@ public class CaptureEditingFrame extends JFrame {
             Capture capture = new Capture();
             capture.setVideo(false);
             capture.setId(captureId);
-            capture.setOriginalImage(capturedImg);
-            capture.setRenderedImage(renderedImage);
+            capture.transientSetOriginalImage(capturedImg);
+            capture.transientSetRenderedImage(renderedImage);
             capture.setName(nameTextField.getText());
 
             List<Overlay> overlays = new ArrayList<>();

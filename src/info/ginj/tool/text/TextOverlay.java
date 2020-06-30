@@ -1,6 +1,5 @@
 package info.ginj.tool.text;
 
-import com.google.gson.annotations.Expose;
 import info.ginj.CaptureEditingFrame;
 import info.ginj.ImageEditorPane;
 import info.ginj.tool.RectangleOverlay;
@@ -12,23 +11,26 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
 public class TextOverlay extends RectangleOverlay {
-    // Actual fields to persist and restore
-    @Expose
-    protected String text;
 
-    // TODO Implement use of the following fields are not used yet
-    @Expose
+    // TODO Implement use of the following fields (popup to select font and color)
     protected Color textColor = Util.TEXT_TOOL_DEFAULT_FOREGROUND_COLOR;
-    @Expose
     protected String fontName;
-    @Expose
     protected int fontSize;
-    @Expose
     protected int fontStyle;
 
     private JTextPane textPane;
     private ImageEditorPane imagePane;
     private CaptureEditingFrame frame;
+
+    // Getters and setters required for XMLEncoder/XMLDecoder (de)serialization
+
+    public JTextPane getTextPane() {
+        return textPane;
+    }
+
+    public void setTextPane(JTextPane textPane) {
+        this.textPane = textPane;
+    }
 
     public Color getTextColor() {
         return textColor;
@@ -123,19 +125,6 @@ public class TextOverlay extends RectangleOverlay {
         g2d.setColor(getColor());
         g2d.setStroke(new BasicStroke(6));
         g2d.drawRoundRect(rectangle.x + xOffset, rectangle.y + yOffset, rectangle.width, rectangle.height, 16, 16);
-    }
-
-    @Override
-    public void beforeSerialize() {
-        super.beforeSerialize();
-
-        // Extract information from the textPane
-        text = textPane.getText();
-    }
-
-    @Override
-    public void afterDeserialize() {
-        super.afterDeserialize();
     }
 
     public void setImagePane(ImageEditorPane imagePane) {

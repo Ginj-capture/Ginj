@@ -1,6 +1,5 @@
 package info.ginj.tool.arrow;
 
-import com.google.gson.annotations.Expose;
 import info.ginj.tool.Overlay;
 
 import java.awt.*;
@@ -9,10 +8,7 @@ import java.awt.geom.Line2D;
 
 public class ArrowOverlay extends Overlay {
 
-    // Actual fields to persist and restore
-    @Expose
     private Point start;
-    @Expose
     private Point end;
 
     public Overlay initialize(Point initialPoint, Color initialColor) {
@@ -20,6 +16,25 @@ public class ArrowOverlay extends Overlay {
         start = initialPoint;
         end = initialPoint;
         return this;
+    }
+
+
+    // Getters and setters required for XMLEncoder/XMLDecoder (de)serialization
+
+    public Point getStart() {
+        return start;
+    }
+
+    public void setStart(Point start) {
+        this.start = start;
+    }
+
+    public Point getEnd() {
+        return end;
+    }
+
+    public void setEnd(Point end) {
+        this.end = end;
     }
 
     @Override
@@ -120,7 +135,7 @@ public class ArrowOverlay extends Overlay {
 
     @Override
     public String toString() {
-        return "Arrow form " + start + " to " + end;
+        return "Arrow from " + start + " to " + end;
     }
 
 }

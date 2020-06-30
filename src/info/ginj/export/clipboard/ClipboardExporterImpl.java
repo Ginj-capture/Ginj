@@ -43,9 +43,9 @@ public class ClipboardExporterImpl extends GinjExporter {
         }
         try {
             logProgress("Reading file", 50);
-            Image image = capture.getRenderedImage();
+            Image image = capture.transientGetRenderedImage();
             if (image == null) {
-                image = ImageIO.read(capture.getFile());
+                image = ImageIO.read(capture.transientGetFile());
             }
             TransferableImage transferableImage = new TransferableImage(image);
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();

@@ -467,7 +467,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     private String uploadFileBytes(CloseableHttpClient client, String accountNumber, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
         String uploadToken = null;
 
-        final File file = capture.getFile();
+        final File file = capture.transientGetFile();
 
         // Step 1: Initiating an upload session
         logProgress("Uploading", 10);

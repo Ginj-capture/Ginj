@@ -1,6 +1,5 @@
 package info.ginj;
 
-import com.google.gson.annotations.Expose;
 import info.ginj.tool.Overlay;
 
 import javax.imageio.ImageIO;
@@ -14,27 +13,15 @@ import java.util.List;
  * A capture is something (screenshot or screen recording) ready for export
  */
 public class Capture {
-    @Expose
     String id;
-
-    @Expose
     boolean isVideo;
-
-    @Expose
     String name;
-
-    @Expose
-    File file;
-
-    BufferedImage originalImage;
-
-    @Expose
     List<Overlay> overlays;
-
+    List<Export> exports = new ArrayList<>();
+    File file;
+    BufferedImage originalImage;
     BufferedImage renderedImage;
 
-    @Expose
-    List<Export> exports = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -60,22 +47,6 @@ public class Capture {
         this.name = name;
     }
 
-    public File getFile() {
-        return file;
-    }
-
-    public void setFile(File file) {
-        this.file = file;
-    }
-
-    public BufferedImage getOriginalImage() {
-        return originalImage;
-    }
-
-    public void setOriginalImage(BufferedImage originalImage) {
-        this.originalImage = originalImage;
-    }
-
     public List<Overlay> getOverlays() {
         return overlays;
     }
@@ -84,20 +55,58 @@ public class Capture {
         this.overlays = overlays;
     }
 
-    public BufferedImage getRenderedImage() {
-        return renderedImage;
-    }
-
-    public void setRenderedImage(BufferedImage renderedImage) {
-        this.renderedImage = renderedImage;
-    }
-
     public List<Export> getExports() {
         return exports;
     }
 
+    public void setExports(List<Export> exports) {
+        this.exports = exports;
+    }
+
     public void addExport(String exporter, String url, String id) {
         exports.add(new Export(exporter, id, url));
+    }
+
+    /**
+     * Getter renamed to non-javabeans convention so it is skipped by XMLEncoder
+     */
+    public File transientGetFile() {
+        return file;
+    }
+
+    /**
+     * Setter renamed to non-javabeans convention so it is skipped by XMLDecoder
+     */
+    public void transientSetFile(File file) {
+        this.file = file;
+    }
+
+    /**
+     * Getter renamed to non-javabeans convention so it is skipped by XMLEncoder
+     */
+    public BufferedImage transientGetOriginalImage() {
+        return originalImage;
+    }
+
+    /**
+     * Setter renamed to non-javabeans convention so it is skipped by XMLDecoder
+     */
+    public void transientSetOriginalImage(BufferedImage originalImage) {
+        this.originalImage = originalImage;
+    }
+
+    /**
+     * Getter renamed to non-javabeans convention so it is skipped by XMLEncoder
+     */
+    public BufferedImage transientGetRenderedImage() {
+        return renderedImage;
+    }
+
+    /**
+     * Setter renamed to non-javabeans convention so it is skipped by XMLDecoder
+     */
+    public void transientSetRenderedImage(BufferedImage renderedImage) {
+        this.renderedImage = renderedImage;
     }
 
     // Utils
@@ -133,50 +142,12 @@ public class Capture {
         return name;
     }
 
-    private class Export {
-        @Expose
-        String exporterName;
-        @Expose
-        String path;
-        @Expose
-        String mediaId;
-
-        public Export() {
-        }
-
-        public Export(String exporterName, String mediaId, String path) {
-            this.exporterName = exporterName;
-            this.path = path;
-            this.mediaId = mediaId;
-        }
-
-        public String getExporterName() {
-            return exporterName;
-        }
-
-        public void setExporterName(String exporterName) {
-            this.exporterName = exporterName;
-        }
-
-        /**
-         * Path can be null (clipboard), a file path (for saved files), or a URL (for shared files)
-         *
-         * @return
-         */
-        public String getPath() {
-            return path;
-        }
-
-        public void setPath(String path) {
-            this.path = path;
-        }
-
-        public String getMediaId() {
-            return mediaId;
-        }
-
-        public void setMediaId(String mediaId) {
-            this.mediaId = mediaId;
-        }
+    @Override
+    public String toString() {
+        return "Capture{" +
+                "id='" + id + '\'' +
+                ", isVideo=" + isVideo +
+                ", name='" + name + '\'' +
+                '}';
     }
 }

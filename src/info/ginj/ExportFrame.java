@@ -1,8 +1,5 @@
 package info.ginj;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import info.ginj.export.ExportMonitor;
 import info.ginj.export.GinjExporter;
 import info.ginj.ui.GinjLabel;
@@ -14,16 +11,15 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.beans.XMLEncoder;
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.file.Files;
 
 public class ExportFrame extends JFrame implements ExportMonitor {
 
-    public static final int THUMBNAIL_WIDTH = 136;
-    public static final int THUMBNAIL_HEIGHT = 91;
     private final JLabel stateLabel;
     private final JLabel sizeLabel;
     private final BoundedRangeModel progressModel;
@@ -215,16 +211,16 @@ public class ExportFrame extends JFrame implements ExportMonitor {
                 // Move file to history
                 // TODO ENHANCEMENT move the source, not the rendered version !
                 targetFile = new File(historyFolder, capture.getId() + ".mp4");
-                Files.move(capture.getFile().toPath(), targetFile.toPath());
+                Files.move(capture.transientGetFile().toPath(), targetFile.toPath());
             }
             else {
                 // Write the image to disk
                 targetFile = new File(historyFolder, capture.getId() + ".png");
-                if (!ImageIO.write(capture.getOriginalImage(), "png", targetFile)) {
+                if (!ImageIO.write(capture.transientGetOriginalImage(), "png", targetFile)) {
                     Util.alertError(this, "Save error", "Writing capture to history failed (" + targetFile.getAbsolutePath() + ")");
                     return false;
                 }
-                sourceImage = capture.getRenderedImage();
+                sourceImage = capture.transientGetRenderedImage();
             }
         }
         catch (IOException e) {
@@ -233,19 +229,12 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         }
 
 
-        // Save metadata and overlays to JSON
-        targetFile = new File(historyFolder, capture.getId() + ".json");
-        Gson gson = new GsonBuilder()
-                .excludeFieldsWithoutExposeAnnotation()
-                .create();
-        JsonObject json = new JsonObject();
-        json.add("capture", gson.toJsonTree(capture));
-        // TODO finalize overlay serialization
-
-        try (Writer writer = new FileWriter(targetFile)) {
-            gson.toJson(json, writer);
+        // Save metadata and overlays to XML
+        targetFile = new File(historyFolder, capture.getId() + ".xml");
+        try (XMLEncoder xmlEncoder = new XMLEncoder(new BufferedOutputStream(new FileOutputStream(targetFile)))) {
+            xmlEncoder.writeObject(capture);
         }
-        catch (IOException e) {
+        catch (Exception e) {
             Util.alertError(this, "Save error", "Saving metadata and overlays to history failed (" + targetFile.getAbsolutePath() + ")");
             return false;
         }
@@ -254,12 +243,16 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         // Save thumbnail
         if (sourceImage != null) {
             BufferedImage thumbnailImage;
+
             int sourceImageWidth = sourceImage.getWidth();
             int sourceImageHeight = sourceImage.getHeight();
-            if (sourceImageWidth > THUMBNAIL_WIDTH || sourceImageHeight > THUMBNAIL_HEIGHT) {
+            int thumbnailWidth = HistoryFrame.THUMBNAIL_SIZE.width;
+            int thumbnailHeight = HistoryFrame.THUMBNAIL_SIZE.height;
+
+            if (sourceImageWidth > thumbnailWidth || sourceImageHeight > thumbnailHeight) {
                 // Resize
-                double hScale = THUMBNAIL_WIDTH / ((double) sourceImageWidth);
-                double vScale = THUMBNAIL_HEIGHT / ((double) sourceImageHeight);
+                double hScale = thumbnailWidth / ((double) sourceImageWidth);
+                double vScale = thumbnailHeight / ((double) sourceImageHeight);
                 double scale = Math.min(hScale, vScale);
 
                 int targetWidth = (int) (sourceImageWidth * scale);

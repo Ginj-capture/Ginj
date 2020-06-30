@@ -123,12 +123,12 @@ public class DiskExporterImpl extends GinjExporter {
     public void exportCapture(Capture capture, String accountNumber) {
         try {
             logProgress("Saving image", 50);
-            if (capture.getRenderedImage() != null) {
-                ImageIO.write(capture.getRenderedImage(), "png", targetFile);
+            if (capture.transientGetRenderedImage() != null) {
+                ImageIO.write(capture.transientGetRenderedImage(), "png", targetFile);
             }
             else {
                 // TODO make this a block copy loop that can be cancelled
-                Files.copy(capture.getFile().toPath(), targetFile.toPath());
+                Files.copy(capture.transientGetFile().toPath(), targetFile.toPath());
             }
         }
         catch (IOException e) {

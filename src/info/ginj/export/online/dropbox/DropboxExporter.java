@@ -236,7 +236,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     @Override
     public String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException {
         logProgress("Preparing upload", 10);
-        final String targetFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + ".png";
+        final String targetFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + Ginj.IMAGE_EXTENSION;
         try {
             String accessToken = Prefs.getWithSuffix(Prefs.Key.EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX, accountNumber);
             DbxRequestConfig config = new DbxRequestConfig(Ginj.getAppName() + "/" + Ginj.getVersion());

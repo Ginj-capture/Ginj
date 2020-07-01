@@ -16,9 +16,6 @@ import java.io.FileInputStream;
 import java.util.Arrays;
 
 public class HistoryFrame extends JFrame {
-    public static final String THUMB_EXTENSION = "thumb.png";
-    public static final String VIDEO_EXTENSION = "mp4";
-    public static final String IMAGE_EXTENSION = "png";
 
     public static final Dimension HISTORY_CELL_SIZE = new Dimension(164, 164);
     public static final Dimension THUMBNAIL_SIZE = new Dimension(113, 91);
@@ -59,6 +56,7 @@ public class HistoryFrame extends JFrame {
         JPanel filterBar = new JPanel();
         filterBar.setOpaque(true);
         filterBar.setLayout(new GridLayout(1,5));
+        filterBar.add(new JButton("Name"));
         filterBar.add(new JButton("Date"));
         filterBar.add(new JButton("Size"));
         filterBar.add(new JButton("Image"));
@@ -71,7 +69,7 @@ public class HistoryFrame extends JFrame {
         contentPane.add(filterBar, c);
 
         JComponent historyPanel;
-        final File[] files = Ginj.getHistoryFolder().listFiles((dir, name) -> name.toLowerCase().endsWith(".xml"));
+        final File[] files = Ginj.getHistoryFolder().listFiles((dir, name) -> name.toLowerCase().endsWith(Ginj.METADATA_EXTENSION));
 
         if (files == null) {
             Util.alertError(this, "History error", "Could not list files in history folder '" + Ginj.getHistoryFolder().getAbsolutePath() +"'");
@@ -175,7 +173,7 @@ public class HistoryFrame extends JFrame {
 
             setBackground(Color.DARK_GRAY);
 
-            final JPanel imageLabel = new ThumbnailPanel(xmlFilename.substring(0, xmlFilename.lastIndexOf('.') + 1) + THUMB_EXTENSION);
+            final JPanel imageLabel = new ThumbnailPanel(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + Ginj.THUMBNAIL_EXTENSION);
             GridBagConstraints c = new GridBagConstraints();
             c.gridx = 0;
             c.gridy = 0;
@@ -183,9 +181,11 @@ public class HistoryFrame extends JFrame {
             add(imageLabel, c);
 
             final JLabel nameLabel = new GinjLabel("?");
+            nameLabel.setPreferredSize(new Dimension(90, 15));
             try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(file)))) {
                 capture = (Capture) xmlDecoder.readObject();
-                nameLabel.setText(capture.getName()); // TODO truncate if too long
+                nameLabel.setText(capture.getName());
+                nameLabel.setToolTipText(capture.getName());
             }
             catch (Exception e) {
                 Util.alertException(HistoryFrame.this, "Load error", "Error loading capture '" + file.getAbsolutePath() + "'", e);
@@ -198,7 +198,7 @@ public class HistoryFrame extends JFrame {
             add(nameLabel, c);
 
             final JLabel sizeLabel = new GinjLabel("?");
-            File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.') + 1) + (capture.isVideo? VIDEO_EXTENSION : IMAGE_EXTENSION));
+            File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + (capture.isVideo? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION));
             sizeLabel.setText(Util.getPrettySize(captureFile.length()));
             c = new GridBagConstraints();
             c.gridx = 1;
@@ -217,6 +217,7 @@ public class HistoryFrame extends JFrame {
                 image = ImageIO.read(new File(imagePath));
             }
             catch (Exception e) {
+                System.err.println("Error reading '" + imagePath + "'...");
                 e.printStackTrace();
             }
         }

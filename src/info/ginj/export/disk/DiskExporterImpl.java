@@ -67,7 +67,7 @@ public class DiskExporterImpl extends GinjExporter {
             }
         }
         // Default file
-        targetFile = new File(saveDirName, capture.getDefaultName() + ".png");
+        targetFile = new File(saveDirName, capture.getDefaultName() + Ginj.IMAGE_EXTENSION);
 
         if (!askForLocation) {
             // OK, we're done.
@@ -88,7 +88,7 @@ public class DiskExporterImpl extends GinjExporter {
         fileChooser.setDialogTitle("Save capture as...");
         fileChooser.setAcceptAllFileFilterUsed(false);
         fileChooser.setMultiSelectionEnabled(false);
-        fileChooser.setFileFilter(new FileNameExtensionFilter("PNG (*.png)", "png"));
+        fileChooser.setFileFilter(new FileNameExtensionFilter("PNG (*" +Ginj.IMAGE_EXTENSION + ")", Ginj.IMAGE_EXTENSION.substring(1)));
         fileChooser.setSelectedFile(targetFile);
 
         if (fileChooser.showSaveDialog(getFrame()) != JFileChooser.APPROVE_OPTION) {
@@ -124,7 +124,7 @@ public class DiskExporterImpl extends GinjExporter {
         try {
             logProgress("Saving image", 50);
             if (capture.transientGetRenderedImage() != null) {
-                ImageIO.write(capture.transientGetRenderedImage(), "png", targetFile);
+                ImageIO.write(capture.transientGetRenderedImage(), Ginj.IMAGE_FORMAT_PNG, targetFile);
             }
             else {
                 // TODO make this a block copy loop that can be cancelled

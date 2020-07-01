@@ -123,8 +123,8 @@ public class Capture {
      */
     public File toFile() throws IOException {
         if (file == null) {
-            file = new File(Ginj.getTempDir(), id + ".png");
-            ImageIO.write(renderedImage, "png", file);
+            file = new File(Ginj.getTempDir(), id + Ginj.IMAGE_EXTENSION);
+            ImageIO.write(renderedImage, Ginj.IMAGE_FORMAT_PNG, file);
             file.deleteOnExit();
         }
         return file;

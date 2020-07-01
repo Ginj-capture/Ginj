@@ -215,8 +215,8 @@ public class ExportFrame extends JFrame implements ExportMonitor {
             }
             else {
                 // Write the image to disk
-                targetFile = new File(historyFolder, capture.getId() + ".png");
-                if (!ImageIO.write(capture.transientGetOriginalImage(), "png", targetFile)) {
+                targetFile = new File(historyFolder, capture.getId() + Ginj.IMAGE_EXTENSION);
+                if (!ImageIO.write(capture.transientGetOriginalImage(), Ginj.IMAGE_FORMAT_PNG, targetFile)) {
                     Util.alertError(this, "Save error", "Writing capture to history failed (" + targetFile.getAbsolutePath() + ")");
                     return false;
                 }
@@ -230,7 +230,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
 
 
         // Save metadata and overlays to XML
-        targetFile = new File(historyFolder, capture.getId() + ".xml");
+        targetFile = new File(historyFolder, capture.getId() + Ginj.METADATA_EXTENSION);
         try (XMLEncoder xmlEncoder = new XMLEncoder(new BufferedOutputStream(new FileOutputStream(targetFile)))) {
             xmlEncoder.writeObject(capture);
         }
@@ -269,8 +269,8 @@ public class ExportFrame extends JFrame implements ExportMonitor {
 
             // Write the thumbnail to disk
             try {
-                targetFile = new File(historyFolder, capture.getId() + HistoryFrame.THUMB_EXTENSION);
-                if (!ImageIO.write(thumbnailImage, "png", targetFile)) {
+                targetFile = new File(historyFolder, capture.getId() + Ginj.THUMBNAIL_EXTENSION);
+                if (!ImageIO.write(thumbnailImage, Ginj.IMAGE_FORMAT_PNG, targetFile)) {
                     Util.alertError(this, "Save error", "Saving thumbnail to history failed (" + targetFile.getAbsolutePath() + ")");
                     return false;
                 }

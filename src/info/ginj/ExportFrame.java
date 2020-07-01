@@ -109,7 +109,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
     public void log(String state, int progress, long currentSizeBytes, long totalSizeBytes) {
         stateLabel.setText(state);
         progressModel.setValue(progress);
-        sizeLabel.setText((currentSizeBytes / 1024) + " / " + (totalSizeBytes / 1024) + " kB");
+        sizeLabel.setText(Util.getPrettySizeRatio(currentSizeBytes, totalSizeBytes));
     }
 
     @Override

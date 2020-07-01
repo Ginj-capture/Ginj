@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Locale;
 
 public class Util {
     public static final Color AREA_SELECTION_COLOR = new Color(251, 185, 1);
@@ -33,6 +34,8 @@ public class Util {
     // Used for web pages
     public static final Color LABEL_BACKGROUND_COLOR = new Color(27, 29, 30);
     public static final Color LABEL_FOREGROUND_COLOR = new Color(222, 165, 5);
+
+    public static final String[] SIZE_UNITS = {" KiB", " MiB", " GiB", " TiB", " PiB"};
 
     /**
      * Lay out components of a Panel and compute its size, like pack() for a Window.
@@ -264,5 +267,26 @@ public class Util {
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, message, title, JOptionPane.ERROR_MESSAGE));
     }
 
+    public static String getPrettySize(double bytes) {
+        if (bytes < 1024) return bytes + " B";
+        var i = -1;
+        do {
+            bytes = bytes / 1024;
+            i++;
+        }
+        while (bytes > 1024);
+        return String.format(Locale.US, "%.1f", bytes) + SIZE_UNITS[i];
+    }
 
+    public static String getPrettySizeRatio(double bytesPartial, double bytesTotal) {
+        if (bytesTotal < 1024) return bytesPartial + "/" + bytesTotal + " B";
+        var i = -1;
+        do {
+            bytesTotal = bytesTotal / 1024;
+            bytesPartial = bytesPartial / 1024;
+            i++;
+        }
+        while (bytesTotal > 1024);
+        return String.format(Locale.US, "%.1f", bytesPartial) + "/" + String.format(Locale.US, "%.1f", bytesTotal) + SIZE_UNITS[i];
+    }
 }

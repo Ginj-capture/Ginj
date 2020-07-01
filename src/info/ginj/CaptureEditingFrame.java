@@ -54,7 +54,7 @@ public class CaptureEditingFrame extends JFrame {
     GinjTool currentTool;
 
     public CaptureEditingFrame(BufferedImage capturedImg) {
-        this(capturedImg, new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())); // ENHANCEMENT: seconds
+        this(capturedImg, new SimpleDateFormat(Ginj.DATETIME_FORMAT_PATTERN).format(new Date())); // ENHANCEMENT: seconds
     }
 
     public CaptureEditingFrame(BufferedImage capturedImg, String captureId) {

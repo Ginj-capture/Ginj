@@ -16,7 +16,9 @@ import java.io.FileInputStream;
 import java.util.Arrays;
 
 public class HistoryFrame extends JFrame {
-    public static final String THUMB_EXTENSION = ".thumb.png";
+    public static final String THUMB_EXTENSION = "thumb.png";
+    public static final String VIDEO_EXTENSION = "mp4";
+    public static final String IMAGE_EXTENSION = "png";
 
     public static final Dimension HISTORY_CELL_SIZE = new Dimension(164, 164);
     public static final Dimension THUMBNAIL_SIZE = new Dimension(113, 91);
@@ -157,7 +159,7 @@ public class HistoryFrame extends JFrame {
 
 
     private class HistoryItemPanel extends JPanel {
-        private final String jsonFilename;
+        private final String xmlFilename;
         private Capture capture = null;
 
         @Override
@@ -167,21 +169,23 @@ public class HistoryFrame extends JFrame {
 
         public HistoryItemPanel(File file) {
             super();
-            jsonFilename = file.getAbsolutePath();
+            xmlFilename = file.getAbsolutePath();
 
             setLayout(new GridBagLayout());
 
-            final JPanel imageLabel = new ThumbnailPanel(jsonFilename.substring(0, jsonFilename.lastIndexOf('.')) + THUMB_EXTENSION);
+            setBackground(Color.DARK_GRAY);
+
+            final JPanel imageLabel = new ThumbnailPanel(xmlFilename.substring(0, xmlFilename.lastIndexOf('.') + 1) + THUMB_EXTENSION);
             GridBagConstraints c = new GridBagConstraints();
             c.gridx = 0;
             c.gridy = 0;
             c.gridwidth = 2;
             add(imageLabel, c);
 
-            final JLabel nameLabel = new JLabel("?");
+            final JLabel nameLabel = new GinjLabel("?");
             try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(file)))) {
                 capture = (Capture) xmlDecoder.readObject();
-                nameLabel.setText(capture.getName());
+                nameLabel.setText(capture.getName()); // TODO truncate if too long
             }
             catch (Exception e) {
                 Util.alertException(HistoryFrame.this, "Load error", "Error loading capture '" + file.getAbsolutePath() + "'", e);
@@ -193,7 +197,9 @@ public class HistoryFrame extends JFrame {
             c.gridwidth = 1;
             add(nameLabel, c);
 
-            final JLabel sizeLabel = new GinjLabel("?" /*capture.getLength()*/);
+            final JLabel sizeLabel = new GinjLabel("?");
+            File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.') + 1) + (capture.isVideo? VIDEO_EXTENSION : IMAGE_EXTENSION));
+            sizeLabel.setText(Util.getPrettySize(captureFile.length()));
             c = new GridBagConstraints();
             c.gridx = 1;
             c.gridy = 1;

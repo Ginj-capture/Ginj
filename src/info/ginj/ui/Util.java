@@ -25,6 +25,8 @@ public class Util {
     public static final Color TOOLBAR_ICON_ENABLED_COLOR = new Color(238,179,8);
     public static final Color TEXT_TOOL_DEFAULT_FOREGROUND_COLOR = Color.BLACK;
 
+    public static final Color HISTORY_SELECTED_ITEM_BACKGROUND_COLOR = new Color(255, 208, 42);
+
     public static final Color HANDLE_CENTER_COLOR = new Color(72, 72, 212, 128);
     public static final Color HANDLE_GREY_1_COLOR = new Color(253, 253, 253, 128);
     public static final Color HANDLE_GREY_2_COLOR = new Color(242, 242, 242, 128);

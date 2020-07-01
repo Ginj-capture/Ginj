@@ -73,6 +73,8 @@ public class StarWindow extends JWindow {
     private boolean isDragging = false;
     private int highlightedButtonId = BTN_NONE;
 
+    private HistoryFrame historyFrame;
+
     public StarWindow() {
         super();
 
@@ -89,6 +91,14 @@ public class StarWindow extends JWindow {
         pack();
         positionWindowOnStartup();
         setAlwaysOnTop(true);
+    }
+
+    public void setHistoryFrame(HistoryFrame historyFrame) {
+        this.historyFrame = historyFrame;
+    }
+
+    public HistoryFrame getHistoryFrame() {
+        return historyFrame;
     }
 
 
@@ -410,9 +420,11 @@ public class StarWindow extends JWindow {
 
 
     private void onHistory() {
-        // TODO prevent opening of multiple history windows
-        HistoryFrame historyFrame = new HistoryFrame();
+        if (historyFrame == null) {
+            historyFrame = new HistoryFrame(this);
+        }
         historyFrame.setVisible(true);
+        historyFrame.requestFocus();
     }
 
 

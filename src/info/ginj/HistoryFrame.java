@@ -7,7 +7,10 @@ import info.ginj.ui.WrapLayout;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.beans.XMLDecoder;
 import java.io.BufferedInputStream;
@@ -17,12 +20,26 @@ import java.util.Arrays;
 
 public class HistoryFrame extends JFrame {
 
-    public static final Dimension HISTORY_CELL_SIZE = new Dimension(164, 164);
+    public static final Dimension HISTORY_CELL_SIZE = new Dimension(156, 164);
     public static final Dimension THUMBNAIL_SIZE = new Dimension(113, 91);
     public static final Dimension WINDOW_DEFAULT_SIZE = new Dimension(680, 550);
+    private final ImageIcon exportIcon;
+    private final ImageIcon editIcon;
+    private final ImageIcon deleteIcon;
+    private final Color defaultBgColor;
+//    private final Color defaultLabelForeground;
 
-    public HistoryFrame() {
+    private StarWindow parentWindow;
+    private HistoryItemPanel selectedItem;
+
+    public HistoryFrame(StarWindow parentWindow) {
         super();
+        this.parentWindow = parentWindow;
+
+        exportIcon = Util.createIcon(getClass().getResource("img/icon/export.png"), 16, 16, Util.ICON_ENABLED_COLOR);
+        editIcon = Util.createIcon(getClass().getResource("img/icon/edit.png"), 16, 16, Util.ICON_ENABLED_COLOR);
+        deleteIcon = Util.createIcon(getClass().getResource("img/icon/delete.png"), 16, 16, Util.ICON_ENABLED_COLOR);
+        defaultBgColor = getBackground();
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " History");
@@ -78,14 +95,21 @@ public class HistoryFrame extends JFrame {
         else {
             Arrays.sort(files); // Alphabetically by default
 
-            JPanel historyList = new JPanel(new WrapLayout());
+            JPanel historyList = new JPanel(new WrapLayout(WrapLayout.LEFT));
             for (File file : files) {
-                historyList.add(new HistoryItemPanel(file));
+                historyList.add(new HistoryItemPanel(this, file));
             }
 
             historyPanel = new JScrollPane(historyList);
         }
         historyPanel.setPreferredSize(WINDOW_DEFAULT_SIZE);
+
+        historyPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                setSelectedItem(null);
+            }
+        });
 
         c = new GridBagConstraints();
         c.gridx = 0;
@@ -122,70 +146,92 @@ public class HistoryFrame extends JFrame {
 
 
     private void onClose() {
+        parentWindow.setHistoryFrame(null);
         // Close window
         dispose();
     }
 
-    private void onDelete(int id) {
+    private void onDelete(Capture capture) {
         // TODO ask the question: Also delete from storages (and list them) ?
+        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "The selected capture will be deleted from the History.\nFor now, the exported version (if any) will remain untouched.\nAre you sure you want to delete capture '" + capture.getName() + "'?", "Delete Capture", JOptionPane.YES_NO_OPTION)) {
+            boolean ok = new File(Ginj.getHistoryFolder(), capture.getId() + Ginj.METADATA_EXTENSION).delete();
+            ok = ok && new File(Ginj.getHistoryFolder(), capture.getId() + Ginj.THUMBNAIL_EXTENSION).delete();
+            ok = ok && new File(Ginj.getHistoryFolder(), capture.getId() + (capture.isVideo ? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION)).delete();
+            if (!ok) {
+                Util.alertError(this, "Delete error", "There was an error deleting history files for catpure id '" + capture.getId() + "'!");
+            }
+        }
+    }
+
+    private void onEdit(Capture capture) {
+
+    }
+
+
+    public HistoryItemPanel getSelectedItem() {
+        return selectedItem;
+    }
+
+    public void setSelectedItem(HistoryItemPanel selectedItem) {
+        // Deselect previous one, if any
+        if (this.selectedItem != null) {
+            this.selectedItem.setSelected(false);
+        }
+        // Select new one, if any
+        if (selectedItem != null) {
+            selectedItem.setSelected(true);
+        }
+        // and remember it
+        this.selectedItem = selectedItem;
     }
 
 
     //////////////////////////////
     // Inner classes
 
-    public class HistoryEntry {
-        Capture capture;
-        String thumbnailImagePath;
-
-        public Capture getCapture() {
-            return capture;
-        }
-
-        public void setCapture(Capture capture) {
-            this.capture = capture;
-        }
-
-        public String getThumbnailImagePath() {
-            return thumbnailImagePath;
-        }
-
-        public void setThumbnailImagePath(String thumbnailImagePath) {
-            this.thumbnailImagePath = thumbnailImagePath;
-        }
-    }
-
-
     private class HistoryItemPanel extends JPanel {
         private final String xmlFilename;
         private Capture capture = null;
+        private final JLabel nameLabel;
+        private final JLabel sizeLabel;
+        private final JButton editButton;
+        // private final JButton exportButton;
+        private final JButton deleteButton;
 
         @Override
         public Dimension getPreferredSize() {
             return HISTORY_CELL_SIZE;
         }
 
-        public HistoryItemPanel(File file) {
+        public HistoryItemPanel(HistoryFrame historyFrame, File file) {
             super();
             xmlFilename = file.getAbsolutePath();
 
             setLayout(new GridBagLayout());
-
-            setBackground(Color.DARK_GRAY);
+            setBorder(new EmptyBorder(5, 5, 5, 5));
 
             final JPanel imageLabel = new ThumbnailPanel(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + Ginj.THUMBNAIL_EXTENSION);
+            imageLabel.setBackground(null);
             GridBagConstraints c = new GridBagConstraints();
             c.gridx = 0;
             c.gridy = 0;
             c.gridwidth = 2;
+            c.insets = new Insets(10, 10, 10, 10);
             add(imageLabel, c);
 
-            final JLabel nameLabel = new GinjLabel("?");
-            nameLabel.setPreferredSize(new Dimension(90, 15));
+            nameLabel = new GinjLabel("?");
+            nameLabel.setBackground(null);
+            nameLabel.setPreferredSize(new Dimension(90, 16));
             try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(file)))) {
                 capture = (Capture) xmlDecoder.readObject();
                 nameLabel.setText(capture.getName());
                 nameLabel.setToolTipText(capture.getName());
+                nameLabel.addMouseListener(new MouseAdapter() {
+                    // Trick to keep clickability while showing tooltip, taken from https://stackoverflow.com/a/14932443/13551878
+                    public void mouseReleased(MouseEvent e) {
+                        HistoryItemPanel.this.dispatchEvent(SwingUtilities.convertMouseEvent(e.getComponent(), e, HistoryItemPanel.this));
+                    }
+                });
             }
             catch (Exception e) {
                 Util.alertException(HistoryFrame.this, "Load error", "Error loading capture '" + file.getAbsolutePath() + "'", e);
@@ -195,16 +241,72 @@ public class HistoryFrame extends JFrame {
             c.gridx = 0;
             c.gridy = 1;
             c.gridwidth = 1;
+            c.anchor = GridBagConstraints.WEST;
             add(nameLabel, c);
 
-            final JLabel sizeLabel = new GinjLabel("?");
+            sizeLabel = new GinjLabel("?");
+            sizeLabel.setBackground(null);
+            sizeLabel.setPreferredSize(new Dimension(50, 16));
             File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + (capture.isVideo? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION));
             sizeLabel.setText(Util.getPrettySize(captureFile.length()));
+            sizeLabel.setHorizontalAlignment(SwingConstants.RIGHT);
             c = new GridBagConstraints();
             c.gridx = 1;
             c.gridy = 1;
             c.gridwidth = 1;
+            c.anchor = GridBagConstraints.EAST;
             add(sizeLabel, c);
+
+            JPanel buttonBar = new JPanel(new GridLayout(1, 3, 5, 0));
+            buttonBar.setBackground(null);
+            buttonBar.setBorder(new EmptyBorder(2, 0, 0, 0));
+            editButton = new JButton(editIcon);
+            editButton.addActionListener(e -> onEdit(capture));
+
+            // exportButton = new JButton(exportIcon); TODO seems to redo the original export (clipboard, disk. Didn't test online)
+            deleteButton = new JButton(deleteIcon);
+            deleteButton.addActionListener(e -> onDelete(capture));
+            // Hide buttons by default
+            editButton.setVisible(false);
+            // exportButton.setVisible(false);
+            deleteButton.setVisible(false);
+
+            buttonBar.add(editButton);
+            // buttonBar.add(exportButton);
+            buttonBar.add(deleteButton);
+            c = new GridBagConstraints();
+            c.gridx = 0;
+            c.gridy = 2;
+            c.gridwidth = 2;
+            c.weightx = 1;
+            c.anchor = GridBagConstraints.WEST;
+            add(buttonBar, c);
+
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    historyFrame.setSelectedItem(HistoryItemPanel.this);
+                }
+            });
+        }
+
+        public void setSelected(boolean selected) {
+            if (selected) {
+                this.setBackground(Util.HISTORY_SELECTED_ITEM_BACKGROUND_COLOR);
+                nameLabel.setForeground(Color.BLACK);
+                sizeLabel.setForeground(Color.BLACK);
+                editButton.setVisible(true);
+                // exportButton.setVisible(true);
+                deleteButton.setVisible(true);
+            }
+            else {
+                this.setBackground(null);
+                nameLabel.setForeground(Util.LABEL_FOREGROUND_COLOR);
+                sizeLabel.setForeground(Util.LABEL_FOREGROUND_COLOR);
+                editButton.setVisible(false);
+                // exportButton.setVisible(false);
+                deleteButton.setVisible(false);
+            }
         }
     }
 

@@ -24,7 +24,6 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.io.entity.FileEntity;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
 
@@ -48,7 +47,10 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 
     // "Access to create an album, share it, upload media items to it, and join a shared album."
     private static final String[] GOOGLE_PHOTOS_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/photoslibrary.appendonly", "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata", "https://www.googleapis.com/auth/photoslibrary.sharing"};
+
     public static final ByteArrayEntity EMPTY_ENTITY = new ByteArrayEntity(new byte[]{}, ContentType.APPLICATION_OCTET_STREAM);
+
+    public static final int CHUNK_SIZE = 262144; // 256k
 
 
     public GooglePhotosExporter(JFrame frame) {
@@ -409,48 +411,48 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         }
     }
 
-    /**
-     * Upload the captured file contents to Google Photos.
-     * Implements https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
-     *
-     * @param client the {@link CloseableHttpClient}
-     * @param accountNumber the number of this account among Google Photos accounts
-     * @param file to upload
-     * @return the uploadToken to be used to link this content to a media
-     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
-     * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException if an upload-specfic error occurs
-     */
-    private String uploadFileBytesSimple(CloseableHttpClient client, String accountNumber, File file) throws AuthorizationException, UploadException, CommunicationException {
-        String uploadToken;
-
-        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/uploads");
-
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
-        httpPost.addHeader("Content-type", "application/octet-stream");
-        httpPost.addHeader("X-Goog-Upload-Content-Type", "mime-type");
-        httpPost.addHeader("X-Goog-Upload-Protocol", "raw");
-
-        httpPost.setEntity(new FileEntity(file, ContentType.APPLICATION_OCTET_STREAM));
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
-            if (isStatusOK(response.getCode())) {
-                try {
-                    uploadToken = EntityUtils.toString(response.getEntity());
-                }
-                catch (ParseException e) {
-                    throw new CommunicationException("Could not parse media upload response as String: " + response.getEntity());
-                }
-            }
-            else {
-                throw new UploadException("Server returned an error when uploading file contents: " + getResponseError(response));
-            }
-        }
-        catch (IOException e) {
-            throw new CommunicationException("Error uploading file contents", e);
-        }
-        return uploadToken;
-    }
+//    /**
+//     * Upload the captured file contents to Google Photos.
+//     * Implements https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
+//     *
+//     * @param client the {@link CloseableHttpClient}
+//     * @param accountNumber the number of this account among Google Photos accounts
+//     * @param file to upload
+//     * @return the uploadToken to be used to link this content to a media
+//     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+//     * @throws CommunicationException if an url, network or decoding error occurs
+//     * @throws UploadException if an upload-specfic error occurs
+//     */
+//    private String uploadFileBytesSimple(CloseableHttpClient client, String accountNumber, File file) throws AuthorizationException, UploadException, CommunicationException {
+//        String uploadToken;
+//
+//        HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/uploads");
+//
+//        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+//        httpPost.addHeader("Content-type", "application/octet-stream");
+//        httpPost.addHeader("X-Goog-Upload-Content-Type", "mime-type");
+//        httpPost.addHeader("X-Goog-Upload-Protocol", "raw");
+//
+//        httpPost.setEntity(new FileEntity(file, ContentType.APPLICATION_OCTET_STREAM));
+//        try {
+//            CloseableHttpResponse response = client.execute(httpPost);
+//            if (isStatusOK(response.getCode())) {
+//                try {
+//                    uploadToken = EntityUtils.toString(response.getEntity());
+//                }
+//                catch (ParseException e) {
+//                    throw new CommunicationException("Could not parse media upload response as String: " + response.getEntity());
+//                }
+//            }
+//            else {
+//                throw new UploadException("Server returned an error when uploading file contents: " + getResponseError(response));
+//            }
+//        }
+//        catch (IOException e) {
+//            throw new CommunicationException("Error uploading file contents", e);
+//        }
+//        return uploadToken;
+//    }
 
     /**
      * Upload the captured file contents to Google Photos in "resumable" mode
@@ -520,7 +522,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 
         // Step 3: Uploading the file
 
-        int maxChunkSize = 262144; // 256k
+        int maxChunkSize = CHUNK_SIZE;
         maxChunkSize = (maxChunkSize/chunkGranularityBytes) * chunkGranularityBytes;
         byte[] buffer = new byte[maxChunkSize];
         int offset = 0;
@@ -537,7 +539,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             int chunkSize = (int) Math.min(maxChunkSize, remainingBytes);
             final int bytesRead;
             try {
-                bytesRead = is.read(buffer, offset, chunkSize);
+                bytesRead = is.read(buffer, 0, chunkSize);
             }
             catch (IOException e) {
                 throw new UploadException("Could not read bytes from file");

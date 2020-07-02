@@ -116,7 +116,7 @@ public class Capture {
     }
 
     /**
-     * Returns the file of the capture, or write the BufferedImage to a temp file and return it if file was empty
+     * Returns the file of the capture, or writes the BufferedImage to a temp file and returns it if file was empty
      *
      * @return The file
      * @throws IOException in case file had to be created and an error occurred

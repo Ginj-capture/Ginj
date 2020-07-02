@@ -1,13 +1,8 @@
 package info.ginj.export.online.dropbox;
 
-import com.dropbox.core.DbxException;
-import com.dropbox.core.DbxPKCEWebAuth;
-import com.dropbox.core.DbxRequestConfig;
-import com.dropbox.core.InvalidAccessTokenException;
-import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.sharing.SharedLinkMetadata;
-import com.dropbox.core.v2.sharing.SharedLinkSettings;
-import com.dropbox.core.v2.users.FullAccount;
+import com.google.gson.Gson;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import info.ginj.Capture;
 import info.ginj.Ginj;
 import info.ginj.Prefs;
@@ -16,12 +11,22 @@ import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 import info.ginj.ui.Util;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.net.URIBuilder;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Map;
 
 
 public class DropboxExporter extends AbstractOAuth2Exporter {
@@ -29,7 +34,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     private static final String DROPBOX_OAUTH2_AUTH_URL = "https://www.dropbox.com/oauth2/authorize";
     private static final String DROPBOX_OAUTH2_TOKEN_URL = "https://api.dropboxapi.com/oauth2/token";
     private static final String DROPBOX_REVOKE_URL = "https://www.dropbox.com/account/connected_apps";
-    private DbxPKCEWebAuth pkceWebAuth;
+    private static final int CHUNK_SIZE = 16384;
 
 
     public DropboxExporter(JFrame frame) {
@@ -76,6 +81,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     @Override
     protected String[] getRequiredScopes() {
         // For Dropbox, no scope means permissions defined at the app level on the site
+        // Future : "account_info.read files.content.write sharing.write"
         return null;
     }
 
@@ -100,10 +106,8 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
      * This method is run in its own thread and should not access the GUI directly. All interaction
      * should go through synchronized objects or be enclosed in a SwingUtilities.invokeLater() logic
      *
-     * TODO re-implement using home-made http layer
-     *
-     * @param capture        the capture to export
-     * @param accountNumber  the accountNumber to export this capture to
+     * @param capture       the capture to export
+     * @param accountNumber the accountNumber to export this capture to
      */
     @Override
     public void exportCapture(Capture capture, String accountNumber) {
@@ -122,42 +126,6 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         }
     }
 
-//    /**
-//     * Should work, but more work is needed to finish the transaction after the code has been entered.
-//     * Note: for PKCE, see https://auth0.com/docs/flows/guides/auth-code-pkce/add-login-auth-code-pkce
-//     *
-//     * @return the url to call
-//     */
-//    private String getAuthenticationUrlByHand() {
-//        try {
-//            // Create a Code Verifier
-//            SecureRandom sr = new SecureRandom();
-//            byte[] code = new byte[32];
-//            sr.nextBytes(code);
-//            final Base64.Encoder encoder = Base64.getUrlEncoder();
-//            String verifier = encoder.encodeToString(code);
-//
-//            // Create a Code Challenge
-//            byte[] bytes = verifier.getBytes(StandardCharsets.US_ASCII);
-//            MessageDigest md = MessageDigest.getInstance("SHA-256");
-//            md.update(bytes, 0, bytes.length);
-//            byte[] digest = md.digest();
-//            String challenge = encoder.encodeToString(digest).replaceAll("=+$", ""); // remove trailing equal;
-//
-//            // Authorize the User
-//            return getOAuth2AuthUrl()
-//                    + "?client_id=" + getClientAppId()
-//                    + "&response_type=code"
-//                    + "&code_challenge=" + challenge
-//                    + "&code_challenge_method=S256";
-//        }
-//        catch (NoSuchAlgorithmException e) {
-//            System.err.println("Error authenticating user to Dropbox: " + e.getMessage());
-//            e.printStackTrace();
-//            return null;
-//        }
-//    }
-//
 //    public void OLDauthorize(String accountNumber) throws AuthorizationException, CommunicationException {
 //        // Start authentication procedure
 //        DbxRequestConfig requestConfig = new DbxRequestConfig("Ginj");
@@ -202,71 +170,1464 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 //    }
 
     /**
-     * This method checks that Dropbox authentication is valid
-     * @param accountNumber  the accountNumber to export this capture to
+     * This method checks that Dropbox authentication is valid by fetching user info
+     *
+     * @param accountNumber the accountNumber to export this capture to
      * @throws CommunicationException in case a communication error occurs
      * @throws AuthorizationException in case authorization fails
      */
     @Override
     public void checkAuthorizations(String accountNumber) throws CommunicationException, AuthorizationException {
-        logProgress("Checking authorization", 2);
+        logProgress("Checking authorizations", 2);
+
         //String userToken = Prefs.getWithSuffix(Prefs.Key.EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX, accountNumber);
         String accessToken = getAccessToken(accountNumber);
         if (accessToken == null) {
             throw new AuthorizationException("No access token was provided");
         }
-        if (getUserName(accessToken) == null) {
+        if (getUserName(accountNumber) == null) {
             throw new AuthorizationException("Received empty username");
         }
     }
 
-    private String getUserName(String accessToken) throws CommunicationException, AuthorizationException {
-        try {
-            // Create Dropbox client
-            DbxRequestConfig config = new DbxRequestConfig(Ginj.getAppName() + "/" + Ginj.getVersion());
-            DbxClientV2 client = new DbxClientV2(config, accessToken);
 
-            // Get current account info
-            FullAccount account = client.users().getCurrentAccount();
-            return account.getName().getDisplayName();
+    private String getUserName(String accountNumber) throws CommunicationException, AuthorizationException {
+        CloseableHttpClient client = HttpClients.createDefault();
+
+        HttpPost httpPost;
+        try {
+            URIBuilder builder = new URIBuilder("https://api.dropboxapi.com/2/users/get_current_account");
+            httpPost = new HttpPost(builder.build());
         }
-        catch (InvalidAccessTokenException e) {
-            throw new AuthorizationException("Authentication error", e);
+        catch (URISyntaxException e) {
+            throw new CommunicationException(e);
         }
-        catch (DbxException e) {
-            throw new CommunicationException("Error checking authorization", e);
+
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+
+        try {
+            CloseableHttpResponse response = client.execute(httpPost);
+            if (isStatusOK(response.getCode())) {
+                final String responseText;
+                try {
+                    responseText = EntityUtils.toString(response.getEntity());
+                }
+                catch (ParseException e) {
+                    throw new CommunicationException("Could not parse account information response as String: " + response.getEntity());
+                }
+                final AccountInfo accountInfo = new Gson().fromJson(responseText, AccountInfo.class);
+                if (accountInfo == null) {
+                    throw new CommunicationException("Returned account info is null.");
+                }
+                return accountInfo.getEmail();
+            }
+            else {
+                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+            }
+        }
+        catch (IOException e) {
+            throw new CommunicationException(e);
         }
     }
 
+//    private String OLDgetUserName(String accessToken) throws CommunicationException, AuthorizationException {
+//        try {
+//            // Create Dropbox client
+//            DbxRequestConfig config = new DbxRequestConfig(Ginj.getAppName() + "/" + Ginj.getVersion());
+//            DbxClientV2 client = new DbxClientV2(config, accessToken);
+//
+//            // Get current account info
+//            FullAccount account = client.users().getCurrentAccount();
+//            return account.getName().getDisplayName();
+//        }
+//        catch (InvalidAccessTokenException e) {
+//            throw new AuthorizationException("Authentication error", e);
+//        }
+//        catch (DbxException e) {
+//            throw new CommunicationException("Error checking authorization", e);
+//        }
+//    }
+
+
+    /**
+     * Uploads a capture to Dropbox, shares it, and returns the URL of the shared media.
+     *
+     * @param capture       The object representing the captured screenshot or video
+     * @param accountNumber the number of this account among Google Photos accounts
+     * @return a public URL to share to give access to the uploaded media.
+     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
+     * @throws CommunicationException if an url, network or decoding error occurs
+     * @throws UploadException        if an upload-specfic error occurs
+     */
     @Override
     public String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException {
-        logProgress("Preparing upload", 10);
-        final String targetFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + Ginj.IMAGE_EXTENSION;
+        // We need an actual file (for now at least). Make sure we have or create one
         try {
-            DbxRequestConfig config = new DbxRequestConfig(Ginj.getAppName() + "/" + Ginj.getVersion());
-            DbxClientV2 client = new DbxClientV2(config, getAccessToken(accountNumber));
+            capture.toFile();
+        }
+        catch (IOException e) {
+            throw new UploadException("Error preparing file to upload", e);
+        }
 
-            // TODO Upload should be done using sessions - uploadSessionStart etc.
-            // Required for big files, but also for progress
-            final File fileToUpload = capture.toFile();
-            if (fileToUpload.length() < 150_000_000) {
-                try (InputStream in = new FileInputStream(fileToUpload)) {
-                    logProgress("Uploading file", 50);
-                    client.files().uploadBuilder(targetFileName).uploadAndFinish(in);
+        final CloseableHttpClient client = HttpClients.createDefault();
+
+        // Step 1: Upload the file
+        final FileMetadata fileMetadata = uploadFile(client, accountNumber, capture);
+
+        // Step 2: Share it
+        SharedLinkMetadata sharedLinkMetadata = shareFile(client, accountNumber, fileMetadata);
+
+        return sharedLinkMetadata.getUrl();
+    }
+
+    public FileMetadata uploadFile(CloseableHttpClient client, String accountNumber, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
+        String sessionId;
+
+        final File file = capture.transientGetFile();
+
+        int maxChunkSize = CHUNK_SIZE;
+        byte[] buffer = new byte[maxChunkSize];
+        int offset = 0;
+        long remainingBytes = file.length();
+        InputStream is;
+        try {
+            is = new FileInputStream(file);
+        }
+        catch (FileNotFoundException e) {
+            throw new UploadException("File not found: " + file.getAbsolutePath());
+        }
+
+
+        // Step 1: Initiating an upload session with the first CHUNK
+        logProgress("Uploading", 10);
+        HttpPost httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/start");
+
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
+        httpPost.addHeader("Dropbox-API-Arg", "{\"close\": false}");
+
+        // First chunk
+        int bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
+        httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
+
+        // Send request
+        try {
+            CloseableHttpResponse response = client.execute(httpPost);
+            if (isStatusOK(response.getCode())) {
+                final String responseText;
+                try {
+                    responseText = EntityUtils.toString(response.getEntity());
+                    Map map = new Gson().fromJson(responseText, Map.class);
+                    sessionId = (String) map.get("session_id");
                 }
-                if (Prefs.isTrueWithSuffix(Prefs.Key.EXPORTER_DROPBOX_CREATE_LINK_PREFIX, accountNumber)) {
-                    final SharedLinkMetadata sharedLinkMetadata = client.sharing().createSharedLinkWithSettings(targetFileName, new SharedLinkSettings());
-                    return sharedLinkMetadata.getUrl();
+                catch (ParseException e) {
+                    throw new CommunicationException("Could not parse start upload session response as String: " + response.getEntity());
+                }
+                if (sessionId == null) {
+                    throw new CommunicationException("Returned session id is null.");
                 }
             }
             else {
-                throw new UploadException("Upload of big files not implemented yet");
+                final String responseError = getResponseError(response);
+                if ((response.getCode() / 100) == 5) {
+                    // Error 5xx
+                    // Don't know if Dropbox actually uses it but well
+                    throw new UploadException("Resuming not implemented yet: " + responseError);
+                }
+                throw new UploadException("Server returned an error when starting file contents: " + responseError);
             }
         }
-        catch (IOException | DbxException e) {
-            throw new UploadException(e);
+        catch (IOException e) {
+            throw new CommunicationException("Error starting file contents", e);
         }
-        return null;
+
+        // Update counters
+        offset += bytesRead;
+        remainingBytes = file.length() - offset;
+
+
+        // Step 2: Append to session with more CHUNKS, if needed
+        while (remainingBytes > CHUNK_SIZE) {
+            logProgress("Uploading", (int) (10 + (80 * offset) / file.length()), offset, file.length());
+            httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/append_v2");
+
+            httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+            //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
+            httpPost.addHeader("Dropbox-API-Arg",
+                    "{\"cursor\": " +
+                            "{\"session_id\": \"" + sessionId + "\"," +
+                            "\"offset\": " + offset + "}" +
+                            ",\"close\": false}");
+
+            // Next chunk
+            bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
+            httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
+
+            // Send request
+            try {
+                CloseableHttpResponse response = client.execute(httpPost);
+                if (!isStatusOK(response.getCode())) {
+                    final String responseError = getResponseError(response);
+                    if ((response.getCode() / 100) == 5) {
+                        // Error 5xx
+                        // Don't know if Dropbox actually uses it but well
+                        throw new UploadException("Resuming not implemented yet: " + responseError);
+                    }
+                    throw new UploadException("Server returned an error when appending file contents: " + responseError);
+                }
+            }
+            catch (IOException e) {
+                throw new CommunicationException("Error appending file contents", e);
+            }
+
+            // Update counters
+            offset += bytesRead;
+            remainingBytes = file.length() - offset;
+        }
+
+
+        // Step 3: Finish session (optionally with the remaining bytes)
+        logProgress("Uploading", (int) (10 + (80 * offset) / file.length()), offset, file.length());
+
+        final String targetFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + (capture.isVideo() ? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION);
+        FileMetadata fileMetadata;
+
+        httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/finish");
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
+        httpPost.addHeader("Dropbox-API-Arg",
+                "{\"cursor\": " +
+                        "{\"session_id\": \"" + sessionId + "\"," +
+                        "\"offset\": " + offset + "}" +
+                        ",\"commit\": " +
+                        "{\"path\": \"" + targetFileName + "\"," +
+                        "\"mode\": \"add\"," +
+                        "\"autorename\": true," +
+                        "\"mute\": false," +
+                        "\"strict_conflict\": false}" +
+                        "}");
+
+        // Last chunk
+        bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
+        httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
+
+        // Send request
+        try {
+            CloseableHttpResponse response = client.execute(httpPost);
+            if (isStatusOK(response.getCode())) {
+                final String responseText;
+                try {
+                    responseText = EntityUtils.toString(response.getEntity());
+                    fileMetadata = new Gson().fromJson(responseText, FileMetadata.class);
+                    if (fileMetadata == null) {
+                        throw new CommunicationException("Returned fileMetadata is null.");
+                    }
+                }
+                catch (ParseException e) {
+                    throw new CommunicationException("Could not parse finish upload session response as String: " + response.getEntity());
+                }
+            }
+            else {
+                final String responseError = getResponseError(response);
+                if ((response.getCode() / 100) == 5) {
+                    // Error 5xx
+                    // Don't know if Dropbox actually uses it but well
+                    throw new UploadException("Resuming not implemented yet: " + responseError);
+                }
+                throw new UploadException("Server returned an error when finishing file contents: " + responseError);
+            }
+        }
+        catch (IOException e) {
+            throw new CommunicationException("Error finishing file contents", e);
+        }
+
+
+        logProgress("Uploaded", 90, file.length(), file.length());
+
+        return fileMetadata;
+    }
+
+    private int readBytes(InputStream is, byte[] buffer, int maxChunkSize, long remainingBytes) throws UploadException {
+        int chunkSize = (int) Math.min(maxChunkSize, remainingBytes);
+        final int bytesRead;
+        try {
+            bytesRead = is.read(buffer, 0, chunkSize);
+        }
+        catch (IOException e) {
+            throw new UploadException("Could not read bytes from file");
+        }
+        return bytesRead;
+    }
+
+    private SharedLinkMetadata shareFile(CloseableHttpClient client, String accountNumber, FileMetadata fileMetadata) throws AuthorizationException, CommunicationException {
+        HttpPost httpPost = new HttpPost("https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings");
+
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Content-Type", "application/json");
+        httpPost.setEntity(new StringEntity(
+                "{\"path\": \"" + fileMetadata.getPathDisplay() + "\"," +
+                        "\"settings\": {" +
+                        "\"requested_visibility\": \"public\"," +
+                        "\"audience\": \"public\"," +
+                        "\"access\": \"viewer\"}" +
+                        "}"
+        ));
+
+        // Send request
+        try {
+            CloseableHttpResponse response = client.execute(httpPost);
+            if (isStatusOK(response.getCode())) {
+                final String responseText;
+                try {
+                    responseText = EntityUtils.toString(response.getEntity());
+                    return new Gson().fromJson(responseText, SharedLinkMetadata.class);
+                }
+                catch (ParseException e) {
+                    throw new CommunicationException("Could not parse shared link creation response as String: " + response.getEntity());
+                }
+            }
+            else {
+                throw new CommunicationException("Server returned an error when creating shared link: " + getResponseError(response));
+            }
+        }
+        catch (IOException | CommunicationException e) {
+            throw new CommunicationException("Error creatiing shared link", e);
+        }
+    }
+
+
+//    @Override
+//    public String OLDuploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException {
+//        logProgress("Preparing upload", 10);
+//        final String targetFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + Ginj.IMAGE_EXTENSION;
+//        try {
+//            DbxRequestConfig config = new DbxRequestConfig(Ginj.getAppName() + "/" + Ginj.getVersion());
+//            DbxClientV2 client = new DbxClientV2(config, getAccessToken(accountNumber));
+//
+//            // TODO Upload should be done using sessions - uploadSessionStart etc.
+//            // Required for big files, but also for progress
+//            final File fileToUpload = capture.toFile();
+//            if (fileToUpload.length() < 150_000_000) {
+//                try (InputStream in = new FileInputStream(fileToUpload)) {
+//                    logProgress("Uploading file", 50);
+//                    client.files().uploadBuilder(targetFileName).uploadAndFinish(in);
+//                }
+//                if (Prefs.isTrueWithSuffix(Prefs.Key.EXPORTER_DROPBOX_CREATE_LINK_PREFIX, accountNumber)) {
+//                    final SharedLinkMetadata sharedLinkMetadata = client.sharing().createSharedLinkWithSettings(targetFileName, new SharedLinkSettings());
+//                    return sharedLinkMetadata.getUrl();
+//                }
+//            }
+//            else {
+//                throw new UploadException("Upload of big files not implemented yet");
+//            }
+//        }
+//        catch (IOException | DbxException e) {
+//            throw new UploadException(e);
+//        }
+//        return null;
+//    }
+
+
+    ////////////////////////////////////////////////////
+    // Autogenerated pojos for (non-Map) Json parsing
+    // Created by http://jsonschema2pojo.org
+    ////////////////////////////////////////////////////
+
+
+    // AccountInfo example:
+    //
+    // {
+    //    "account_id": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc",
+    //    "name": {
+    //        "given_name": "Franz",
+    //        "surname": "Ferdinand",
+    //        "familiar_name": "Franz",
+    //        "display_name": "Franz Ferdinand (Personal)",
+    //        "abbreviated_name": "FF"
+    //    },
+    //    "email": "franz@gmail.com",
+    //    "email_verified": false,
+    //    "disabled": false,
+    //    "locale": "en",
+    //    "referral_link": "https://db.tt/ZITNuhtI",
+    //    "is_paired": false,
+    //    "account_type": {
+    //        ".tag": "basic"
+    //    },
+    //    "root_info": {
+    //        ".tag": "user",
+    //        "root_namespace_id": "3235641",
+    //        "home_namespace_id": "3235641"
+    //    },
+    //    "profile_photo_url": "https://dl-web.dropbox.com/account_photo/get/dbaphid%3AAAHWGmIXV3sUuOmBfTz0wPsiqHUpBWvv3ZA?vers=1556069330102\u0026size=128x128",
+    //    "country": "US"
+    //}
+
+
+    @SuppressWarnings("unused")
+    public static class AccountInfo {
+
+        @SerializedName("account_id")
+        @Expose
+        private String accountId;
+        @SerializedName("name")
+        @Expose
+        private Name name;
+        @SerializedName("email")
+        @Expose
+        private String email;
+        @SerializedName("email_verified")
+        @Expose
+        private Boolean emailVerified;
+        @SerializedName("disabled")
+        @Expose
+        private Boolean disabled;
+        @SerializedName("locale")
+        @Expose
+        private String locale;
+        @SerializedName("referral_link")
+        @Expose
+        private String referralLink;
+        @SerializedName("is_paired")
+        @Expose
+        private Boolean isPaired;
+        @SerializedName("account_type")
+        @Expose
+        private AccountType accountType;
+        @SerializedName("root_info")
+        @Expose
+        private RootInfo rootInfo;
+        @SerializedName("profile_photo_url")
+        @Expose
+        private String profilePhotoUrl;
+        @SerializedName("country")
+        @Expose
+        private String country;
+
+        public AccountInfo() {
+        }
+
+        public AccountInfo(String accountId, Name name, String email, Boolean emailVerified, Boolean disabled, String locale, String referralLink, Boolean isPaired, AccountType accountType, RootInfo rootInfo, String profilePhotoUrl, String country) {
+            super();
+            this.accountId = accountId;
+            this.name = name;
+            this.email = email;
+            this.emailVerified = emailVerified;
+            this.disabled = disabled;
+            this.locale = locale;
+            this.referralLink = referralLink;
+            this.isPaired = isPaired;
+            this.accountType = accountType;
+            this.rootInfo = rootInfo;
+            this.profilePhotoUrl = profilePhotoUrl;
+            this.country = country;
+        }
+
+        public String getAccountId() {
+            return accountId;
+        }
+
+        public void setAccountId(String accountId) {
+            this.accountId = accountId;
+        }
+
+        public Name getName() {
+            return name;
+        }
+
+        public void setName(Name name) {
+            this.name = name;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public Boolean getEmailVerified() {
+            return emailVerified;
+        }
+
+        public void setEmailVerified(Boolean emailVerified) {
+            this.emailVerified = emailVerified;
+        }
+
+        public Boolean getDisabled() {
+            return disabled;
+        }
+
+        public void setDisabled(Boolean disabled) {
+            this.disabled = disabled;
+        }
+
+        public String getLocale() {
+            return locale;
+        }
+
+        public void setLocale(String locale) {
+            this.locale = locale;
+        }
+
+        public String getReferralLink() {
+            return referralLink;
+        }
+
+        public void setReferralLink(String referralLink) {
+            this.referralLink = referralLink;
+        }
+
+        public Boolean getIsPaired() {
+            return isPaired;
+        }
+
+        public void setIsPaired(Boolean isPaired) {
+            this.isPaired = isPaired;
+        }
+
+        public AccountType getAccountType() {
+            return accountType;
+        }
+
+        public void setAccountType(AccountType accountType) {
+            this.accountType = accountType;
+        }
+
+        public RootInfo getRootInfo() {
+            return rootInfo;
+        }
+
+        public void setRootInfo(RootInfo rootInfo) {
+            this.rootInfo = rootInfo;
+        }
+
+        public String getProfilePhotoUrl() {
+            return profilePhotoUrl;
+        }
+
+        public void setProfilePhotoUrl(String profilePhotoUrl) {
+            this.profilePhotoUrl = profilePhotoUrl;
+        }
+
+        public String getCountry() {
+            return country;
+        }
+
+        public void setCountry(String country) {
+            this.country = country;
+        }
+
+    }
+
+
+    @SuppressWarnings("unused")
+    public static class AccountType {
+
+        @SerializedName(".tag")
+        @Expose
+        private String tag;
+
+        public AccountType() {
+        }
+
+        public AccountType(String tag) {
+            super();
+            this.tag = tag;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+
+        public void setTag(String tag) {
+            this.tag = tag;
+        }
+
+    }
+
+
+    @SuppressWarnings("unused")
+    public static class Name {
+
+        @SerializedName("given_name")
+        @Expose
+        private String givenName;
+        @SerializedName("surname")
+        @Expose
+        private String surname;
+        @SerializedName("familiar_name")
+        @Expose
+        private String familiarName;
+        @SerializedName("display_name")
+        @Expose
+        private String displayName;
+        @SerializedName("abbreviated_name")
+        @Expose
+        private String abbreviatedName;
+
+        public Name() {
+        }
+
+        public Name(String givenName, String surname, String familiarName, String displayName, String abbreviatedName) {
+            super();
+            this.givenName = givenName;
+            this.surname = surname;
+            this.familiarName = familiarName;
+            this.displayName = displayName;
+            this.abbreviatedName = abbreviatedName;
+        }
+
+        public String getGivenName() {
+            return givenName;
+        }
+
+        public void setGivenName(String givenName) {
+            this.givenName = givenName;
+        }
+
+        public String getSurname() {
+            return surname;
+        }
+
+        public void setSurname(String surname) {
+            this.surname = surname;
+        }
+
+        public String getFamiliarName() {
+            return familiarName;
+        }
+
+        public void setFamiliarName(String familiarName) {
+            this.familiarName = familiarName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public void setDisplayName(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getAbbreviatedName() {
+            return abbreviatedName;
+        }
+
+        public void setAbbreviatedName(String abbreviatedName) {
+            this.abbreviatedName = abbreviatedName;
+        }
+
+    }
+
+
+    @SuppressWarnings("unused")
+    public static class RootInfo {
+
+        @SerializedName(".tag")
+        @Expose
+        private String tag;
+        @SerializedName("root_namespace_id")
+        @Expose
+        private String rootNamespaceId;
+        @SerializedName("home_namespace_id")
+        @Expose
+        private String homeNamespaceId;
+
+        public RootInfo() {
+        }
+
+        public RootInfo(String tag, String rootNamespaceId, String homeNamespaceId) {
+            super();
+            this.tag = tag;
+            this.rootNamespaceId = rootNamespaceId;
+            this.homeNamespaceId = homeNamespaceId;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+
+        public void setTag(String tag) {
+            this.tag = tag;
+        }
+
+        public String getRootNamespaceId() {
+            return rootNamespaceId;
+        }
+
+        public void setRootNamespaceId(String rootNamespaceId) {
+            this.rootNamespaceId = rootNamespaceId;
+        }
+
+        public String getHomeNamespaceId() {
+            return homeNamespaceId;
+        }
+
+        public void setHomeNamespaceId(String homeNamespaceId) {
+            this.homeNamespaceId = homeNamespaceId;
+        }
+
+    }
+
+    // FileMetadata example:
+    //
+    // {
+    //    "name": "Prime_Numbers.txt",
+    //    "id": "id:a4ayc_80_OEAAAAAAAAAXw",
+    //    "client_modified": "2015-05-12T15:50:38Z",
+    //    "server_modified": "2015-05-12T15:50:38Z",
+    //    "rev": "a1c10ce0dd78",
+    //    "size": 7212,
+    //    "path_lower": "/homework/math/prime_numbers.txt",
+    //    "path_display": "/Homework/math/Prime_Numbers.txt",
+    //    "sharing_info": {
+    //        "read_only": true,
+    //        "parent_shared_folder_id": "84528192421",
+    //        "modified_by": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+    //    },
+    //    "is_downloadable": true,
+    //    "property_groups": [
+    //        {
+    //            "template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+    //            "fields": [
+    //                {
+    //                    "name": "Security Policy",
+    //                    "value": "Confidential"
+    //                }
+    //            ]
+    //        }
+    //    ],
+    //    "has_explicit_shared_members": false,
+    //    "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    //    "file_lock_info": {
+    //        "is_lockholder": true,
+    //        "lockholder_name": "Imaginary User",
+    //        "created": "2015-05-12T15:50:38Z"
+    //    }
+    //}
+
+
+    @SuppressWarnings("unused")
+    public static class Field {
+
+        @SerializedName("name")
+        @Expose
+        private String name;
+        @SerializedName("value")
+        @Expose
+        private String value;
+
+        public Field() {
+        }
+
+        public Field(String name, String value) {
+            super();
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
+        }
+
+    }
+
+
+    @SuppressWarnings("unused")
+    public static class FileLockInfo {
+
+        @SerializedName("is_lockholder")
+        @Expose
+        private Boolean isLockholder;
+        @SerializedName("lockholder_name")
+        @Expose
+        private String lockholderName;
+        @SerializedName("created")
+        @Expose
+        private String created;
+
+        public FileLockInfo() {
+        }
+
+        public FileLockInfo(Boolean isLockholder, String lockholderName, String created) {
+            super();
+            this.isLockholder = isLockholder;
+            this.lockholderName = lockholderName;
+            this.created = created;
+        }
+
+        public Boolean getIsLockholder() {
+            return isLockholder;
+        }
+
+        public void setIsLockholder(Boolean isLockholder) {
+            this.isLockholder = isLockholder;
+        }
+
+        public String getLockholderName() {
+            return lockholderName;
+        }
+
+        public void setLockholderName(String lockholderName) {
+            this.lockholderName = lockholderName;
+        }
+
+        public String getCreated() {
+            return created;
+        }
+
+        public void setCreated(String created) {
+            this.created = created;
+        }
+
+    }
+
+
+    @SuppressWarnings("unused")
+    public static class FileMetadata {
+
+        @SerializedName("name")
+        @Expose
+        private String name;
+        @SerializedName("id")
+        @Expose
+        private String id;
+        @SerializedName("client_modified")
+        @Expose
+        private String clientModified;
+        @SerializedName("server_modified")
+        @Expose
+        private String serverModified;
+        @SerializedName("rev")
+        @Expose
+        private String rev;
+        @SerializedName("size")
+        @Expose
+        private Integer size;
+        @SerializedName("path_lower")
+        @Expose
+        private String pathLower;
+        @SerializedName("path_display")
+        @Expose
+        private String pathDisplay;
+        @SerializedName("sharing_info")
+        @Expose
+        private SharingInfo sharingInfo;
+        @SerializedName("is_downloadable")
+        @Expose
+        private Boolean isDownloadable;
+        @SerializedName("property_groups")
+        @Expose
+        private List<PropertyGroup> propertyGroups = null;
+        @SerializedName("has_explicit_shared_members")
+        @Expose
+        private Boolean hasExplicitSharedMembers;
+        @SerializedName("content_hash")
+        @Expose
+        private String contentHash;
+        @SerializedName("file_lock_info")
+        @Expose
+        private FileLockInfo fileLockInfo;
+
+        public FileMetadata() {
+        }
+
+        public FileMetadata(String name, String id, String clientModified, String serverModified, String rev, Integer size, String pathLower, String pathDisplay, SharingInfo sharingInfo, Boolean isDownloadable, List<PropertyGroup> propertyGroups, Boolean hasExplicitSharedMembers, String contentHash, FileLockInfo fileLockInfo) {
+            super();
+            this.name = name;
+            this.id = id;
+            this.clientModified = clientModified;
+            this.serverModified = serverModified;
+            this.rev = rev;
+            this.size = size;
+            this.pathLower = pathLower;
+            this.pathDisplay = pathDisplay;
+            this.sharingInfo = sharingInfo;
+            this.isDownloadable = isDownloadable;
+            this.propertyGroups = propertyGroups;
+            this.hasExplicitSharedMembers = hasExplicitSharedMembers;
+            this.contentHash = contentHash;
+            this.fileLockInfo = fileLockInfo;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getClientModified() {
+            return clientModified;
+        }
+
+        public void setClientModified(String clientModified) {
+            this.clientModified = clientModified;
+        }
+
+        public String getServerModified() {
+            return serverModified;
+        }
+
+        public void setServerModified(String serverModified) {
+            this.serverModified = serverModified;
+        }
+
+        public String getRev() {
+            return rev;
+        }
+
+        public void setRev(String rev) {
+            this.rev = rev;
+        }
+
+        public Integer getSize() {
+            return size;
+        }
+
+        public void setSize(Integer size) {
+            this.size = size;
+        }
+
+        public String getPathLower() {
+            return pathLower;
+        }
+
+        public void setPathLower(String pathLower) {
+            this.pathLower = pathLower;
+        }
+
+        public String getPathDisplay() {
+            return pathDisplay;
+        }
+
+        public void setPathDisplay(String pathDisplay) {
+            this.pathDisplay = pathDisplay;
+        }
+
+        public SharingInfo getSharingInfo() {
+            return sharingInfo;
+        }
+
+        public void setSharingInfo(SharingInfo sharingInfo) {
+            this.sharingInfo = sharingInfo;
+        }
+
+        public Boolean getIsDownloadable() {
+            return isDownloadable;
+        }
+
+        public void setIsDownloadable(Boolean isDownloadable) {
+            this.isDownloadable = isDownloadable;
+        }
+
+        public List<PropertyGroup> getPropertyGroups() {
+            return propertyGroups;
+        }
+
+        public void setPropertyGroups(List<PropertyGroup> propertyGroups) {
+            this.propertyGroups = propertyGroups;
+        }
+
+        public Boolean getHasExplicitSharedMembers() {
+            return hasExplicitSharedMembers;
+        }
+
+        public void setHasExplicitSharedMembers(Boolean hasExplicitSharedMembers) {
+            this.hasExplicitSharedMembers = hasExplicitSharedMembers;
+        }
+
+        public String getContentHash() {
+            return contentHash;
+        }
+
+        public void setContentHash(String contentHash) {
+            this.contentHash = contentHash;
+        }
+
+        public FileLockInfo getFileLockInfo() {
+            return fileLockInfo;
+        }
+
+        public void setFileLockInfo(FileLockInfo fileLockInfo) {
+            this.fileLockInfo = fileLockInfo;
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    public static class PropertyGroup {
+
+        @SerializedName("template_id")
+        @Expose
+        private String templateId;
+        @SerializedName("fields")
+        @Expose
+        private List<Field> fields = null;
+
+        public PropertyGroup() {
+        }
+
+        public PropertyGroup(String templateId, List<Field> fields) {
+            super();
+            this.templateId = templateId;
+            this.fields = fields;
+        }
+
+        public String getTemplateId() {
+            return templateId;
+        }
+
+        public void setTemplateId(String templateId) {
+            this.templateId = templateId;
+        }
+
+        public List<Field> getFields() {
+            return fields;
+        }
+
+        public void setFields(List<Field> fields) {
+            this.fields = fields;
+        }
+
+    }
+
+
+    @SuppressWarnings("unused")
+    public static class SharingInfo {
+
+        @SerializedName("read_only")
+        @Expose
+        private Boolean readOnly;
+        @SerializedName("parent_shared_folder_id")
+        @Expose
+        private String parentSharedFolderId;
+        @SerializedName("modified_by")
+        @Expose
+        private String modifiedBy;
+
+        public SharingInfo() {
+        }
+
+        public SharingInfo(Boolean readOnly, String parentSharedFolderId, String modifiedBy) {
+            super();
+            this.readOnly = readOnly;
+            this.parentSharedFolderId = parentSharedFolderId;
+            this.modifiedBy = modifiedBy;
+        }
+
+        public Boolean getReadOnly() {
+            return readOnly;
+        }
+
+        public void setReadOnly(Boolean readOnly) {
+            this.readOnly = readOnly;
+        }
+
+        public String getParentSharedFolderId() {
+            return parentSharedFolderId;
+        }
+
+        public void setParentSharedFolderId(String parentSharedFolderId) {
+            this.parentSharedFolderId = parentSharedFolderId;
+        }
+
+        public String getModifiedBy() {
+            return modifiedBy;
+        }
+
+        public void setModifiedBy(String modifiedBy) {
+            this.modifiedBy = modifiedBy;
+        }
+
+    }
+
+
+    // SharedLinkMetadata example:
+    //
+    // {
+    //    ".tag": "file",
+    //    "url": "https://www.dropbox.com/s/2sn712vy1ovegw8/Prime_Numbers.txt?dl=0",
+    //    "name": "Prime_Numbers.txt",
+    //    "link_permissions": {
+    //        "can_revoke": false,
+    //        "resolved_visibility": {
+    //            ".tag": "public"
+    //        },
+    //        "revoke_failure_reason": {
+    //            ".tag": "owner_only"
+    //        }
+    //    },
+    //    "client_modified": "2015-05-12T15:50:38Z",
+    //    "server_modified": "2015-05-12T15:50:38Z",
+    //    "rev": "a1c10ce0dd78",
+    //    "size": 7212,
+    //    "id": "id:a4ayc_80_OEAAAAAAAAAXw",
+    //    "path_lower": "/homework/math/prime_numbers.txt",
+    //    "team_member_info": {
+    //        "team_info": {
+    //            "id": "dbtid:AAFdgehTzw7WlXhZJsbGCLePe8RvQGYDr-I",
+    //            "name": "Acme, Inc."
+    //        },
+    //        "display_name": "Roger Rabbit",
+    //        "member_id": "dbmid:abcd1234"
+    //    }
+    //}
+
+    @SuppressWarnings("unused")
+    public static class LinkPermissions {
+
+        @SerializedName("can_revoke")
+        @Expose
+        private Boolean canRevoke;
+        @SerializedName("resolved_visibility")
+        @Expose
+        private ResolvedVisibility resolvedVisibility;
+        @SerializedName("revoke_failure_reason")
+        @Expose
+        private RevokeFailureReason revokeFailureReason;
+
+        public LinkPermissions() {
+        }
+
+        public LinkPermissions(Boolean canRevoke, ResolvedVisibility resolvedVisibility, RevokeFailureReason revokeFailureReason) {
+            super();
+            this.canRevoke = canRevoke;
+            this.resolvedVisibility = resolvedVisibility;
+            this.revokeFailureReason = revokeFailureReason;
+        }
+
+        public Boolean getCanRevoke() {
+            return canRevoke;
+        }
+
+        public void setCanRevoke(Boolean canRevoke) {
+            this.canRevoke = canRevoke;
+        }
+
+        public ResolvedVisibility getResolvedVisibility() {
+            return resolvedVisibility;
+        }
+
+        public void setResolvedVisibility(ResolvedVisibility resolvedVisibility) {
+            this.resolvedVisibility = resolvedVisibility;
+        }
+
+        public RevokeFailureReason getRevokeFailureReason() {
+            return revokeFailureReason;
+        }
+
+        public void setRevokeFailureReason(RevokeFailureReason revokeFailureReason) {
+            this.revokeFailureReason = revokeFailureReason;
+        }
+
+    }
+
+
+    @SuppressWarnings("unused")
+    public static class ResolvedVisibility {
+
+        @SerializedName(".tag")
+        @Expose
+        private String tag;
+
+        public ResolvedVisibility() {
+        }
+
+        public ResolvedVisibility(String tag) {
+            super();
+            this.tag = tag;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+
+        public void setTag(String tag) {
+            this.tag = tag;
+        }
+
+    }
+
+
+    @SuppressWarnings("unused")
+    public static class RevokeFailureReason {
+
+        @SerializedName(".tag")
+        @Expose
+        private String tag;
+
+        public RevokeFailureReason() {
+        }
+
+        public RevokeFailureReason(String tag) {
+            super();
+            this.tag = tag;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+
+        public void setTag(String tag) {
+            this.tag = tag;
+        }
+
+    }
+
+
+    @SuppressWarnings("unused")
+    public static class SharedLinkMetadata {
+
+        @SerializedName(".tag")
+        @Expose
+        private String tag;
+        @SerializedName("url")
+        @Expose
+        private String url;
+        @SerializedName("name")
+        @Expose
+        private String name;
+        @SerializedName("link_permissions")
+        @Expose
+        private LinkPermissions linkPermissions;
+        @SerializedName("client_modified")
+        @Expose
+        private String clientModified;
+        @SerializedName("server_modified")
+        @Expose
+        private String serverModified;
+        @SerializedName("rev")
+        @Expose
+        private String rev;
+        @SerializedName("size")
+        @Expose
+        private Integer size;
+        @SerializedName("id")
+        @Expose
+        private String id;
+        @SerializedName("path_lower")
+        @Expose
+        private String pathLower;
+        @SerializedName("team_member_info")
+        @Expose
+        private TeamMemberInfo teamMemberInfo;
+
+        public SharedLinkMetadata() {
+        }
+
+        public SharedLinkMetadata(String tag, String url, String name, LinkPermissions linkPermissions, String clientModified, String serverModified, String rev, Integer size, String id, String pathLower, TeamMemberInfo teamMemberInfo) {
+            super();
+            this.tag = tag;
+            this.url = url;
+            this.name = name;
+            this.linkPermissions = linkPermissions;
+            this.clientModified = clientModified;
+            this.serverModified = serverModified;
+            this.rev = rev;
+            this.size = size;
+            this.id = id;
+            this.pathLower = pathLower;
+            this.teamMemberInfo = teamMemberInfo;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+
+        public void setTag(String tag) {
+            this.tag = tag;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public LinkPermissions getLinkPermissions() {
+            return linkPermissions;
+        }
+
+        public void setLinkPermissions(LinkPermissions linkPermissions) {
+            this.linkPermissions = linkPermissions;
+        }
+
+        public String getClientModified() {
+            return clientModified;
+        }
+
+        public void setClientModified(String clientModified) {
+            this.clientModified = clientModified;
+        }
+
+        public String getServerModified() {
+            return serverModified;
+        }
+
+        public void setServerModified(String serverModified) {
+            this.serverModified = serverModified;
+        }
+
+        public String getRev() {
+            return rev;
+        }
+
+        public void setRev(String rev) {
+            this.rev = rev;
+        }
+
+        public Integer getSize() {
+            return size;
+        }
+
+        public void setSize(Integer size) {
+            this.size = size;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getPathLower() {
+            return pathLower;
+        }
+
+        public void setPathLower(String pathLower) {
+            this.pathLower = pathLower;
+        }
+
+        public TeamMemberInfo getTeamMemberInfo() {
+            return teamMemberInfo;
+        }
+
+        public void setTeamMemberInfo(TeamMemberInfo teamMemberInfo) {
+            this.teamMemberInfo = teamMemberInfo;
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    public static class TeamInfo {
+
+        @SerializedName("id")
+        @Expose
+        private String id;
+        @SerializedName("name")
+        @Expose
+        private String name;
+
+        public TeamInfo() {
+        }
+
+        public TeamInfo(String id, String name) {
+            super();
+            this.id = id;
+            this.name = name;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+    }
+
+    @SuppressWarnings("unused")
+    public static class TeamMemberInfo {
+
+        @SerializedName("team_info")
+        @Expose
+        private TeamInfo teamInfo;
+        @SerializedName("display_name")
+        @Expose
+        private String displayName;
+        @SerializedName("member_id")
+        @Expose
+        private String memberId;
+
+        public TeamMemberInfo() {
+        }
+
+        public TeamMemberInfo(TeamInfo teamInfo, String displayName, String memberId) {
+            super();
+            this.teamInfo = teamInfo;
+            this.displayName = displayName;
+            this.memberId = memberId;
+        }
+
+        public TeamInfo getTeamInfo() {
+            return teamInfo;
+        }
+
+        public void setTeamInfo(TeamInfo teamInfo) {
+            this.teamInfo = teamInfo;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public void setDisplayName(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getMemberId() {
+            return memberId;
+        }
+
+        public void setMemberId(String memberId) {
+            this.memberId = memberId;
+        }
+
     }
 
 }

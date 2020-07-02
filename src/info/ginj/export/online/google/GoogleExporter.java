@@ -50,7 +50,7 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
     }
 
     @Override
-    protected String getOAuth2AuthUrl() {
+    protected String getOAuth2AuthorizeUrl() {
         return GOOGLE_OAUTH2_AUTH_URL;
     }
 

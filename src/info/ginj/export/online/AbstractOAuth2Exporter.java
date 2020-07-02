@@ -55,7 +55,11 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
 
     protected abstract String getSecretAppKey();
 
-    protected abstract String getOAuth2AuthUrl();
+    protected abstract String getOAuth2AuthorizeUrl();
+
+    protected String getAdditionalAuthorizeParam() {
+        return "";
+    }
 
     protected abstract String getOAuth2RevokeUrl();
 
@@ -117,11 +121,12 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
             // System.out.println("challenge = " + challenge);
 
             // Prepare the URL to forward the user to
-            String url = getOAuth2AuthUrl()
+            String url = getOAuth2AuthorizeUrl()
                     + "?client_id=" + getClientAppId()
                     + "&response_type=code"
                     + "&code_challenge=" + challenge
                     + "&code_challenge_method=S256"
+                    + getAdditionalAuthorizeParam()
                     // for local server, use:
                     + "&redirect_uri=" + URLEncoder.encode("http://localhost:" + PORT_GINJ, UTF_8);
             // for Google copy/paste mode, use:

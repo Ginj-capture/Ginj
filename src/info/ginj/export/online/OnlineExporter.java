@@ -12,7 +12,7 @@ public interface OnlineExporter {
     void checkAuthorizations(String accountNumber) throws CommunicationException, AuthorizationException;
 
     /**
-     * Upload a capture to the online service and return its URL
+     * Uploads a capture to the online service and returns its URL
      * @param capture The object representing the captured screenshot or video
      * @param accountNumber The account number among those for this online service
      * @return a public URL to share to give access to the uploaded media, or null if there is no way to share.

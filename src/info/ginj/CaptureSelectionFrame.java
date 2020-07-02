@@ -62,6 +62,10 @@ public class CaptureSelectionFrame extends JFrame {
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
         setUndecorated(true);
 
+        // For Alt+Tab behaviour
+        this.setTitle(Ginj.getAppName() + " Selection");
+        this.setIconImage(StarWindow.getAppIcon());
+
         JComponent contentPane = new CaptureMainPane();
         setContentPane(contentPane);
         addMouseBehaviour();

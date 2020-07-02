@@ -68,6 +68,8 @@ public class StarWindow extends JWindow {
     Point[][] deltasByPosAndSize = new Point[3][3]; // 3 buttons x 3 sizes
     private Color defaultPaneBackground;
 
+    public static Image appIcon = null;
+
     // Current state
     private boolean isWindowDeployed = false;
     private boolean isDragging = false;
@@ -77,6 +79,8 @@ public class StarWindow extends JWindow {
 
     public StarWindow() {
         super();
+
+        appIcon = new ImageIcon(getClass().getResource("img/Ginj_icon_64.png")).getImage();
 
         // Background is transparent. Only the "star icon" is visible, and even then, it has half opacity
         setBackground(new Color(0, 0, 0, 0));
@@ -91,6 +95,10 @@ public class StarWindow extends JWindow {
         pack();
         positionWindowOnStartup();
         setAlwaysOnTop(true);
+    }
+
+    public static Image getAppIcon() {
+        return appIcon;
     }
 
     public void setHistoryFrame(HistoryFrame historyFrame) {

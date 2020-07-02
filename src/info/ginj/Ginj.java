@@ -4,17 +4,16 @@ package info.ginj;
 TODO Features :
  - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp 640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
  - Implement Windows detection using JNA
- - Implement "share" export
  - Implement video using ffmpeg & Jaffree
- - Implement history
  - Implement preference editor
+ - Improve history window + edit
  - Should undo/redo change selection inside the Action methods (e.g change color, resize) ? - or completely deselect component after operation
- - Exports should be made in a separate Dialog (with progress + and notification when done, + "auto fade when mouse not over" checkbox + Close button, with return to the main window in case of error
+ - Upon export completion, the notification window should allow "auto fade when mouse not over" checkbox + Close button
  - Persist StarWindow position
 
 TODO UI:
  - Paint title bar
- - Finalize Look and feel (File chooser (save as), Color chooser (radio buttons and cursors), Tables)
+ - Finalize Look and feel (File chooser (save as), Color chooser (cursors), Tables)
  - Fix scrollbar corner + thumb icon + colors + gap
  - Upscale sun and sun-rays so that runtime downscale provides an anti-aliasing, or better yet draw it by code (gradients etc)
  - Build 3 main buttons at runtime based on circle + icons (downscale provides an anti-aliasing)
@@ -68,7 +67,9 @@ public class Ginj {
     // caching
     private static final String session = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(LocalDateTime.now());
     private static File tempDir;
+    private static Image appIcon;
     public static FutureTask<JFileChooser> futureFileChooser;
+    public static StarWindow starWindow;
 
     public static void main(String[] args) {
         // Determine what the GraphicsDevice can support.
@@ -102,7 +103,9 @@ public class Ginj {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(futureFileChooser);
 
-        javax.swing.SwingUtilities.invokeLater(() -> new StarWindow().setVisible(true));
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            starWindow = new StarWindow();
+            starWindow.setVisible(true);});
 
     }
 
@@ -153,5 +156,4 @@ public class Ginj {
     public static String getSession() {
         return session;
     }
-
 }

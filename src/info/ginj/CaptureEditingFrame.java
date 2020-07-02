@@ -64,7 +64,7 @@ public class CaptureEditingFrame extends JFrame {
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " Preview");
-        // this.setIconImage(); TODO
+        this.setIconImage(StarWindow.getAppIcon());
 
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work

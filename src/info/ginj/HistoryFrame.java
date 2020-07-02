@@ -31,6 +31,7 @@ public class HistoryFrame extends JFrame {
 
     private StarWindow parentWindow;
     private HistoryItemPanel selectedItem;
+    private final JPanel historyList;
 
     public HistoryFrame(StarWindow parentWindow) {
         super();
@@ -43,7 +44,8 @@ public class HistoryFrame extends JFrame {
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " History");
-        // this.setIconImage(); TODO
+        this.setIconImage(StarWindow.getAppIcon());
+
 
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
@@ -86,22 +88,11 @@ public class HistoryFrame extends JFrame {
         contentPane.add(filterBar, c);
 
         JComponent historyPanel;
-        final File[] files = Ginj.getHistoryFolder().listFiles((dir, name) -> name.toLowerCase().endsWith(Ginj.METADATA_EXTENSION));
+        historyList = new JPanel(new WrapLayout(WrapLayout.LEFT));
 
-        if (files == null) {
-            Util.alertError(this, "History error", "Could not list files in history folder '" + Ginj.getHistoryFolder().getAbsolutePath() +"'");
-            historyPanel = new JLabel("Error");
-        }
-        else {
-            Arrays.sort(files); // Alphabetically by default
+        refreshHistoryList();
 
-            JPanel historyList = new JPanel(new WrapLayout(WrapLayout.LEFT));
-            for (File file : files) {
-                historyList.add(new HistoryItemPanel(this, file));
-            }
-
-            historyPanel = new JScrollPane(historyList);
-        }
+        historyPanel = new JScrollPane(historyList);
         historyPanel.setPreferredSize(WINDOW_DEFAULT_SIZE);
 
         historyPanel.addMouseListener(new MouseAdapter() {
@@ -123,7 +114,7 @@ public class HistoryFrame extends JFrame {
         // Prepare status bar
         JPanel statusPanel = new JPanel();
         statusPanel.setLayout(new BorderLayout());
-        final GinjBorderedLabel nameLabel = new GinjBorderedLabel("This is the history");
+        final GinjBorderedLabel nameLabel = new GinjBorderedLabel("Ginj is brought to you by a random guy.");
         statusPanel.add(nameLabel, BorderLayout.WEST);
 
         c = new GridBagConstraints();
@@ -144,6 +135,24 @@ public class HistoryFrame extends JFrame {
         setLocationRelativeTo(null);
     }
 
+    public void refreshHistoryList() {
+        historyList.removeAll();
+        final File[] files = Ginj.getHistoryFolder().listFiles((dir, name) -> name.toLowerCase().endsWith(Ginj.METADATA_EXTENSION));
+
+        if (files == null) {
+            Util.alertError(this, "History error", "Could not list files in history folder '" + Ginj.getHistoryFolder().getAbsolutePath() +"'");
+            historyList.add(new JLabel("Error"));
+        }
+        else {
+            Arrays.sort(files); // Alphabetically by default
+
+            for (File file : files) {
+                historyList.add(new HistoryItemPanel(this, file));
+            }
+        }
+        historyList.validate();
+    }
+
 
     private void onClose() {
         parentWindow.setHistoryFrame(null);
@@ -160,6 +169,7 @@ public class HistoryFrame extends JFrame {
             if (!ok) {
                 Util.alertError(this, "Delete error", "There was an error deleting history files for catpure id '" + capture.getId() + "'!");
             }
+            refreshHistoryList();
         }
     }
 

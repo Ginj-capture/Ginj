@@ -280,6 +280,9 @@ public class ExportFrame extends JFrame implements ExportMonitor {
                 return false;
             }
         }
+        if (Ginj.starWindow.getHistoryFrame() != null) {
+            Ginj.starWindow.getHistoryFrame().refreshHistoryList();
+        }
         return true;
     }
 

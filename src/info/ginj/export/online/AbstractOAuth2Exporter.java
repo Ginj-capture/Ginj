@@ -337,7 +337,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
     }
 
     /**
-     * Implements https://developers.google.com/identity/protocols/oauth2/native-app#offline
+     * Implements e.g. https://developers.google.com/identity/protocols/oauth2/native-app#offline
      * Note: if server responds with Error 400 invalid_grant, a list of possible reasons is at
      * https://blog.timekit.io/google-oauth-invalid-grant-nightmare-and-how-to-fix-it-9f4efaf1da35
      */

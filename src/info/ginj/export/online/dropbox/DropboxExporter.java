@@ -37,7 +37,8 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     private static final String DROPBOX_OAUTH2_AUTH_URL = "https://www.dropbox.com/oauth2/authorize";
     private static final String DROPBOX_OAUTH2_TOKEN_URL = "https://api.dropboxapi.com/oauth2/token";
     private static final String DROPBOX_REVOKE_URL = "https://www.dropbox.com/account/connected_apps";
-    private static final int CHUNK_SIZE = 16384;
+
+    public static final int CHUNK_SIZE = 262144; // 256k
 
 
     public DropboxExporter(JFrame frame) {

@@ -39,6 +39,12 @@ import java.util.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * Handles OAuth 2 authorization protocol, used e.g. by Google and Dropbox
+ * see https://developers.google.com/identity/protocols/oauth2
+ * see https://developers.google.com/identity/protocols/oauth2/native-app
+ * see https://www.dropbox.com/lp/developers/reference/oauth-guide
+ */
 public abstract class AbstractOAuth2Exporter extends GinjExporter implements OnlineExporter {
     public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + Util.colorToHex(Util.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + Util.colorToHex(Util.LABEL_FOREGROUND_COLOR) + ";} a{color:" + Util.colorToHex(Util.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";

@@ -28,7 +28,10 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Handles interaction with Dropbox
+ * see https://www.dropbox.com/developers/documentation/http/documentation
+ */
 public class DropboxExporter extends AbstractOAuth2Exporter {
     private static final String DROPBOX_CLIENT_APP_KEY = "pdio3i9brehyjo1";
     private static final String DROPBOX_OAUTH2_AUTH_URL = "https://www.dropbox.com/oauth2/authorize";

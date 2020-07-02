@@ -38,7 +38,8 @@ import static info.ginj.Ginj.DATE_FORMAT_PATTERN;
 
 /**
  * Handles interaction with Google Photos service
- * See also https://developers.google.com/photos/library/guides/authorization
+ * see https://developers.google.com/photos/library/guides/authorization
+ * see https://developers.google.com/photos/library/reference/rest
  * <p>
  * TODO: when creating account, remember to tell user that Ginj medias are uploaded in full quality and will count in the user quota
  * TODO: videos must be max 10GB

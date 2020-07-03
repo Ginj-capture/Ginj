@@ -24,7 +24,7 @@
     <object id="Window_Background_Color" class="java.awt.Color"><int>37</int><int>38</int><int>40</int><int>255</int></object>
     <object id="Label_Background_Color" class="java.awt.Color"><int>27</int><int>28</int><int>29</int><int>255</int></object>
     <object id="Selected_Text_Background_Color" class="java.awt.Color"><int>153</int><int>200</int><int>238</int><int>255</int></object>
-    <object id="Progressbar_Background_Color" class="java.awt.Color"><int>230</int><int>230</int><int>230</int><int>255</int></object>
+    <object id="ProgressBar_Background_Color" class="java.awt.Color"><int>230</int><int>230</int><int>230</int><int>255</int></object>
     <object id="ProgressBar_Line_Color" class="java.awt.Color"><int>255</int><int>215</int><int>0</int><int>255</int></object>
 
     <!-- This backing style will make sure that any components that do not match a specific style will have a default style. -->
@@ -552,9 +552,9 @@
         <painter idref="GinjSynthPainter" method="progressBarBackground"/>
         <painter idref="GinjSynthPainter" method="progressBarBorder"/>
         <property key="ProgressBar.horizontalSize" type="dimension" value="166 16"/>
-        <imageIcon id="Progressbar_Background_Image" path="img/laf/progressbar_bg.png"/>
-        <property key="EaSynth.progressbar.background.image" type="idref" value="Progressbar_Background_Image"/>
-        <defaultsProperty key="EaSynth.progressbar.background.color" type="idref" value="Progressbar_Background_Color"/>
+        <imageIcon id="ProgressBar_Background_Image" path="img/laf/progressbar_bg.png"/>
+        <property key="EaSynth.progressbar.background.image" type="idref" value="ProgressBar_Background_Image"/>
+        <defaultsProperty key="EaSynth.progressbar.background.color" type="idref" value="ProgressBar_Background_Color"/>
         <!-- Note: Insets are top, left, bottom, and right -->
         <object id="ProgressBar_Bg_Insets" class="java.awt.Insets">
             <int>2</int><int>1</int><int>2</int><int>1</int>

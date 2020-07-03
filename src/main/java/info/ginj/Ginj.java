@@ -67,7 +67,6 @@ public class Ginj {
     // caching
     private static final String session = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(LocalDateTime.now());
     private static File tempDir;
-    private static Image appIcon;
     public static FutureTask<JFileChooser> futureFileChooser;
     public static StarWindow starWindow;
 

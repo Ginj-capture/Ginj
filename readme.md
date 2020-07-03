@@ -55,16 +55,16 @@ In the meantime, it's just there and it's free... Enjoy :-)
 
 #### Credits. 
 
-The source code contains snippets from: 
-- The Java Tutorial https://docs.oracle.com/javase/tutorial/
-- Discussions at https://stackoverflow.com/
-- Discussions at https://coderanch.com/
+The source code contains classes or snippets from:
+- [JHLabs image filters](http://jhlabs.com/ip/filters/index.html)
+- [The Java Tutorial](https://docs.oracle.com/javase/tutorial/)
+- Discussions at [StackOverflow](https://stackoverflow.com/) and [CodeRanch](https://coderanch.com/)
 
 The user interface uses:
-- Parts of the open source EaSynth_Look_And_Feel_Bundle.zip from 
-http://www.easynth.com/freewares/EaSynthLookAndFeel.html
-- Many icons from https://feathericons.com/
-- Undo icon by Denis Klyuchnikov from https://thenounproject.com/
-- Laptop icon from https://icons8.com/
+- Parts of the open source [EaSynth_Look_And_Feel_Bundle.zip](http://www.easynth.com/freewares/EaSynthLookAndFeel.html) 
+- Many icons from [FeatherIcons](https://feathericons.com/)
+- Undo icon by Denis Klyuchnikov from [The Noun Project](https://thenounproject.com/)
+- Laptop icon from [Icons8](https://icons8.com/)
+
 
 Thanks to [Techsmith](https://www.techsmith.com/) for having proposed and supported Jing for so long. Check out their product line.

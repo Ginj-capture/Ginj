@@ -80,7 +80,7 @@ public class StarWindow extends JWindow {
     public StarWindow() {
         super();
 
-        appIcon = new ImageIcon(getClass().getResource("img/Ginj_icon_64.png")).getImage();
+        appIcon = new ImageIcon(getClass().getResource("img/app-icon-64.png")).getImage();
 
         // Background is transparent. Only the "star icon" is visible, and even then, it has half opacity
         setBackground(new Color(0, 0, 0, 0));

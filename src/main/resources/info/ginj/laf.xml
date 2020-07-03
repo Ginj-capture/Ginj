@@ -413,31 +413,31 @@
 <!--    </style>-->
 <!--    <bind style="Menu" type="region" key="Menu" />-->
 
-<!--    &lt;!&ndash; The style for menu item. &ndash;&gt;-->
-<!--    <style id="Menu Item">-->
-<!--        <insets top="4" left="0" bottom="4" right="0"/>-->
-<!--        <state value="ENABLED">-->
-<!--            <imagePainter method="menuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
-<!--            <color type="TEXT_FOREGROUND" value="#00FF00"/>-->
-<!--        </state>-->
-<!--        <state value="MOUSE_OVER">-->
-<!--            <imagePainter method="menuItemBackground" path="resource/1264231987812_MenuItem_Selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
-<!--            <color type="TEXT_FOREGROUND" value="#AA4400"/>-->
-<!--        </state>-->
-<!--        <state value="DISABLED">-->
-<!--            <imagePainter method="menuItemBackground" path="resource/1204817081656_menu_item_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
-<!--            <color type="TEXT_FOREGROUND" value="#999999"/>-->
-<!--        </state>-->
-<!--    </style>-->
-<!--    <bind style="Menu Item" type="region" key="MenuItem" />-->
+    <!-- The style for menu item. -->
+    <style id="MenuItemStyle">
+        <insets top="4" left="4" bottom="4" right="4"/>
+        <state value="ENABLED">
+            <imagePainter method="menuItemBackground" path="img/laf/menuitem_bg_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+            <color type="TEXT_FOREGROUND" value="#000000"/>
+        </state>
+        <state value="MOUSE_OVER">
+            <imagePainter method="menuItemBackground" path="img/laf/menuitem_selected.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+            <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
+        </state>
+        <state value="DISABLED">
+            <imagePainter method="menuItemBackground" path="img/laf/menuitem_bg_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+            <color type="TEXT_FOREGROUND" value="#8C8C8C"/>
+        </state>
+    </style>
+    <bind style="MenuItemStyle" type="region" key="MenuItem" />
 
-<!--    &lt;!&ndash; The style for menu item accelerator. &ndash;&gt;-->
-<!--    <style id="Menu Item Accelerator">-->
-<!--        <state>-->
-<!--            <color type="TEXT_FOREGROUND" value="#770000"/>-->
-<!--        </state>-->
-<!--    </style>-->
-<!--    <bind style="Menu Item Accelerator" type="region" key="MenuItemAccelerator" />-->
+    <!-- The style for menu item accelerator. -->
+    <style id="MenuItemAcceleratorStyle">
+        <state>
+            <color type="TEXT_FOREGROUND" value="#777700"/>
+        </state>
+    </style>
+    <bind style="MenuItemAcceleratorStyle" type="region" key="MenuItemAccelerator" />
 
 <!--    &lt;!&ndash; The style for check box menu item. &ndash;&gt;-->
 <!--    <style id="Check Box Menu Item">-->
@@ -447,27 +447,27 @@
 <!--        <imageIcon id="CheckBoxMenuItem_Check_Icon_Disabled" path="resource/1252405809406_Checkbox_MenuItem_None.png"/>-->
 <!--        <insets top="4" left="0" bottom="4" right="0"/>-->
 <!--        <state value="ENABLED">-->
-<!--            <imagePainter method="checkBoxMenuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
+<!--            <imagePainter method="checkBoxMenuItemBackground" path="img/laf/menuitem_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
 <!--            <color type="TEXT_FOREGROUND" value="#00FF00"/>-->
 <!--            <property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_Enabled"/>-->
 <!--        </state>-->
 <!--        <state value="MOUSE_OVER">-->
 <!--            <color type="TEXT_FOREGROUND" value="#AA4400"/>-->
 <!--            <property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_MouseOver"/>-->
-<!--            <imagePainter method="checkBoxMenuItemBackground" path="resource/1264231987812_MenuItem_Selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
+<!--            <imagePainter method="checkBoxMenuItemBackground" path="img/laf/menuitem_selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
 <!--        </state>-->
 <!--        <state value="DISABLED">-->
-<!--            <imagePainter method="checkBoxMenuItemBackground" path="resource/1204817081656_menu_item_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
+<!--            <imagePainter method="checkBoxMenuItemBackground" path="img/laf/menuitem_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
 <!--            <color type="TEXT_FOREGROUND" value="#999999"/>-->
 <!--            <property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_Disabled"/>-->
 <!--        </state>-->
 <!--        <state id="CheckBoxMenuItem_State_Selected" value="SELECTED">-->
-<!--            <imagePainter method="checkBoxMenuItemBackground" path="resource/1204817049984_menu_item_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
+<!--            <imagePainter method="checkBoxMenuItemBackground" path="img/laf/menuitem_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
 <!--            <color type="TEXT_FOREGROUND" value="#AA4400"/>-->
 <!--            <property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_Selected"/>-->
 <!--        </state>-->
 <!--        <state clone="CheckBoxMenuItem_State_Selected" value="MOUSE_OVER and SELECTED">-->
-<!--            <imagePainter method="checkBoxMenuItemBackground" path="resource/1264231987812_MenuItem_Selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
+<!--            <imagePainter method="checkBoxMenuItemBackground" path="img/laf/menuitem_selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
 <!--        </state>-->
 <!--    </style>-->
 <!--    <bind style="Check Box Menu Item" type="region" key="CheckBoxMenuItem" />-->

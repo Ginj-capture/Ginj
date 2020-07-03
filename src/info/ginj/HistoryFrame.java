@@ -256,7 +256,7 @@ public class HistoryFrame extends JFrame {
 
             sizeLabel = new GinjLabel("?");
             sizeLabel.setBackground(null);
-            sizeLabel.setPreferredSize(new Dimension(50, 16));
+            sizeLabel.setPreferredSize(new Dimension(55, 16));
             File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + (capture.isVideo? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION));
             sizeLabel.setText(Util.getPrettySize(captureFile.length()));
             sizeLabel.setHorizontalAlignment(SwingConstants.RIGHT);

@@ -5,4 +5,5 @@ open module Ginj {
     requires httpclient5;
     requires httpcore5;
     requires com.google.gson;
+    requires org.slf4j;
 }

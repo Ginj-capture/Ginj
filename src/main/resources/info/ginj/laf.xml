@@ -414,11 +414,13 @@
 <!--    <bind style="Menu" type="region" key="Menu" />-->
 
     <!-- The style for menu item. -->
+    <!-- Used only for account management and sharing-->
     <style id="MenuItemStyle">
         <insets top="4" left="4" bottom="4" right="4"/>
         <state value="ENABLED">
+            <!-- #3C4043 on #FFFFFF Required by Google - https://developers.google.com/photos/library/guides/ux-guidelines -->
             <imagePainter method="menuItemBackground" path="img/laf/menuitem_bg_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
-            <color type="TEXT_FOREGROUND" value="#000000"/>
+            <color type="TEXT_FOREGROUND" value="#3C4043"/>
         </state>
         <state value="MOUSE_OVER">
             <imagePainter method="menuItemBackground" path="img/laf/menuitem_selected.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>

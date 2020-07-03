@@ -660,8 +660,8 @@
     <!-- The style for slider component. -->
     <style id="Slider">
         <property key="Slider.paintValue" type="boolean" value="false"/>
-        <property key="Slider.thumbWidth" type="integer" value="11"/>
-        <property key="Slider.thumbHeight" type="integer" value="12"/>
+        <property key="Slider.thumbWidth" type="integer" value="14"/>
+        <property key="Slider.thumbHeight" type="integer" value="14"/>
     </style>
     <bind style="Slider" type="region" key="Slider" />
 

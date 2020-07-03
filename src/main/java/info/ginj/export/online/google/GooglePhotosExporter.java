@@ -166,12 +166,12 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         // Determine target album accorging to "granularity" preference:
         // Single album / One per day / One per Ginj session / One per capture name / one per capture id
         String granularity = Prefs.getWithSuffix(Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ALBUM_GRANULARITY, accountNumber, "APP");
-        String albumName = Ginj.getAppName() + switch (granularity) {
-            case "APP" -> "";
-            case "DAY" -> "_" + DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(LocalDateTime.now());
-            case "SESSION" -> "_SESS_" + Ginj.getSession();
-            case "NAME" -> "_" + capture.getName();
-            case "CAPTURE" -> "_ID_" + capture.getId();
+        String albumName = switch (granularity) {
+            case "APP" -> Ginj.getAppName() + " uploads";
+            case "DAY" -> Ginj.getAppName() + " uploads of " + DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(LocalDateTime.now());
+            case "SESSION" -> Ginj.getAppName() + " session of " + Ginj.getSession();
+            case "NAME" -> capture.getName();
+            case "CAPTURE" -> Ginj.getAppName() + " capture " + capture.getId();
             default -> throw new IllegalStateException("Unexpected granularity: " + granularity);
         };
 

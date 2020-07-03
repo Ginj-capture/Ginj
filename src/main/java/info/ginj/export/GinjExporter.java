@@ -1,7 +1,6 @@
 package info.ginj.export;
 
-import info.ginj.Cancellable;
-import info.ginj.Capture;
+import info.ginj.model.Capture;
 
 import javax.swing.*;
 import java.awt.*;

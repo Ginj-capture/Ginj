@@ -1,4 +1,4 @@
-package info.ginj.ui;
+package info.ginj.ui.layout;
 
 import javax.swing.*;
 import java.awt.*;

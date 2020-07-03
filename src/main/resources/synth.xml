@@ -88,7 +88,7 @@
 
     <style id="GinjBorderedPanelStyle">
         <state>
-            <imagePainter method="panelBorder" path="img/laf/bordered_panel.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
+            <imagePainter method="panelBorder" path="/img/laf/bordered_panel.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
         </state>
     </style>
     <bind style="GinjBorderedPanelStyle" type="name" key="GinjBorderedPanel" />
@@ -177,12 +177,12 @@
     <!-- The style for radio button. -->
     <style id="RadioButtonStyle">
         <property key="RadioButton.margin" type="insets" value="2 2 2 2"/>
-        <imageIcon id="Radio_Button_Normal" path="img/laf/radio_enabled.png"/>
-        <imageIcon id="Radio_Button_MouseOver" path="img/laf/radio_mouseover.png"/>
-        <imageIcon id="Radio_Button_Pressed" path="img/laf/radio_pressed.png"/>
-        <imageIcon id="Radio_Button_Disabled" path="img/laf/radio_disabled.png"/>
-        <imageIcon id="Radio_Button_Selected" path="img/laf/radio_selected.png"/>
-        <imageIcon id="Radio_Button_Disabled_Selected" path="img/laf/radio_disabled_selected.png"/>
+        <imageIcon id="Radio_Button_Normal" path="/img/laf/radio_enabled.png"/>
+        <imageIcon id="Radio_Button_MouseOver" path="/img/laf/radio_mouseover.png"/>
+        <imageIcon id="Radio_Button_Pressed" path="/img/laf/radio_pressed.png"/>
+        <imageIcon id="Radio_Button_Disabled" path="/img/laf/radio_disabled.png"/>
+        <imageIcon id="Radio_Button_Selected" path="/img/laf/radio_selected.png"/>
+        <imageIcon id="Radio_Button_Disabled_Selected" path="/img/laf/radio_disabled_selected.png"/>
         <state value="ENABLED">
             <property key="RadioButton.icon" type="idref" value="Radio_Button_Normal"/>
         </state>
@@ -324,19 +324,19 @@
         <state value="ENABLED">
             <color type="BACKGROUND" idref="Window_Background_Color"/>
         </state>
-        <imageIcon id="FileChooser_Folder_Icon" path="img/laf/icon/folder.png"/>
+        <imageIcon id="FileChooser_Folder_Icon" path="/img/laf/icon/folder.png"/>
         <property key="FileView.directoryIcon" type="idref" value="FileChooser_Folder_Icon"/>
-        <imageIcon id="FileChooser_File_Icon" path="img/laf/icon/file.png"/>
+        <imageIcon id="FileChooser_File_Icon" path="/img/laf/icon/file.png"/>
         <property key="FileView.fileIcon" type="idref" value="FileChooser_File_Icon"/>
-        <imageIcon id="FileChooser_Computer_Icon" path="img/laf/icon/computer.png"/>
+        <imageIcon id="FileChooser_Computer_Icon" path="/img/laf/icon/computer.png"/>
         <property key="FileView.computerIcon" type="idref" value="FileChooser_Computer_Icon"/>
-        <imageIcon id="FileChooser_Harddisk_Icon" path="img/laf/icon/hard-disk.png"/>
+        <imageIcon id="FileChooser_Harddisk_Icon" path="/img/laf/icon/hard-disk.png"/>
         <property key="FileView.hardDriveIcon" type="idref" value="FileChooser_Harddisk_Icon"/>
-        <imageIcon id="FileChooser_NewFolder_Icon" path="img/laf/icon/folder-new.png"/>
+        <imageIcon id="FileChooser_NewFolder_Icon" path="/img/laf/icon/folder-new.png"/>
         <property key="FileChooser.newFolderIcon" type="idref" value="FileChooser_NewFolder_Icon"/>
-        <imageIcon id="FileChooser_UpperFolder_Icon" path="img/laf/icon/folder-up.png"/>
+        <imageIcon id="FileChooser_UpperFolder_Icon" path="/img/laf/icon/folder-up.png"/>
         <property key="FileChooser.upFolderIcon" type="idref" value="FileChooser_UpperFolder_Icon"/>
-        <imageIcon id="FileChooser_Home_Icon" path="img/laf/icon/home.png"/>
+        <imageIcon id="FileChooser_Home_Icon" path="/img/laf/icon/home.png"/>
         <property key="FileChooser.homeFolderIcon" type="idref" value="FileChooser_Home_Icon"/>
 
 <!--        <imageIcon id="FileChooser_Cancel_Icon" path="resource/1204902668718_filechooser_cancel_icon.png"/>-->
@@ -419,15 +419,15 @@
         <insets top="4" left="4" bottom="4" right="4"/>
         <state value="ENABLED">
             <!-- #3C4043 on #FFFFFF Required by Google - https://developers.google.com/photos/library/guides/ux-guidelines -->
-            <imagePainter method="menuItemBackground" path="img/laf/menuitem_bg_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="menuItemBackground" path="/img/laf/menuitem_bg_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
             <color type="TEXT_FOREGROUND" value="#3C4043"/>
         </state>
         <state value="MOUSE_OVER">
-            <imagePainter method="menuItemBackground" path="img/laf/menuitem_selected.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="menuItemBackground" path="/img/laf/menuitem_selected.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
             <color type="TEXT_FOREGROUND" value="#FFFFFF"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="menuItemBackground" path="img/laf/menuitem_bg_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="menuItemBackground" path="/img/laf/menuitem_bg_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
             <color type="TEXT_FOREGROUND" value="#8C8C8C"/>
         </state>
     </style>
@@ -449,27 +449,27 @@
 <!--        <imageIcon id="CheckBoxMenuItem_Check_Icon_Disabled" path="resource/1252405809406_Checkbox_MenuItem_None.png"/>-->
 <!--        <insets top="4" left="0" bottom="4" right="0"/>-->
 <!--        <state value="ENABLED">-->
-<!--            <imagePainter method="checkBoxMenuItemBackground" path="img/laf/menuitem_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
+<!--            <imagePainter method="checkBoxMenuItemBackground" path="/img/laf/menuitem_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
 <!--            <color type="TEXT_FOREGROUND" value="#00FF00"/>-->
 <!--            <property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_Enabled"/>-->
 <!--        </state>-->
 <!--        <state value="MOUSE_OVER">-->
 <!--            <color type="TEXT_FOREGROUND" value="#AA4400"/>-->
 <!--            <property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_MouseOver"/>-->
-<!--            <imagePainter method="checkBoxMenuItemBackground" path="img/laf/menuitem_selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
+<!--            <imagePainter method="checkBoxMenuItemBackground" path="/img/laf/menuitem_selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
 <!--        </state>-->
 <!--        <state value="DISABLED">-->
-<!--            <imagePainter method="checkBoxMenuItemBackground" path="img/laf/menuitem_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
+<!--            <imagePainter method="checkBoxMenuItemBackground" path="/img/laf/menuitem_bg_disabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
 <!--            <color type="TEXT_FOREGROUND" value="#999999"/>-->
 <!--            <property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_Disabled"/>-->
 <!--        </state>-->
 <!--        <state id="CheckBoxMenuItem_State_Selected" value="SELECTED">-->
-<!--            <imagePainter method="checkBoxMenuItemBackground" path="img/laf/menuitem_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
+<!--            <imagePainter method="checkBoxMenuItemBackground" path="/img/laf/menuitem_bg_enabled.png" sourceInsets="0 0 0 0" paintCenter="true" stretch="true" center="false"/>-->
 <!--            <color type="TEXT_FOREGROUND" value="#AA4400"/>-->
 <!--            <property key="CheckBoxMenuItem.checkIcon" type="idref" value="CheckBoxMenuItem_Check_Icon_Selected"/>-->
 <!--        </state>-->
 <!--        <state clone="CheckBoxMenuItem_State_Selected" value="MOUSE_OVER and SELECTED">-->
-<!--            <imagePainter method="checkBoxMenuItemBackground" path="img/laf/menuitem_selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
+<!--            <imagePainter method="checkBoxMenuItemBackground" path="/img/laf/menuitem_selected.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>-->
 <!--        </state>-->
 <!--    </style>-->
 <!--    <bind style="Check Box Menu Item" type="region" key="CheckBoxMenuItem" />-->
@@ -531,16 +531,16 @@
 
     <!-- The style for option pane component. -->
     <style id="Option Pane">
-        <imageIcon id="OptionPane_Error_Icon" path="img/laf/icon/error.png"/>
+        <imageIcon id="OptionPane_Error_Icon" path="/img/laf/icon/error.png"/>
         <property key="OptionPane.errorIcon" type="idref" value="OptionPane_Error_Icon"/>
 
-        <imageIcon id="OptionPane_Warn_Icon" path="img/laf/icon/warning.png"/>
+        <imageIcon id="OptionPane_Warn_Icon" path="/img/laf/icon/warning.png"/>
         <property key="OptionPane.warningIcon" type="idref" value="OptionPane_Warn_Icon"/>
 
-        <imageIcon id="OptionPane_Info_Icon" path="img/laf/icon/information.png"/>
+        <imageIcon id="OptionPane_Info_Icon" path="/img/laf/icon/information.png"/>
         <property key="OptionPane.informationIcon" type="idref" value="OptionPane_Info_Icon"/>
 
-        <imageIcon id="OptionPane_Question_Icon" path="img/laf/icon/question.png"/>
+        <imageIcon id="OptionPane_Question_Icon" path="/img/laf/icon/question.png"/>
         <property key="OptionPane.questionIcon" type="idref" value="OptionPane_Question_Icon"/>
         <insets top="10" left="10" bottom="10" right="10"/>
     </style>
@@ -552,7 +552,7 @@
         <painter idref="GinjSynthPainter" method="progressBarBackground"/>
         <painter idref="GinjSynthPainter" method="progressBarBorder"/>
         <property key="ProgressBar.horizontalSize" type="dimension" value="166 16"/>
-        <imageIcon id="ProgressBar_Background_Image" path="img/laf/progressbar_bg.png"/>
+        <imageIcon id="ProgressBar_Background_Image" path="/img/laf/progressbar_bg.png"/>
         <property key="EaSynth.progressbar.background.image" type="idref" value="ProgressBar_Background_Image"/>
         <defaultsProperty key="EaSynth.progressbar.background.color" type="idref" value="ProgressBar_Background_Color"/>
         <!-- Note: Insets are top, left, bottom, and right -->
@@ -615,7 +615,7 @@
         </object>
         <defaultsProperty key="EaSynth.scrollbar.thumb.borderthick" type="integer" value="5"/>
         <defaultsProperty key="EaSynth.scrollbar.thumb.bordercolor" type="idref" value="ScrollBar_Thumb_BorderColor"/>
-        <imageIcon id="ScrollBar_Thumb_Image" path="img/scroll_bar_thumb.png"/>
+        <imageIcon id="ScrollBar_Thumb_Image" path="/img/scroll_bar_thumb.png"/>
         <property key="EaSynth.scrollbar.thumb.image" type="idref" value="ScrollBar_Thumb_Image"/>
         <painter idref="GinjSynthPainter" method="scrollBarThumbBackground"/>
         <painter idref="GinjSynthPainter" method="scrollBarThumbBorder"/>
@@ -630,10 +630,10 @@
             <color type="BACKGROUND" value="#00FF00"/>
         </state>
         <state value="ENABLED">
-            <imagePainter method="scrollPaneBorder" path="img/laf/border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="scrollPaneBorder" path="/img/laf/border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="scrollPaneBorder" path="img/laf/border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="scrollPaneBorder" path="/img/laf/border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
     <bind style="Scroll Pane" type="region" key="ScrollPane" />
@@ -667,9 +667,9 @@
 
     <!-- The style for the track of slider. -->
     <style id="Slider Track">
-        <imagePainter method="sliderTrackBackground" path="img/laf/slidertrack.png" sourceInsets="7 7 7 7" destinationInsets="7 7 7 7" paintCenter="true" stretch="true" center="false"/>
+        <imagePainter method="sliderTrackBackground" path="/img/laf/slidertrack.png" sourceInsets="7 7 7 7" destinationInsets="7 7 7 7" paintCenter="true" stretch="true" center="false"/>
         <state value="DISABLED">
-            <imagePainter method="sliderTrackBackground" path="img/laf/slidertrack_disabled.png" sourceInsets="7 7 7 7" destinationInsets="7 7 7 7" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="sliderTrackBackground" path="/img/laf/slidertrack_disabled.png" sourceInsets="7 7 7 7" destinationInsets="7 7 7 7" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
     <bind style="Slider Track" type="region" key="SliderTrack" />
@@ -677,11 +677,11 @@
     <!-- The style for the thumb of slider. -->
     <style id="Slider Thumb">
         <painter idref="GinjSynthPainter" method="sliderThumbBackground"/>
-        <imageIcon id="Slider_Thumb_Image_Normal" path="img/laf/sliderthumb.png"/>
+        <imageIcon id="Slider_Thumb_Image_Normal" path="/img/laf/sliderthumb.png"/>
         <property key="EaSynth.slider.thumb.image.normal" type="idref" value="Slider_Thumb_Image_Normal"/>
-        <imageIcon id="Slider_Thumb_Image_MouseOver" path="rimg/laf/sliderthumb_mouseOver.png"/>
+        <imageIcon id="Slider_Thumb_Image_MouseOver" path="/img/laf/sliderthumb_mouseOver.png"/>
         <property key="EaSynth.slider.thumb.image.mouseover" type="idref" value="Slider_Thumb_Image_MouseOver"/>
-        <imageIcon id="Slider_Thumb_Image_Disabled" path="img/laf/sliderthumb_disabled.png"/>
+        <imageIcon id="Slider_Thumb_Image_Disabled" path="/img/laf/sliderthumb_disabled.png"/>
         <property key="EaSynth.slider.thumb.image.disabled" type="idref" value="Slider_Thumb_Image_Disabled"/>
     </style>
     <bind style="Slider Thumb" type="region" key="SliderThumb" />
@@ -759,18 +759,18 @@
     <style id="TabbedPaneTabStyle">
         <property key="Button.textShiftOffset" type="integer" value="1"/>
         <insets top="6" left="5" bottom="2" right="5"/>
-<!--        <imagePainter method="tabbedPaneTabBorder" path="img/laf/tab_border.png" sourceInsets="0 1 0 1" paintCenter="true" stretch="true" center="false"/>-->
+<!--        <imagePainter method="tabbedPaneTabBorder" path="/img/laf/tab_border.png" sourceInsets="0 1 0 1" paintCenter="true" stretch="true" center="false"/>-->
         <!-- Note: sourceInsets are top, left, bottom, and right -->
         <state value="ENABLED">
-            <imagePainter method="tabbedPaneTabBackground" path="img/laf/tab_bg_enabled.png" sourceInsets="3 3 3 3" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="tabbedPaneTabBackground" path="/img/laf/tab_bg_enabled.png" sourceInsets="3 3 3 3" paintCenter="true" stretch="true" center="false"/>
             <color type="TEXT_FOREGROUND" value="#FBB901"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="tabbedPaneTabBackground" path="img/laf/tab_bg_disabled.png" sourceInsets="3 3 3 3" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="tabbedPaneTabBackground" path="/img/laf/tab_bg_disabled.png" sourceInsets="3 3 3 3" paintCenter="true" stretch="true" center="false"/>
             <color type="TEXT_FOREGROUND" value="#999999"/>
         </state>
         <state value="SELECTED">
-            <imagePainter method="tabbedPaneTabBackground" path="img/laf/tab_bg_selected.png" sourceInsets="3 3 3 3" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="tabbedPaneTabBackground" path="/img/laf/tab_bg_selected.png" sourceInsets="3 3 3 3" paintCenter="true" stretch="true" center="false"/>
             <color type="TEXT_FOREGROUND" value="#FBB901"/>
         </state>
     </style>
@@ -809,7 +809,7 @@
     <style id="GinjBorderedLabelStyle">
         <insets top="3" left="3" bottom="3" right="3"/>
         <font name="Dialog" size="12" style="BOLD"/>
-        <imagePainter method="labelBorder" path="img/laf/label_bg.png" sourceInsets="2 2 2 2" paintCenter="false" stretch="true" center="false"/>
+        <imagePainter method="labelBorder" path="/img/laf/label_bg.png" sourceInsets="2 2 2 2" paintCenter="false" stretch="true" center="false"/>
         <state value="ENABLED">
             <color type="FOREGROUND" value="#FBB901"/>
             <color type="BACKGROUND" idref="Label_Background_Color"/>
@@ -822,24 +822,24 @@
         <insets top="3" left="3" bottom="3" right="3"/>
         <opaque value="true"/>
         <state value="ENABLED">
-            <imagePainter method="textFieldBorder" path="img/laf/textfield_bg.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
+            <imagePainter method="textFieldBorder" path="/img/laf/textfield_bg.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
             <color type="FOREGROUND" value="#000000"/>
             <color type="BACKGROUND" value="#FFFFFF"/>
         </state>
         <state value="FOCUSED">
-            <imagePainter method="textFieldBorder" path="img/laf/textfield_bg_focused.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
+            <imagePainter method="textFieldBorder" path="/img/laf/textfield_bg_focused.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
             <color type="FOREGROUND" value="#000000"/>
             <color type="BACKGROUND" value="#FFFFFF"/>
         </state>
         <state value="SELECTED">
-            <imagePainter method="textFieldBorder" path="img/laf/textfield_bg_focused.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
+            <imagePainter method="textFieldBorder" path="/img/laf/textfield_bg_focused.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
             <color type="FOREGROUND" value="#000000"/>
             <color type="BACKGROUND" value="#FFFFFF"/>
             <color type="TEXT_FOREGROUND" value="#000000"/>
             <color type="TEXT_BACKGROUND" value="#98C8EE"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="textFieldBorder" path="img/laf/textfield_bg.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
+            <imagePainter method="textFieldBorder" path="/img/laf/textfield_bg.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
             <color type="FOREGROUND" value="#999999"/>
             <color type="BACKGROUND" value="#F0F0F0"/>
         </state>
@@ -1046,19 +1046,19 @@
         <insets top="4" left="12" bottom="4" right="12"/>
         <state value="ENABLED">
             <!-- Note: sourceInsets are top, left, bottom, and right -->
-            <imagePainter method="buttonBackground" path="img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
             <color type="FOREGROUND" value="#FBB901"/>
         </state>
         <state value="MOUSE_OVER">
-            <imagePainter method="buttonBackground" path="img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
             <color type="FOREGROUND" value="#FBB901"/>
         </state>
         <state value="PRESSED">
-            <imagePainter method="buttonBackground" path="img/laf/button_bg_pressed.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/button_bg_pressed.png" sourceInsets="4 4 4 4"/>
             <color type="FOREGROUND" value="#FBB901"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="buttonBackground" path="img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
             <color type="FOREGROUND" value="#BCA053"/>
         </state>
     </style>
@@ -1073,16 +1073,16 @@
         <insets top="4" left="4" bottom="4" right="4"/>
         <state value="ENABLED">
             <!-- Note: sourceInsets are top, left, bottom, and right -->
-            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4"/>
         </state>
         <state value="MOUSE_OVER">
-            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4"/>
         </state>
         <state value="PRESSED">
-            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="buttonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4"/>
         </state>
     </style>
     <bind style="GinjToolButtonStyle" type="name" key="GinjToolButton"/>
@@ -1099,20 +1099,20 @@
         <!-- Space between button border and contents -->
         <insets top="4" left="4" bottom="4" right="4"/>
         <state value="ENABLED">
-            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="MOUSE_OVER">
-            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="PRESSED">
-            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_selected_hover.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg_selected_hover.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
             <color type="TEXT_FOREGROUND" value="#999999"/>
         </state>
         <state value="SELECTED">
-            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
     <bind style="ToggleButtonStyle" type="region" key="ToggleButton" />
@@ -1123,19 +1123,19 @@
         <!-- Space between button border and contents -->
         <insets top="4" left="4" bottom="4" right="4"/>
         <state value="ENABLED">
-            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="MOUSE_OVER">
-            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg_hover.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="PRESSED">
-            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_selected_hover.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg_selected_hover.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="SELECTED">
-            <imagePainter method="toggleButtonBackground" path="img/laf/toolbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
     <bind style="GinjToolToggleButtonStyle" type="name" key="GinjToolToggleButton"/>
@@ -1148,16 +1148,16 @@
         <insets top="3" left="3" bottom="3" right="3"/>
         <state value="ENABLED">
             <!-- Note: sourceInsets are top, left, bottom, and right -->
-            <imagePainter method="buttonBackground" path="img/laf/mini_toolbutton_bg.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/mini_toolbutton_bg.png" sourceInsets="4 4 4 4"/>
         </state>
         <state value="MOUSE_OVER">
-            <imagePainter method="buttonBackground" path="img/laf/mini_toolbutton_bg_hover.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/mini_toolbutton_bg_hover.png" sourceInsets="4 4 4 4"/>
         </state>
         <state value="PRESSED">
-            <imagePainter method="buttonBackground" path="img/laf/mini_toolbutton_bg_hover.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/mini_toolbutton_bg_hover.png" sourceInsets="4 4 4 4"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="buttonBackground" path="img/laf/mini_toolbutton_bg_disabled.png" sourceInsets="4 4 4 4"/>
+            <imagePainter method="buttonBackground" path="/img/laf/mini_toolbutton_bg_disabled.png" sourceInsets="4 4 4 4"/>
         </state>
     </style>
     <bind style="GinjMiniToolButtonStyle" type="name" key="GinjMiniToolButton"/>
@@ -1168,17 +1168,17 @@
         <insets top="4" left="4" bottom="4" right="4"/>
         <state value="ENABLED">
             <!-- Note: sourceInsets are top, left, bottom, and right -->
-            <imagePainter method="toggleButtonBackground" path="img/laf/colorbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/colorbutton_bg.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="MOUSE_OVER">
             <!-- Note insets are wider so that part of the white center square shows up -->
-            <imagePainter method="toggleButtonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="6 6 6 6" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/colorbutton_bg_selected.png" sourceInsets="6 6 6 6" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="PRESSED">
-            <imagePainter method="toggleButtonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="SELECTED">
-            <imagePainter method="toggleButtonBackground" path="img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
     <bind style="GinjColorToggleButtonStyle" type="name" key="GinjColorToggleButton"/>
@@ -1203,23 +1203,23 @@
         <painter idref="GinjSynthPainter" method="arrowButtonForeground" direction="south"/>
         <painter idref="GinjSynthPainter" method="arrowButtonForeground" direction="east"/>
         <state value="ENABLED">
-            <imageIcon id="GinjArrow_Up_Enabled" path="img/laf/arrow_up_normal.png"/>
+            <imageIcon id="GinjArrow_Up_Enabled" path="/img/laf/arrow_up_normal.png"/>
             <property key="EaSynth.arrow.up.enabled" type="idref" value="GinjArrow_Up_Enabled"/>
-            <imageIcon id="GinjArrow_Left_Enabled" path="img/laf/arrow_left_normal.png"/>
+            <imageIcon id="GinjArrow_Left_Enabled" path="/img/laf/arrow_left_normal.png"/>
             <property key="EaSynth.arrow.left.enabled" type="idref" value="GinjArrow_Left_Enabled"/>
-            <imageIcon id="GinjArrow_Down_Enabled" path="img/laf/arrow_down_normal.png"/>
+            <imageIcon id="GinjArrow_Down_Enabled" path="/img/laf/arrow_down_normal.png"/>
             <property key="EaSynth.arrow.down.enabled" type="idref" value="GinjArrow_Down_Enabled"/>
-            <imageIcon id="GinjArrow_Right_Enabled" path="img/laf/arrow_right_normal.png"/>
+            <imageIcon id="GinjArrow_Right_Enabled" path="/img/laf/arrow_right_normal.png"/>
             <property key="EaSynth.arrow.right.enabled" type="idref" value="GinjArrow_Right_Enabled"/>
         </state>
         <state value="MOUSE_OVER">
-            <imageIcon id="GinjArrow_Up_MouseOver" path="img/laf/arrow_up_over.png"/>
+            <imageIcon id="GinjArrow_Up_MouseOver" path="/img/laf/arrow_up_over.png"/>
             <property key="EaSynth.arrow.up.mouseover" type="idref" value="GinjArrow_Up_MouseOver"/>
-            <imageIcon id="GinjArrow_Left_MouseOver" path="img/laf/arrow_left_over.png"/>
+            <imageIcon id="GinjArrow_Left_MouseOver" path="/img/laf/arrow_left_over.png"/>
             <property key="EaSynth.arrow.left.mouseover" type="idref" value="GinjArrow_Left_MouseOver"/>
-            <imageIcon id="GinjArrow_Down_MouseOver" path="img/laf/arrow_down_over.png"/>
+            <imageIcon id="GinjArrow_Down_MouseOver" path="/img/laf/arrow_down_over.png"/>
             <property key="EaSynth.arrow.down.mouseover" type="idref" value="GinjArrow_Down_MouseOver"/>
-            <imageIcon id="GinjArrow_Right_MouseOver" path="img/laf/arrow_right_over.png"/>
+            <imageIcon id="GinjArrow_Right_MouseOver" path="/img/laf/arrow_right_over.png"/>
             <property key="EaSynth.arrow.right.mouseover" type="idref" value="GinjArrow_Right_MouseOver"/>
         </state>
         <state value="PRESSED">
@@ -1307,7 +1307,7 @@
 <!--        </object>-->
 <!--        <defaultsProperty key="EaSynth.scrollbar.thumb.borderthick" type="integer" value="1"/>-->
 <!--        <defaultsProperty key="EaSynth.scrollbar.thumb.bordercolor" type="idref" value="GinjScrollBar_Thumb_BorderColor"/>-->
-<!--        <imageIcon id="GinjScrollBar_Thumb_Image" path="img/laf/scrollbar_thumb.png"/>-->
+<!--        <imageIcon id="GinjScrollBar_Thumb_Image" path="/img/laf/scrollbar_thumb.png"/>-->
 <!--        <property key="EaSynth.scrollbar.thumb.image" type="idref" value="GinjScrollBar_Thumb_Image"/>-->
 <!--        <painter idref="GinjSynthPainter" method="scrollBarThumbBackground"/>-->
 <!--        <painter idref="GinjSynthPainter" method="scrollBarThumbBorder"/>-->
@@ -1321,7 +1321,7 @@
             <color type="BACKGROUND" value="#FFFFFF"/>
         </state>
         <insets top="2" left="5" bottom="2" right="5"/>
-        <imagePainter method="toolTipBorder" path="img/laf/tooltip.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+        <imagePainter method="toolTipBorder" path="/img/laf/tooltip.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
         <state value="ENABLED">
             <color type="TEXT_FOREGROUND" value="#696969"/>
         </state>

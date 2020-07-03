@@ -1,5 +1,6 @@
-package info.ginj;
+package info.ginj.model;
 
+import info.ginj.Ginj;
 import info.ginj.tool.Overlay;
 
 import javax.imageio.ImageIO;

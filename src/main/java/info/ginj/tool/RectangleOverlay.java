@@ -1,6 +1,6 @@
 package info.ginj.tool;
 
-import info.ginj.Coords;
+import info.ginj.util.Coords;
 
 import java.awt.*;
 

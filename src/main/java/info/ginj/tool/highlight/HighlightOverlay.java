@@ -1,7 +1,7 @@
 package info.ginj.tool.highlight;
 
 import info.ginj.tool.RectangleOverlay;
-import info.ginj.ui.Util;
+import info.ginj.util.Util;
 
 import java.awt.*;
 

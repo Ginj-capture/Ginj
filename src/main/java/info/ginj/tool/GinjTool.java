@@ -1,7 +1,7 @@
 package info.ginj.tool;
 
-import info.ginj.CaptureEditingFrame;
-import info.ginj.ImageEditorPane;
+import info.ginj.ui.CaptureEditingFrame;
+import info.ginj.ui.ImageEditorPane;
 
 import java.awt.*;
 

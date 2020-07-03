@@ -1,9 +1,9 @@
 package info.ginj.tool.highlight;
 
-import info.ginj.CaptureEditingFrame;
-import info.ginj.ImageEditorPane;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
+import info.ginj.ui.CaptureEditingFrame;
+import info.ginj.ui.ImageEditorPane;
 
 import java.awt.*;
 

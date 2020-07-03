@@ -1,6 +1,8 @@
-package info.ginj;
+package info.ginj.ui;
 
-import info.ginj.ui.DragInsensitiveMouseClickListener;
+import info.ginj.Ginj;
+import info.ginj.model.Prefs;
+import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -80,7 +82,7 @@ public class StarWindow extends JWindow {
     public StarWindow() {
         super();
 
-        appIcon = new ImageIcon(getClass().getResource("img/app-icon-64.png")).getImage();
+        appIcon = new ImageIcon(getClass().getResource("/img/app-icon-64.png")).getImage();
 
         // Background is transparent. Only the "star icon" is visible, and even then, it has half opacity
         setBackground(new Color(0, 0, 0, 0));
@@ -117,20 +119,20 @@ public class StarWindow extends JWindow {
 
         public MainPane() {
             try {
-                starOnlyImg = ImageIO.read(getClass().getResource("img/star-only.png"));
-                starRaysImg = ImageIO.read(getClass().getResource("img/star-rays.png"));
+                starOnlyImg = ImageIO.read(getClass().getResource("/img/star-only.png"));
+                starRaysImg = ImageIO.read(getClass().getResource("/img/star-rays.png"));
 
-                Image originalImg = ImageIO.read(getClass().getResource("img/capture.png"));
+                Image originalImg = ImageIO.read(getClass().getResource("/img/capture.png"));
                 buttonImg[BTN_CAPTURE][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_DEFAULT);
                 buttonImg[BTN_CAPTURE][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_DEFAULT);
                 buttonImg[BTN_CAPTURE][SMALL] = originalImg.getScaledInstance(SMALL_SIZE_PIXELS, SMALL_SIZE_PIXELS, Image.SCALE_DEFAULT);
 
-                originalImg = ImageIO.read(getClass().getResource("img/history.png"));
+                originalImg = ImageIO.read(getClass().getResource("/img/history.png"));
                 buttonImg[BTN_HISTORY][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_DEFAULT);
                 buttonImg[BTN_HISTORY][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_DEFAULT);
                 buttonImg[BTN_HISTORY][SMALL] = originalImg.getScaledInstance(SMALL_SIZE_PIXELS, SMALL_SIZE_PIXELS, Image.SCALE_DEFAULT);
 
-                originalImg = ImageIO.read(getClass().getResource("img/more.png"));
+                originalImg = ImageIO.read(getClass().getResource("/img/more.png"));
                 buttonImg[BTN_MORE][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_DEFAULT);
                 buttonImg[BTN_MORE][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_DEFAULT);
                 buttonImg[BTN_MORE][SMALL] = originalImg.getScaledInstance(SMALL_SIZE_PIXELS, SMALL_SIZE_PIXELS, Image.SCALE_DEFAULT);

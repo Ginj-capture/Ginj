@@ -1,9 +1,11 @@
-package info.ginj;
+package info.ginj.ui;
 
-import info.ginj.ui.GinjBorderedLabel;
-import info.ginj.ui.GinjLabel;
-import info.ginj.ui.Util;
-import info.ginj.ui.WrapLayout;
+import info.ginj.Ginj;
+import info.ginj.model.Capture;
+import info.ginj.ui.component.GinjBorderedLabel;
+import info.ginj.ui.component.GinjLabel;
+import info.ginj.ui.layout.WrapLayout;
+import info.ginj.util.Util;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -37,9 +39,9 @@ public class HistoryFrame extends JFrame {
         super();
         this.parentWindow = parentWindow;
 
-        exportIcon = Util.createIcon(getClass().getResource("img/icon/export.png"), 16, 16, Util.ICON_ENABLED_COLOR);
-        editIcon = Util.createIcon(getClass().getResource("img/icon/edit.png"), 16, 16, Util.ICON_ENABLED_COLOR);
-        deleteIcon = Util.createIcon(getClass().getResource("img/icon/delete.png"), 16, 16, Util.ICON_ENABLED_COLOR);
+        exportIcon = Util.createIcon(getClass().getResource("/img/icon/export.png"), 16, 16, Util.ICON_ENABLED_COLOR);
+        editIcon = Util.createIcon(getClass().getResource("/img/icon/edit.png"), 16, 16, Util.ICON_ENABLED_COLOR);
+        deleteIcon = Util.createIcon(getClass().getResource("/img/icon/delete.png"), 16, 16, Util.ICON_ENABLED_COLOR);
         defaultBgColor = getBackground();
 
         // For Alt+Tab behaviour
@@ -165,7 +167,7 @@ public class HistoryFrame extends JFrame {
         if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "The selected capture will be deleted from the History.\nFor now, the exported version (if any) will remain untouched.\nAre you sure you want to delete capture '" + capture.getName() + "'?", "Delete Capture", JOptionPane.YES_NO_OPTION)) {
             boolean ok = new File(Ginj.getHistoryFolder(), capture.getId() + Ginj.METADATA_EXTENSION).delete();
             ok = ok && new File(Ginj.getHistoryFolder(), capture.getId() + Ginj.THUMBNAIL_EXTENSION).delete();
-            ok = ok && new File(Ginj.getHistoryFolder(), capture.getId() + (capture.isVideo ? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION)).delete();
+            ok = ok && new File(Ginj.getHistoryFolder(), capture.getId() + (capture.isVideo() ? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION)).delete();
             if (!ok) {
                 Util.alertError(this, "Delete error", "There was an error deleting history files for catpure id '" + capture.getId() + "'!");
             }
@@ -174,7 +176,7 @@ public class HistoryFrame extends JFrame {
     }
 
     private void onEdit(Capture capture) {
-
+        // TODO
     }
 
 
@@ -257,7 +259,7 @@ public class HistoryFrame extends JFrame {
             sizeLabel = new GinjLabel("?");
             sizeLabel.setBackground(null);
             sizeLabel.setPreferredSize(new Dimension(55, 16));
-            File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + (capture.isVideo? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION));
+            File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + (capture.isVideo()? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION));
             sizeLabel.setText(Util.getPrettySize(captureFile.length()));
             sizeLabel.setHorizontalAlignment(SwingConstants.RIGHT);
             c = new GridBagConstraints();

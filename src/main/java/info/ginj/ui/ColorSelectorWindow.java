@@ -1,7 +1,8 @@
 package info.ginj.ui;
 
-import info.ginj.CaptureEditingFrame;
-import info.ginj.Prefs;
+import info.ginj.model.Prefs;
+import info.ginj.ui.component.GinjBorderedPanel;
+import info.ginj.ui.component.GinjColorToggleButton;
 
 import javax.swing.*;
 import java.awt.*;

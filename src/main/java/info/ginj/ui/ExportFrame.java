@@ -1,9 +1,11 @@
-package info.ginj;
+package info.ginj.ui;
 
+import info.ginj.Ginj;
 import info.ginj.export.ExportMonitor;
 import info.ginj.export.GinjExporter;
-import info.ginj.ui.GinjLabel;
-import info.ginj.ui.Util;
+import info.ginj.model.Capture;
+import info.ginj.ui.component.GinjLabel;
+import info.ginj.util.Util;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -211,7 +213,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         BufferedImage sourceImage = null;
         try {
             // Save capture itself
-            if (capture.isVideo) {
+            if (capture.isVideo()) {
                 // Move file to history
                 // TODO ENHANCEMENT move the source, not the rendered version !
                 targetFile = new File(historyFolder, capture.getId() + ".mp4");

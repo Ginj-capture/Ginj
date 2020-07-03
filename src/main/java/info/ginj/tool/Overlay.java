@@ -1,7 +1,7 @@
 package info.ginj.tool;
 
 import com.jhlabs.image.GaussianFilter;
-import info.ginj.ui.Util;
+import info.ginj.util.Util;
 
 import javax.swing.*;
 import java.awt.*;

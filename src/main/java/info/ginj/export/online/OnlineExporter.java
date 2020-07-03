@@ -1,9 +1,9 @@
 package info.ginj.export.online;
 
-import info.ginj.Capture;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
+import info.ginj.model.Capture;
 
 public interface OnlineExporter {
 

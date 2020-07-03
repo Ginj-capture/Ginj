@@ -1,9 +1,9 @@
 package info.ginj.tool.text;
 
-import info.ginj.CaptureEditingFrame;
-import info.ginj.ImageEditorPane;
 import info.ginj.tool.RectangleOverlay;
-import info.ginj.ui.Util;
+import info.ginj.ui.CaptureEditingFrame;
+import info.ginj.ui.ImageEditorPane;
+import info.ginj.util.Util;
 
 import javax.swing.*;
 import java.awt.*;

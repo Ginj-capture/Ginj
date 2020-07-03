@@ -1,6 +1,7 @@
-package info.ginj;
+package info.ginj.model;
 
-import info.ginj.ui.Util;
+import info.ginj.Ginj;
+import info.ginj.util.Util;
 
 import java.awt.*;
 import java.io.File;

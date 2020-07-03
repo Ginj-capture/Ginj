@@ -1,4 +1,4 @@
-package info.ginj;
+package info.ginj.util;
 
 import java.awt.*;
 

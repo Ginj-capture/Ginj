@@ -32,6 +32,8 @@ TODO Options ENHANCEMENT:
 
 */
 
+import info.ginj.model.Prefs;
+import info.ginj.ui.StarWindow;
 import info.ginj.ui.laf.GinjSynthLookAndFeel;
 
 import javax.swing.*;
@@ -48,7 +50,7 @@ import static java.awt.GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSLUCENT;
 
 public class Ginj {
 
-    public static final String LAF_XML = "laf.xml";
+    public static final String LAF_XML = "/synth.xml";
 
     public static final int ERR_STATUS_TRANSPARENCY = -1;
     public static final int ERR_STATUS_LAF = -2;
@@ -137,7 +139,7 @@ public class Ginj {
         return tempDir;
     }
 
-    static File getHistoryFolder() {
+    public static File getHistoryFolder() {
         String historyPath = Prefs.get(Prefs.Key.CAPTURE_HISTORY_PATH);
         if (historyPath == null || historyPath.isBlank() || !new File(historyPath).exists()) {
             historyPath = System.getProperty("user.home") + File.separator + "." + getAppName() + "_history";

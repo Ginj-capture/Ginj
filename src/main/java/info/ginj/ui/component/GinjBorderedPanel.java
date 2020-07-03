@@ -1,4 +1,4 @@
-package info.ginj.ui;
+package info.ginj.ui.component;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,6 +20,6 @@ public class GinjBorderedPanel extends JPanel {
 
     public GinjBorderedPanel(LayoutManager layout, boolean isDoubleBuffered) {
         super(layout, isDoubleBuffered);
-        setName("GinjBorderedPanel"); // To be addressed in laf.xml
+        setName("GinjBorderedPanel"); // To be addressed in synth.xml
     }
 }

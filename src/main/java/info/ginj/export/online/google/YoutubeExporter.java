@@ -1,11 +1,11 @@
 package info.ginj.export.online.google;
 
-import info.ginj.Capture;
-import info.ginj.Prefs;
 import info.ginj.export.online.OnlineExporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
+import info.ginj.model.Capture;
+import info.ginj.model.Prefs;
 
 import javax.swing.*;
 

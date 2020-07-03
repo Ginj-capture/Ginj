@@ -1,4 +1,4 @@
-package info.ginj.ui;
+package info.ginj.ui.listener;
 
 import javax.swing.event.MouseInputListener;
 import java.awt.*;

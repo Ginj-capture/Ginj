@@ -1,8 +1,8 @@
-package info.ginj;
+package info.ginj.ui;
 
 import info.ginj.action.*;
 import info.ginj.tool.Overlay;
-import info.ginj.ui.DragInsensitiveMouseClickListener;
+import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;

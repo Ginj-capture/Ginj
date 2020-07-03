@@ -1,4 +1,4 @@
-package info.ginj.ui;
+package info.ginj.util;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

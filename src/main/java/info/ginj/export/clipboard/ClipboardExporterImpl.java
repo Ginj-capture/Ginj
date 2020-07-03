@@ -1,8 +1,8 @@
 package info.ginj.export.clipboard;
 
-import info.ginj.Capture;
 import info.ginj.export.GinjExporter;
-import info.ginj.ui.Util;
+import info.ginj.model.Capture;
+import info.ginj.util.Util;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

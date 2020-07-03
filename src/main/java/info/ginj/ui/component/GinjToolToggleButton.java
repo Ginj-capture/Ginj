@@ -1,4 +1,4 @@
-package info.ginj.ui;
+package info.ginj.ui.component;
 
 import javax.swing.*;
 
@@ -20,6 +20,6 @@ public class GinjToolToggleButton extends JToggleButton {
 
     public GinjToolToggleButton(String text, Icon icon, boolean selected) {
         super(text, icon, selected);
-        setName("GinjToolToggleButton"); // To be addressed in laf.xml
+        setName("GinjToolToggleButton"); // To be addressed in synth.xml
     }
 }

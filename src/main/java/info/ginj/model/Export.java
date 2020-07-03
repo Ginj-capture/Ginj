@@ -1,4 +1,4 @@
-package info.ginj;
+package info.ginj.model;
 
 import java.io.Serializable;
 

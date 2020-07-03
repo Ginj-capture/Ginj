@@ -1,4 +1,4 @@
-package info.ginj.ui;
+package info.ginj.ui.component;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

@@ -1,7 +1,7 @@
 package info.ginj.action;
 
-import info.ginj.ImageEditorPane;
 import info.ginj.tool.Overlay;
+import info.ginj.ui.ImageEditorPane;
 
 import javax.swing.*;
 

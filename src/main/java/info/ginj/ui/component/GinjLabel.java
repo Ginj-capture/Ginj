@@ -1,4 +1,4 @@
-package info.ginj.ui;
+package info.ginj.ui.component;
 
 import javax.swing.*;
 
@@ -20,6 +20,6 @@ public class GinjLabel extends JLabel {
 
     public GinjLabel(String text, Icon icon, int horizontalAlignment) {
         super(text, icon, horizontalAlignment);
-        setName("GinjLabel"); // To be addressed in laf.xml
+        setName("GinjLabel"); // To be addressed in synth.xml
     }
 }

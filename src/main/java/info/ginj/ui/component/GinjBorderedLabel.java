@@ -1,4 +1,4 @@
-package info.ginj.ui;
+package info.ginj.ui.component;
 
 import javax.swing.*;
 
@@ -20,6 +20,6 @@ public class GinjBorderedLabel extends JLabel {
 
     public GinjBorderedLabel(String text, Icon icon, int horizontalAlignment) {
         super(text, icon, horizontalAlignment);
-        setName("GinjBorderedLabel"); // To be addressed in laf.xml
+        setName("GinjBorderedLabel"); // To be addressed in synth.xml
     }
 }

@@ -1,10 +1,10 @@
 package info.ginj.export.disk;
 
-import info.ginj.Capture;
 import info.ginj.Ginj;
-import info.ginj.Prefs;
 import info.ginj.export.GinjExporter;
-import info.ginj.ui.Util;
+import info.ginj.model.Capture;
+import info.ginj.model.Prefs;
+import info.ginj.util.Util;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

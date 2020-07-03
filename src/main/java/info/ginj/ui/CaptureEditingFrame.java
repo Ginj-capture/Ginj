@@ -1,18 +1,22 @@
-package info.ginj;
+package info.ginj.ui;
 
+import info.ginj.Ginj;
 import info.ginj.action.AbstractUndoableAction;
 import info.ginj.export.GinjExporter;
 import info.ginj.export.clipboard.ClipboardExporterImpl;
 import info.ginj.export.disk.DiskExporterImpl;
 import info.ginj.export.online.dropbox.DropboxExporter;
 import info.ginj.export.online.google.GooglePhotosExporter;
+import info.ginj.model.Capture;
+import info.ginj.model.Prefs;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
 import info.ginj.tool.arrow.ArrowTool;
 import info.ginj.tool.frame.FrameTool;
 import info.ginj.tool.highlight.HighlightTool;
 import info.ginj.tool.text.TextTool;
-import info.ginj.ui.*;
+import info.ginj.ui.component.*;
+import info.ginj.util.Util;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -31,10 +35,10 @@ import java.util.List;
 public class CaptureEditingFrame extends JFrame {
 
     public enum ExporterEntry {
-        DROPBOX("Add to Dropbox", "img/logo/dropbox.png", true, DropboxExporter.class),
-        GOOGLEPHOTOS("Add to Google Photos", "img/logo/googlephotos.png", true, GooglePhotosExporter.class),
-        DISK("Save", "img/icon/copy.png", false, DiskExporterImpl.class),
-        CLIPBOARD("Copy", "img/icon/copy.png", false, ClipboardExporterImpl.class),
+        DROPBOX("Add to Dropbox", "/img/logo/dropbox.png", true, DropboxExporter.class),
+        GOOGLEPHOTOS("Add to Google Photos", "/img/logo/googlephotos.png", true, GooglePhotosExporter.class),
+        DISK("Save", "/img/icon/save.png", false, DiskExporterImpl.class),
+        CLIPBOARD("Copy", "/img/icon/copy.png", false, ClipboardExporterImpl.class),
         ;
 
         private final String help;
@@ -159,8 +163,8 @@ public class CaptureEditingFrame extends JFrame {
         JPanel undoRedoPanel = new JPanel();
         undoRedoPanel.setAlignmentX(0); // Otherwise the panel adds horizontal space...
         undoRedoPanel.setLayout(new BoxLayout(undoRedoPanel, BoxLayout.X_AXIS));
-        undoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("img/icon/undo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
-        redoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("img/icon/redo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        undoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("/img/icon/undo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        redoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("/img/icon/redo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
 
         undoButton.setEnabled(false);
         undoButton.addActionListener(e -> attemptUndo());
@@ -236,10 +240,10 @@ public class CaptureEditingFrame extends JFrame {
         // Prepare horizontal button bar
         JPanel actionPanel = new JPanel();
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
-        actionPanel.setName("GinjPanel"); // To be used as a selector in laf.xml
+        actionPanel.setName("GinjPanel"); // To be used as a selector in synth.xml
         JPanel buttonBar = new GinjLowerButtonBar();
 
-        GinjLowerButton shareButton = new GinjLowerButton("Share...", Util.createIcon(getClass().getResource("img/icon/share.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        GinjLowerButton shareButton = new GinjLowerButton("Share...", Util.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         shareButton.addActionListener(e -> onShare(shareButton));
         buttonBar.add(shareButton);
 
@@ -249,11 +253,11 @@ public class CaptureEditingFrame extends JFrame {
             buttonBar.add(dropboxButton);
         }
 
-        final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
         // TODO where do we customize buttons ?
-//        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", Util.createIcon(getClass().getResource("img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+//        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", Util.createIcon(getClass().getResource("/img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
 //        customizeButton.addActionListener(e -> onCustomize());
 //        buttonBar.add(customizeButton);
 
@@ -352,7 +356,7 @@ public class CaptureEditingFrame extends JFrame {
     private void addToolButton(JPanel toolBar, GinjTool tool, ButtonGroup group) {
         // Create button
         GinjToolToggleButton toolButton = new GinjToolToggleButton(Util.createIcon(
-                getClass().getResource("img/icon/tool_" + tool.getName().toLowerCase() + ".png"),
+                getClass().getResource("/img/icon/tool_" + tool.getName().toLowerCase() + ".png"),
                 TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
         // Add it to the toolbar, followed by a spacer
         toolButton.setToolTipText(tool.getName());
@@ -503,7 +507,7 @@ public class CaptureEditingFrame extends JFrame {
             }
         }
 
-        menuItem = new JMenuItem("Manage accounts...", Util.createIcon(getClass().getResource("img/icon/share.png"), 24, 24));
+        menuItem = new JMenuItem("Manage accounts...", Util.createIcon(getClass().getResource("/img/icon/share.png"), 24, 24));
         menuItem.addActionListener(e -> System.out.println("Launch account management")); // TODO
         popup.add(menuItem);
 

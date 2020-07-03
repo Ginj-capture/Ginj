@@ -1,4 +1,4 @@
-package info.ginj.ui;
+package info.ginj.ui.component;
 
 import javax.swing.*;
 
@@ -16,6 +16,6 @@ public class GinjToolButton extends JButton {
 
     public GinjToolButton(String text, Icon icon) {
         super(text, icon);
-        setName("GinjToolButton"); // To be addressed in laf.xml
+        setName("GinjToolButton"); // To be addressed in synth.xml
     }
 }

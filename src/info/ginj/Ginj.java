@@ -6,7 +6,7 @@ TODO Features :
  - Implement Windows detection using JNA
  - Implement video using ffmpeg & Jaffree
  - Implement preference editor
- - Improve history window + edit
+ - Finalize history window + edit
  - Should undo/redo change selection inside the Action methods (e.g change color, resize) ? - or completely deselect component after operation
  - Upon export completion, the notification window should allow "auto fade when mouse not over" checkbox + Close button
  - Persist StarWindow position

@@ -383,12 +383,13 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                 Double expiresIn = (Double) map.get("expires_in");
                 String scopeStr = (String) map.get("scope");
 
-                // Check scopes
-                List<String> missingScopes = getMissingScopes(scopeStr);
-                if (!missingScopes.isEmpty()) {
-                    throw new AuthorizationException("The following authorizations are missing: " + missingScopes + ". Please re-authorize this account.");
+                if (scopeStr != null) { // e.g. Dropbox does not currently return scopes
+                    // Check scopes
+                    List<String> missingScopes = getMissingScopes(scopeStr);
+                    if (!missingScopes.isEmpty()) {
+                        throw new AuthorizationException("The following authorizations are missing: " + missingScopes + ". Please re-authorize this account.");
+                    }
                 }
-
                 if (accessToken != null && expiresIn != null) {
                     LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(expiresIn.longValue());
                     String expiryTimeStr = DateTimeFormatter.ofPattern(Ginj.DATETIME_FORMAT_PATTERN).format(expiryTime);
@@ -402,7 +403,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                 else {
                     throw new AuthorizationException("Could not parse access_token or expires_in from received json '" + responseText + "'.");
                 }
-            }
+        }
             else {
                 // throw new AuthorizationException("Server returned code " + getResponseError(response));
                 // This code used to track a nasty bug and throw additional info in that case... I'm leaving it.

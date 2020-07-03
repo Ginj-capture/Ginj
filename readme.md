@@ -4,15 +4,15 @@
 
 Ginj is an open source multi-platform screen capture and recording tool.
 
-Its unobtrusive UI and no-nonsense "capture / annotate / share" workflow is hard to beat.
+Its unobtrusive user interface and no-nonsense "capture / annotate / share" workflow is hard to beat.
 
-Ginj might remind you of a free tool called [Jing](http://web.archive.org/web/20181002042822/https://www.techsmith.com/jing-tool.html), that [Techsmith discontinued](https://feedback.techsmith.com/techsmith/topics/techsmith-jing-2019-announcement) in July 2020. But although there are similarities in the way Ging behaves, Ginj is not Jing.
+Ginj might remind you of a free tool called [Jing](http://web.archive.org/web/20181002042822/https://www.techsmith.com/jing-tool.html), that [Techsmith discontinued](https://feedback.techsmith.com/techsmith/topics/techsmith-jing-2019-announcement) in July 2020. But although there are similarities in the way Ginj behaves, Ginj is not Jing.
 
 ###### The main differences are:
 - It's all open-source. Of course, not a single line of code, not a single icon or font was taken from Jing. So basically _everything_ is different. 
 - Since Screencast, Techsmith's online sharing platform, does not have a public API, I had to switch to other online sharing services. Dropbox and Google Photos are supported for now.
-- Ginj will not be discontinued. It's open source. Take it, use it, keep it, fork it, improve it, change it.
-- I will also probably add a few features, but I really want to stick to the no-nonsense UI I love. 
+- Ginj will never be "discontinued". It's open source. Take it, use it, keep it, fork it, improve it, change it.
+- A few new features could be added, but I really want to stick to the simple UI I love. 
 - Oh, and Ginj is written in Java.
 
 #### Why Ginj?
@@ -37,7 +37,7 @@ Ginj's core is pure Java, and Java is "write once, run anywhere", so yes, it run
 
 Just kidding.
 
-Ginj is based on OpenJDK 14, so obviously Ginj won't ever run on a platform that does not support that JDK version. Moreover, I don't own a Mac, and I don't intend to test Ginj on a Linux VM until my to-do list becomes manageable.
+Ginj targets OpenJDK 14, so obviously Ginj won't ever run on a platform that does not support that JDK version. Moreover, I don't own a Mac, and I don't intend to test Ginj on a Linux VM until my to-do list becomes manageable.
 
 In other words, until now, Ginj has only been tested on Windows.
 
@@ -67,4 +67,4 @@ http://www.easynth.com/freewares/EaSynthLookAndFeel.html
 - Undo icon by Denis Klyuchnikov from https://thenounproject.com/
 - Laptop icon from https://icons8.com/
 
-Thanks to [Techsmith](https://www.techsmith.com/) for having proposed Jing for so long. Check out their product line.
+Thanks to [Techsmith](https://www.techsmith.com/) for having proposed and supported Jing for so long. Check out their product line.

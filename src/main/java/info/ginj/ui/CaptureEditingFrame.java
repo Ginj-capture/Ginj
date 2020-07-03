@@ -3,11 +3,8 @@ package info.ginj.ui;
 import info.ginj.Ginj;
 import info.ginj.action.AbstractUndoableAction;
 import info.ginj.export.GinjExporter;
-import info.ginj.export.clipboard.ClipboardExporterImpl;
-import info.ginj.export.disk.DiskExporterImpl;
-import info.ginj.export.online.dropbox.DropboxExporter;
-import info.ginj.export.online.google.GooglePhotosExporter;
 import info.ginj.model.Capture;
+import info.ginj.model.ExportTarget;
 import info.ginj.model.Prefs;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
@@ -33,49 +30,6 @@ import java.util.Date;
 import java.util.List;
 
 public class CaptureEditingFrame extends JFrame {
-
-    public enum ExporterEntry {
-        DROPBOX("Add to Dropbox", "/img/logo/dropbox.png", true, DropboxExporter.class),
-        GOOGLEPHOTOS("Add to Google Photos", "/img/logo/googlephotos.png", true, GooglePhotosExporter.class),
-        DISK("Save", "/img/icon/save.png", false, DiskExporterImpl.class),
-        CLIPBOARD("Copy", "/img/icon/copy.png", false, ClipboardExporterImpl.class),
-        ;
-
-        private final String help;
-        private final String iconPath;
-        private final boolean isOnlineService;
-        private final Class<? extends GinjExporter> exporterClass;
-
-        ExporterEntry(String help, String iconPath, boolean isOnlineService, Class<? extends GinjExporter> exporterClass) {
-            this.help = help;
-            this.iconPath = iconPath;
-            this.isOnlineService = isOnlineService;
-            this.exporterClass = exporterClass;
-        }
-
-        public String getHelp() {
-            return help;
-        }
-
-        public String getIconPath() {
-            return iconPath;
-        }
-
-        public ImageIcon getButtonIcon(int size) {
-            if (isOnlineService) {
-                // Use official logo and don't colorize
-                return Util.createIcon(getClass().getResource(getIconPath()), size, size);
-            }
-            else {
-                // Colorize
-                return Util.createIcon(getClass().getResource(getIconPath()), size, size, Util.ICON_ENABLED_COLOR);
-            }
-        }
-
-        public Class<? extends GinjExporter> getExporterClass() {
-            return exporterClass;
-        }
-    }
 
     public static final int TOOL_BUTTON_ICON_WIDTH = 24;
     public static final int TOOL_BUTTON_ICON_HEIGHT = 24;
@@ -247,7 +201,7 @@ public class CaptureEditingFrame extends JFrame {
         shareButton.addActionListener(e -> onShare(shareButton));
         buttonBar.add(shareButton);
 
-        for (ExporterEntry exporterEntry : ExporterEntry.values()) {
+        for (ExportTarget exporterEntry : ExportTarget.values()) {
             GinjLowerButton dropboxButton = new GinjLowerButton(exporterEntry.getHelp(), exporterEntry.getButtonIcon(16));
             dropboxButton.addActionListener(e -> onExport(exporterEntry));
             buttonBar.add(dropboxButton);
@@ -438,7 +392,7 @@ public class CaptureEditingFrame extends JFrame {
     }
 
 
-    private void onExport(ExporterEntry exporterEntry) {
+    private void onExport(ExportTarget exporterEntry) {
         // Render image and overlays, but no handles
         imagePane.setSelectedOverlay(null);
         BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -499,8 +453,8 @@ public class CaptureEditingFrame extends JFrame {
         JPopupMenu popup = new JPopupMenu();
 
         JMenuItem menuItem;
-        for (ExporterEntry exporterEntry : ExporterEntry.values()) {
-            if (exporterEntry.isOnlineService) {
+        for (ExportTarget exporterEntry : ExportTarget.values()) {
+            if (exporterEntry.isOnlineService()) {
                 menuItem = new JMenuItem(exporterEntry.getHelp(), exporterEntry.getButtonIcon(24));
                 menuItem.addActionListener(e -> onExport(exporterEntry));
                 popup.add(menuItem);

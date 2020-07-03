@@ -12,7 +12,6 @@ import info.ginj.tool.arrow.ArrowTool;
 import info.ginj.tool.frame.FrameTool;
 import info.ginj.tool.highlight.HighlightTool;
 import info.ginj.tool.text.TextTool;
-import info.ginj.ui.*;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;

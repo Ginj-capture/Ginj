@@ -22,17 +22,56 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class CaptureEditingFrame extends JFrame {
-    public static final String EXPORT_TYPE_DISK = "disk";
-    public static final String EXPORT_TYPE_SHARE = "share";
-    public static final String EXPORT_TYPE_DROPBOX = "dropbox";
-    public static final String EXPORT_TYPE_GOOGLE_PHOTOS = "googlephotos";
-    public static final String EXPORT_TYPE_CLIPBOARD = "clipboard";
+
+    public enum ExporterEntry {
+        DROPBOX("Add to Dropbox", "img/logo/dropbox.png", true, DropboxExporter.class),
+        GOOGLEPHOTOS("Add to Google Photos", "img/logo/googlephotos.png", true, GooglePhotosExporter.class),
+        DISK("Save", "img/icon/copy.png", false, DiskExporterImpl.class),
+        CLIPBOARD("Copy", "img/icon/copy.png", false, ClipboardExporterImpl.class),
+        ;
+
+        private final String help;
+        private final String iconPath;
+        private final boolean isOnlineService;
+        private final Class<? extends GinjExporter> exporterClass;
+
+        ExporterEntry(String help, String iconPath, boolean isOnlineService, Class<? extends GinjExporter> exporterClass) {
+            this.help = help;
+            this.iconPath = iconPath;
+            this.isOnlineService = isOnlineService;
+            this.exporterClass = exporterClass;
+        }
+
+        public String getHelp() {
+            return help;
+        }
+
+        public String getIconPath() {
+            return iconPath;
+        }
+
+        public ImageIcon getButtonIcon(int size) {
+            if (isOnlineService) {
+                // Use official logo and don't colorize
+                return Util.createIcon(getClass().getResource(getIconPath()), size, size);
+            }
+            else {
+                // Colorize
+                return Util.createIcon(getClass().getResource(getIconPath()), size, size, Util.ICON_ENABLED_COLOR);
+            }
+        }
+
+        public Class<? extends GinjExporter> getExporterClass() {
+            return exporterClass;
+        }
+    }
 
     public static final int TOOL_BUTTON_ICON_WIDTH = 24;
     public static final int TOOL_BUTTON_ICON_HEIGHT = 24;
@@ -200,21 +239,16 @@ public class CaptureEditingFrame extends JFrame {
         actionPanel.setName("GinjPanel"); // To be used as a selector in laf.xml
         JPanel buttonBar = new GinjLowerButtonBar();
 
-        GinjLowerButton shareButton = new GinjLowerButton("Share via X", Util.createIcon(getClass().getResource("img/icon/share.png"), 16, 16, Util.ICON_ENABLED_COLOR));
-        shareButton.addActionListener(e -> onExport(EXPORT_TYPE_SHARE));
+        GinjLowerButton shareButton = new GinjLowerButton("Share...", Util.createIcon(getClass().getResource("img/icon/share.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        shareButton.addActionListener(e -> onShare(shareButton));
         buttonBar.add(shareButton);
-        GinjLowerButton dropboxButton = new GinjLowerButton("Share on Dropbox", Util.createIcon(getClass().getResource("img/icon/dropbox.png"), 16, 16, Util.ICON_ENABLED_COLOR));
-        dropboxButton.addActionListener(e -> onExport(EXPORT_TYPE_DROPBOX));
-        buttonBar.add(dropboxButton);
-        GinjLowerButton googlePhotosButton = new GinjLowerButton("Share on Google Photos", Util.createIcon(getClass().getResource("img/icon/googlephotos.png"), 16, 16, Util.ICON_ENABLED_COLOR));
-        googlePhotosButton.addActionListener(e -> onExport(EXPORT_TYPE_GOOGLE_PHOTOS));
-        buttonBar.add(googlePhotosButton);
-        GinjLowerButton saveButton = new GinjLowerButton("Save", Util.createIcon(getClass().getResource("img/icon/save.png"), 16, 16, Util.ICON_ENABLED_COLOR));
-        saveButton.addActionListener(e -> onExport(EXPORT_TYPE_DISK));
-        buttonBar.add(saveButton);
-        final JButton copyButton = new GinjLowerButton("Copy", Util.createIcon(getClass().getResource("img/icon/copy.png"), 16, 16, Util.ICON_ENABLED_COLOR));
-        copyButton.addActionListener(e -> onExport(EXPORT_TYPE_CLIPBOARD));
-        buttonBar.add(copyButton);
+
+        for (ExporterEntry exporterEntry : ExporterEntry.values()) {
+            GinjLowerButton dropboxButton = new GinjLowerButton(exporterEntry.getHelp(), exporterEntry.getButtonIcon(16));
+            dropboxButton.addActionListener(e -> onExport(exporterEntry));
+            buttonBar.add(dropboxButton);
+        }
+
         final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
@@ -379,6 +413,7 @@ public class CaptureEditingFrame extends JFrame {
     /**
      * Add a custom action on overlays to the Undo stack
      * <p>
+     *
      * @param action The undoable action
      */
     public void addUndoableAction(AbstractUndoableAction action) {
@@ -390,6 +425,7 @@ public class CaptureEditingFrame extends JFrame {
     /**
      * Add a standard edit in a textArea to the Undo stack
      * <p>
+     *
      * @param edit The undoable edit
      */
     public void addUndoableEdit(UndoableEdit edit) {
@@ -398,7 +434,7 @@ public class CaptureEditingFrame extends JFrame {
     }
 
 
-    private void onExport(String exportType) {
+    private void onExport(ExporterEntry exporterEntry) {
         // Render image and overlays, but no handles
         imagePane.setSelectedOverlay(null);
         BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -406,28 +442,12 @@ public class CaptureEditingFrame extends JFrame {
         imagePane.paint(g);
         g.dispose();
 
-        // Find the right exporter implementation
-        GinjExporter exporter = null;
-        switch (exportType) {
-            case EXPORT_TYPE_SHARE:
-                //exporter = new ShareExporterImpl(this);
-                break;
-            case EXPORT_TYPE_DROPBOX:
-                exporter = new DropboxExporter(this);
-                break;
-            case EXPORT_TYPE_GOOGLE_PHOTOS:
-                exporter = new GooglePhotosExporter(this);
-                break;
-            case EXPORT_TYPE_DISK:
-                exporter = new DiskExporterImpl(this);
-                break;
-            case EXPORT_TYPE_CLIPBOARD:
-                exporter = new ClipboardExporterImpl(this);
-                break;
-        }
+        try {
+            // Find the right exporter implementation
+            GinjExporter exporter = exporterEntry.getExporterClass().getDeclaredConstructor(new Class[]{JFrame.class}).newInstance(this);
 
-        // Perform export
-        if (exporter != null) {
+            // Perform export
+
             // Prepare capture object
             Capture capture = new Capture();
             capture.setVideo(false);
@@ -459,14 +479,37 @@ public class CaptureEditingFrame extends JFrame {
                 setVisible(false);
             }
         }
-        else {
-            JOptionPane.showMessageDialog(this, "Cannot find an exporter for type '" + exportType + "'.", "Export error", JOptionPane.ERROR_MESSAGE);
+        catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            JOptionPane.showMessageDialog(this, "Cannot find an exporter for type '" + exporterEntry.name() + "'.", "Export error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
     }
 
     private void onCancel() {
         // Close window
         dispose();
+    }
+
+    private void onShare(GinjLowerButton button) {
+        //Create the popup menu.
+        JPopupMenu popup = new JPopupMenu();
+
+        JMenuItem menuItem;
+        for (ExporterEntry exporterEntry : ExporterEntry.values()) {
+            if (exporterEntry.isOnlineService) {
+                menuItem = new JMenuItem(exporterEntry.getHelp(), exporterEntry.getButtonIcon(24));
+                menuItem.addActionListener(e -> onExport(exporterEntry));
+                popup.add(menuItem);
+            }
+        }
+
+        menuItem = new JMenuItem("Manage accounts...", Util.createIcon(getClass().getResource("img/icon/share.png"), 24, 24));
+        menuItem.addActionListener(e -> System.out.println("Launch account management")); // TODO
+        popup.add(menuItem);
+
+        popup.show(button, button.getWidth() / 2, button.getHeight() / 2);
+
+        //JOptionPane.showMessageDialog(this, "Cannot find an exporter for type '" + exporterEntry.name() + "'.", "Export error", JOptionPane.ERROR_MESSAGE);
     }
 
     private void onCustomize() {

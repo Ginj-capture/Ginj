@@ -173,7 +173,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
             }
         }
         catch (NoSuchAlgorithmException | URISyntaxException | IOException | InterruptedException e) {
-            throw new AuthorizationException(e);
+            throw new CommunicationException(e);
         }
         finally {
             if (server != null) {

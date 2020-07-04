@@ -13,7 +13,6 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.net.URIBuilder;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -40,9 +39,6 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
     // Access to display username and email
     private static final String[] GOOGLE_PROFILE_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"};
 
-    public GoogleExporter(JFrame frame) {
-        super(frame);
-    }
 
     @Override
     protected String getClientAppId() {
@@ -72,6 +68,11 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
     @Override
     protected List<String> getRequiredScopes() {
         return Arrays.asList(GOOGLE_PROFILE_REQUIRED_SCOPES);
+    }
+
+    @Override
+    public boolean isOnlineService() {
+        return true;
     }
 
     public void checkAuthorizations(String accountNumber) throws CommunicationException, AuthorizationException {

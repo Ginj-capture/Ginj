@@ -111,7 +111,7 @@ public class HistoryFrame extends JFrame {
         // Prepare status bar
         JPanel statusPanel = new JPanel();
         statusPanel.setLayout(new BorderLayout());
-        final GinjBorderedLabel nameLabel = new GinjBorderedLabel("Ginj is brought to you by a random guy.");
+        final GinjBorderedLabel nameLabel = new GinjBorderedLabel(Ginj.getAppName() + " is brought to you by a random guy.");
         statusPanel.add(nameLabel, BorderLayout.WEST);
 
         c = new GridBagConstraints();
@@ -157,8 +157,21 @@ public class HistoryFrame extends JFrame {
         dispose();
     }
 
+    private void onEdit(Capture capture) {
+        // TODO should create a copy of the capture and open the edit window on it
+        // Q: Do we duplicate the source media ? Would be silly
+        //    If not, a delete should not delete the source media while it's still in use by at least one capture !
+        //    Maybe Use a naming convention, like capture_id = <orig_capture_id> + "_" + <number>
+    }
+
+    private void onExport(Capture capture) {
+        // TODO should copy the shared URL back to the clipboard, except for Clipboard that should re-execute an "export"
+    }
+
+
     private void onDelete(Capture capture) {
         // TODO ask the question: Also delete from storages (and list them) ?
+        // TODO if re-exported captures point to the same source, only delete the source media when it's the last one
         if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "The selected capture will be deleted from the History.\nFor now, the exported version (if any) will remain untouched.\nAre you sure you want to delete capture '" + capture.getName() + "'?", "Delete Capture", JOptionPane.YES_NO_OPTION)) {
             boolean ok = new File(Ginj.getHistoryFolder(), capture.getId() + Ginj.METADATA_EXTENSION).delete();
             ok = ok && new File(Ginj.getHistoryFolder(), capture.getId() + Ginj.THUMBNAIL_EXTENSION).delete();
@@ -169,11 +182,6 @@ public class HistoryFrame extends JFrame {
             refreshHistoryList();
         }
     }
-
-    private void onEdit(Capture capture) {
-        // TODO
-    }
-
 
     public HistoryItemPanel getSelectedItem() {
         return selectedItem;
@@ -202,7 +210,7 @@ public class HistoryFrame extends JFrame {
         private final JLabel nameLabel;
         private final JLabel sizeLabel;
         private final JButton editButton;
-        // private final JButton exportButton;
+        private final JButton exportButton;
         private final JButton deleteButton;
 
         @Override
@@ -270,16 +278,18 @@ public class HistoryFrame extends JFrame {
             editButton = new JButton(editIcon);
             editButton.addActionListener(e -> onEdit(capture));
 
-            // exportButton = new JButton(exportIcon); TODO seems to redo the original export (clipboard, disk. Didn't test online)
+            exportButton = new JButton(exportIcon);
+            exportButton.addActionListener(e -> onExport(capture));
+
             deleteButton = new JButton(deleteIcon);
             deleteButton.addActionListener(e -> onDelete(capture));
             // Hide buttons by default
             editButton.setVisible(false);
-            // exportButton.setVisible(false);
+            exportButton.setVisible(false);
             deleteButton.setVisible(false);
 
             buttonBar.add(editButton);
-            // buttonBar.add(exportButton);
+            buttonBar.add(exportButton);
             buttonBar.add(deleteButton);
             c = new GridBagConstraints();
             c.gridx = 0;

@@ -21,7 +21,6 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -50,13 +49,12 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
     public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + Util.colorToHex(Util.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + Util.colorToHex(Util.LABEL_FOREGROUND_COLOR) + ";} a{color:" + Util.colorToHex(Util.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";
     protected static final int PORT_GINJ = 6193;
+
+    // TODO mabye make the following fields ThreadLocal ?
     protected String verifier;
     protected String receivedCode = null;
     protected HttpServer server;
 
-    public AbstractOAuth2Exporter(JFrame frame) {
-        super(frame);
-    }
 
     protected abstract String getClientAppId();
 
@@ -90,13 +88,13 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                 authorize(accountNumber);
             }
             catch (AuthorizationException | CommunicationException exception) {
-                Util.alertException(getFrame(), getExporterName() + " authorization error", "There was an error authorizing you on " + getExporterName(), e);
+                Util.alertException(getParentFrame(), getExporterName() + " authorization error", "There was an error authorizing you on " + getExporterName(), e);
                 failed("Authorization error");
                 return false;
             }
         }
         catch (CommunicationException e) {
-            Util.alertException(getFrame(), getExporterName() + " authorization check error", "There was an error checking authorization on " + getExporterName(), e);
+            Util.alertException(getParentFrame(), getExporterName() + " authorization check error", "There was an error checking authorization on " + getExporterName(), e);
             failed("Communication error");
             return false;
         }

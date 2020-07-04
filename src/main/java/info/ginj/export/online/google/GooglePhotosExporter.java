@@ -27,7 +27,6 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
 
-import javax.swing.*;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
@@ -56,10 +55,6 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     public static final int CHUNK_SIZE = 262144; // 256k
 
 
-    public GooglePhotosExporter(JFrame frame) {
-        super(frame);
-    }
-
     @Override
     public String getExporterName() {
         return "Google Photos";
@@ -87,6 +82,25 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_REFRESH_TOKEN_PREFIX;
     }
 
+    @Override
+    public String getShareText() {
+        return "Add to Google Photos";
+    }
+
+    @Override
+    public String getIconPath() {
+        return "/img/logo/googlephotos.png";
+    }
+
+    @Override
+    public boolean isImageSupported() {
+        return true;
+    }
+
+    @Override
+    public boolean isVideoSupported() {
+        return true;
+    }
 
     /**
      * Uploads the given capture to Google Photos
@@ -108,7 +122,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             }
         }
         catch (Exception e) {
-            Util.alertException(getFrame(), getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
+            Util.alertException(getParentFrame(), getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
             failed("Upload error");
         }
     }

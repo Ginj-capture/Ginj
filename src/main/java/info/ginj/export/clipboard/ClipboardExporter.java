@@ -5,7 +5,6 @@ import info.ginj.model.Capture;
 import info.ginj.util.Util;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 
@@ -14,15 +13,37 @@ import java.awt.datatransfer.Clipboard;
  *
  * Based on code from https://coderanch.com/t/333565/java/BufferedImage-System-Clipboard
  */
-public class ClipboardExporterImpl extends GinjExporter {
+public class ClipboardExporter extends GinjExporter {
 
-    public ClipboardExporterImpl(JFrame frame) {
-        super(frame);
-    }
 
     @Override
     public String getExporterName() {
         return "Clipboard";
+    }
+
+    @Override
+    public String getShareText() {
+        return "Copy";
+    }
+
+    @Override
+    public String getIconPath() {
+        return "/img/icon/copy.png";
+    }
+
+    @Override
+    public boolean isOnlineService() {
+        return false;
+    }
+
+    @Override
+    public boolean isImageSupported() {
+        return true;
+    }
+
+    @Override
+    public boolean isVideoSupported() {
+        return false;
     }
 
     /**
@@ -37,7 +58,7 @@ public class ClipboardExporterImpl extends GinjExporter {
     @Override
     public void exportCapture(Capture capture, String accountNumber) {
         if (capture.isVideo()) {
-            Util.alertError(getFrame(), "Export error", "Video contents cannot be copied to the clipboard");
+            Util.alertError(getParentFrame(), "Export error", "Video contents cannot be copied to the clipboard");
             failed("Error copying capture");
             return;
         }
@@ -56,7 +77,7 @@ public class ClipboardExporterImpl extends GinjExporter {
             complete("Image copied to clipboard");
         }
         catch (Exception e) {
-            Util.alertException(getFrame(), "Export error", "There was an error copying image to the clipboard", e);
+            Util.alertException(getParentFrame(), "Export error", "There was an error copying image to the clipboard", e);
             failed("Error copying capture");
         }
     }

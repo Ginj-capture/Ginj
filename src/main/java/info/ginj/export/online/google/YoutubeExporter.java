@@ -7,7 +7,6 @@ import info.ginj.export.online.exception.UploadException;
 import info.ginj.model.Capture;
 import info.ginj.model.Prefs;
 
-import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,9 +14,6 @@ public class YoutubeExporter extends GoogleExporter implements OnlineExporter {
 
     private static final String[] YOUTUBE_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/youtube.upload"};
 
-    public YoutubeExporter(JFrame frame) {
-        super(frame);
-    }
 
     @Override
     public String getExporterName() {
@@ -42,6 +38,26 @@ public class YoutubeExporter extends GoogleExporter implements OnlineExporter {
     @Override
     protected Prefs.Key getRefreshTokenKeyPrefix() {
         return Prefs.Key.EXPORTER_YOUTUBE_REFRESH_TOKEN_PREFIX;
+    }
+
+    @Override
+    public String getShareText() {
+        return "Publish on Youtube";
+    }
+
+    @Override
+    public String getIconPath() {
+        return "/img/logo/youtube.png";
+    }
+
+    @Override
+    public boolean isImageSupported() {
+        return false;
+    }
+
+    @Override
+    public boolean isVideoSupported() {
+        return true;
     }
 
     @Override

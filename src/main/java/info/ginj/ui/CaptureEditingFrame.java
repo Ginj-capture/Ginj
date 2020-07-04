@@ -4,7 +4,6 @@ import info.ginj.Ginj;
 import info.ginj.action.AbstractUndoableAction;
 import info.ginj.export.GinjExporter;
 import info.ginj.model.Capture;
-import info.ginj.model.ExportTarget;
 import info.ginj.model.Prefs;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
@@ -23,7 +22,6 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.InvocationTargetException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -196,10 +194,12 @@ public class CaptureEditingFrame extends JFrame {
         shareButton.addActionListener(e -> onShare(shareButton));
         buttonBar.add(shareButton);
 
-        for (ExportTarget exporterEntry : ExportTarget.values()) {
-            GinjLowerButton dropboxButton = new GinjLowerButton(exporterEntry.getHelp(), exporterEntry.getButtonIcon(16));
-            dropboxButton.addActionListener(e -> onExport(exporterEntry));
-            buttonBar.add(dropboxButton);
+        for (GinjExporter target : GinjExporter.getList()) {
+            if (target.isImageSupported()) {
+                GinjLowerButton targetButton = new GinjLowerButton(target.getShareText(), target.getButtonIcon(16));
+                targetButton.addActionListener(e -> onExport(target));
+                buttonBar.add(targetButton);
+            }
         }
 
         final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
@@ -387,7 +387,7 @@ public class CaptureEditingFrame extends JFrame {
     }
 
 
-    private void onExport(ExportTarget exporterEntry) {
+    private void onExport(GinjExporter exporter) {
         // Render image and overlays, but no handles
         imagePane.setSelectedOverlay(null);
         BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -395,46 +395,37 @@ public class CaptureEditingFrame extends JFrame {
         imagePane.paint(g);
         g.dispose();
 
-        try {
-            // Find the right exporter implementation
-            GinjExporter exporter = exporterEntry.getExporterClass().getDeclaredConstructor(new Class[]{JFrame.class}).newInstance(this);
+        // Perform export
 
-            // Perform export
+        // Prepare capture object
+        Capture capture = new Capture();
+        capture.setVideo(false);
+        capture.setId(captureId);
+        capture.transientSetOriginalImage(capturedImg);
+        capture.transientSetRenderedImage(renderedImage);
+        capture.setName(nameTextField.getText());
 
-            // Prepare capture object
-            Capture capture = new Capture();
-            capture.setVideo(false);
-            capture.setId(captureId);
-            capture.transientSetOriginalImage(capturedImg);
-            capture.transientSetRenderedImage(renderedImage);
-            capture.setName(nameTextField.getText());
-
-            List<Overlay> overlays = new ArrayList<>();
-            for (Component component : imagePane.getComponents()) {
-                if (component instanceof Overlay) {
-                    overlays.add((Overlay) component);
-                }
-            }
-            capture.setOverlays(overlays);
-
-            ExportFrame exportFrame = new ExportFrame(this, capture, exporter);
-            exporter.setExportMonitor(exportFrame);
-            // Note the chicken/egg problem:
-            // - Frame needs the Exporter to start and control it
-            // - Exporter needs the Frame to update UI (progress and message)
-            // There's a risk of a circular reference preventing GC, that's why all exit points of the ExportFrame set the exporter field to null
-
-            exportFrame.setVisible(true);
-
-            // TODO account number
-            if (exportFrame.startExport("1")) {
-                // Hide this window during export. It will be "re-opened" in case of failure or cancellation
-                setVisible(false);
+        List<Overlay> overlays = new ArrayList<>();
+        for (Component component : imagePane.getComponents()) {
+            if (component instanceof Overlay) {
+                overlays.add((Overlay) component);
             }
         }
-        catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            JOptionPane.showMessageDialog(this, "Cannot find an exporter for type '" + exporterEntry.name() + "'.", "Export error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+        capture.setOverlays(overlays);
+
+        ExportFrame exportFrame = new ExportFrame(this, capture, exporter);
+        exporter.initialize(this, exportFrame);
+        // Note the chicken/egg problem:
+        // - Frame needs the Exporter to start and control it
+        // - Exporter needs the Frame to update UI (progress and message)
+        // There's a risk of a circular reference preventing GC, that's why all exit points of the ExportFrame set the exporter field to null
+
+        exportFrame.setVisible(true);
+
+        // TODO account number
+        if (exportFrame.startExport("1")) {
+            // Hide this window during export. It will be "re-opened" in case of failure or cancellation
+            setVisible(false);
         }
     }
 
@@ -448,10 +439,10 @@ public class CaptureEditingFrame extends JFrame {
         JPopupMenu popup = new JPopupMenu();
 
         JMenuItem menuItem;
-        for (ExportTarget exporterEntry : ExportTarget.values()) {
-            if (exporterEntry.isOnlineService()) {
-                menuItem = new JMenuItem(exporterEntry.getHelp(), exporterEntry.getButtonIcon(24));
-                menuItem.addActionListener(e -> onExport(exporterEntry));
+        for (GinjExporter exporter : GinjExporter.getList()) {
+            if (exporter.isOnlineService()) {
+                menuItem = new JMenuItem(exporter.getShareText(), exporter.getButtonIcon(24));
+                menuItem.addActionListener(e -> onExport(exporter));
                 popup.add(menuItem);
             }
         }
@@ -461,8 +452,6 @@ public class CaptureEditingFrame extends JFrame {
         popup.add(menuItem);
 
         popup.show(button, button.getWidth() / 2, button.getHeight() / 2);
-
-        //JOptionPane.showMessageDialog(this, "Cannot find an exporter for type '" + exporterEntry.name() + "'.", "Export error", JOptionPane.ERROR_MESSAGE);
     }
 
     private void onCustomize() {

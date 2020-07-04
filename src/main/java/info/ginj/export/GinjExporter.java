@@ -1,41 +1,61 @@
 package info.ginj.export;
 
+import info.ginj.export.clipboard.ClipboardExporter;
+import info.ginj.export.disk.DiskExporter;
+import info.ginj.export.online.dropbox.DropboxExporter;
+import info.ginj.export.online.google.GooglePhotosExporter;
 import info.ginj.model.Capture;
+import info.ginj.util.Util;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class GinjExporter implements Cancellable {
-    private final JFrame frame;
+
+    // TODO mabye make the following fields ThreadLocal ?
+    private JFrame parentFrame;
     private ExportMonitor exportMonitor;
+
+    /**
+     * This static method returns an list of all exporters.
+     * @return a list containing an instance of all available exporters
+     */
+    public static List<GinjExporter> getList() {
+        final ArrayList<GinjExporter> exporters = new ArrayList<>();
+        exporters.add(new DiskExporter());
+        exporters.add(new ClipboardExporter());
+        exporters.add(new DropboxExporter());
+        exporters.add(new GooglePhotosExporter());
+        return exporters;
+    }
 
     public abstract String getExporterName();
 
     private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
 
-    public GinjExporter(JFrame frame) {
-        this.frame = frame;
-    }
 
-    public JFrame getFrame() {
-        return frame;
+    public JFrame getParentFrame() {
+        return parentFrame;
     }
 
     public ExportMonitor getExportMonitor() {
         return exportMonitor;
     }
 
-    public void setExportMonitor(ExportMonitor logger) {
+    public void initialize(JFrame parentFrame, ExportMonitor logger) {
+        this.parentFrame = parentFrame;
         exportMonitor = logger;
     }
 
     /**
      * Prepares the exporter for the export.
      * This method is run in Swing's Event Dispatching Thread before launching the actual export.
-     * It's the right time to prompt user for additional information before launching the export.
+     * It's the right time to e.g.  prompt user for additional information before launching the export.
      *
      * @param capture       the capture to export
      * @param accountNumber the accountNumber to export this capture to (if relevant)
@@ -45,6 +65,28 @@ public abstract class GinjExporter implements Cancellable {
         // Do nothing by default
         return true;
     }
+
+    public abstract String getShareText();
+
+    public abstract String getIconPath();
+
+    public abstract boolean isOnlineService();
+
+    public abstract boolean isImageSupported();
+
+    public abstract boolean isVideoSupported();
+
+    public ImageIcon getButtonIcon(int size) {
+        if (isOnlineService()) {
+            // Use official logo and don't colorize
+            return Util.createIcon(getClass().getResource(getIconPath()), size, size);
+        }
+        else {
+            // Colorize
+            return Util.createIcon(getClass().getResource(getIconPath()), size, size, Util.ICON_ENABLED_COLOR);
+        }
+    }
+
 
     /**
      * Exports the given capture.

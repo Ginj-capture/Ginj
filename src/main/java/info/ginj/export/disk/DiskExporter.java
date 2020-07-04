@@ -17,17 +17,39 @@ import java.util.concurrent.ExecutionException;
 /**
  * This exporter saves the image as a PNG file to disk, and copies its path to the clipboard
  */
-public class DiskExporterImpl extends GinjExporter {
+public class DiskExporter extends GinjExporter {
 
     private File targetFile;
 
-    public DiskExporterImpl(JFrame frame) {
-        super(frame);
-    }
 
     @Override
     public String getExporterName() {
         return "Disk";
+    }
+
+    @Override
+    public String getShareText() {
+        return "Save";
+    }
+
+    @Override
+    public String getIconPath() {
+        return "/img/icon/save.png";
+    }
+
+    @Override
+    public boolean isOnlineService() {
+        return false;
+    }
+
+    @Override
+    public boolean isImageSupported() {
+        return true;
+    }
+
+    @Override
+    public boolean isVideoSupported() {
+        return true;
     }
 
     /**
@@ -81,7 +103,7 @@ public class DiskExporterImpl extends GinjExporter {
             fileChooser = Ginj.futureFileChooser.get();
         }
         catch (InterruptedException | ExecutionException e) {
-            JOptionPane.showMessageDialog(getFrame(), "Error opening file chooser: " + e.getMessage());
+            JOptionPane.showMessageDialog(getParentFrame(), "Error opening file chooser: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -91,7 +113,7 @@ public class DiskExporterImpl extends GinjExporter {
         fileChooser.setFileFilter(new FileNameExtensionFilter("PNG (*" +Ginj.IMAGE_EXTENSION + ")", Ginj.IMAGE_EXTENSION.substring(1)));
         fileChooser.setSelectedFile(targetFile);
 
-        if (fileChooser.showSaveDialog(getFrame()) != JFileChooser.APPROVE_OPTION) {
+        if (fileChooser.showSaveDialog(getParentFrame()) != JFileChooser.APPROVE_OPTION) {
             // Cancelled, closed or error
             return false;
         }
@@ -103,7 +125,7 @@ public class DiskExporterImpl extends GinjExporter {
         }
 
         // File exists, return true if user accepts overwrite
-        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(getFrame(), "Are you sure you want to overwrite: " + targetFile.getAbsolutePath() + "\n?", "File exists", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(getParentFrame(), "Are you sure you want to overwrite: " + targetFile.getAbsolutePath() + "\n?", "File exists", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
             return true;
         }
         else {
@@ -132,7 +154,7 @@ public class DiskExporterImpl extends GinjExporter {
             }
         }
         catch (IOException e) {
-            Util.alertException(getFrame(), "Save Error", "Encountered an error while saving image as\n'" + targetFile.getAbsolutePath() + "'\n" + e.getMessage() + "\nMore info is available on the Java console", e);
+            Util.alertException(getParentFrame(), "Save Error", "Encountered an error while saving image as\n'" + targetFile.getAbsolutePath() + "'\n" + e.getMessage() + "\nMore info is available on the Java console", e);
             failed("Save error");
             return;
         }

@@ -23,7 +23,6 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
 
-import javax.swing.*;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -40,11 +39,6 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     private static final String DROPBOX_REVOKE_URL = "https://www.dropbox.com/account/connected_apps";
 
     public static final int CHUNK_SIZE = 262144; // 256k
-
-
-    public DropboxExporter(JFrame frame) {
-        super(frame);
-    }
 
 
     @Override
@@ -105,6 +99,31 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         return Prefs.Key.EXPORTER_DROPBOX_REFRESH_TOKEN_PREFIX;
     }
 
+    @Override
+    public String getShareText() {
+        return "Add to Dropbox";
+    }
+
+    @Override
+    public String getIconPath() {
+        return "/img/logo/dropbox.png";
+    }
+
+    @Override
+    public boolean isOnlineService() {
+        return true;
+    }
+
+    @Override
+    public boolean isImageSupported() {
+        return true;
+    }
+
+    @Override
+    public boolean isVideoSupported() {
+        return true;
+    }
+
 
     /**
      * Exports the given capture
@@ -126,7 +145,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             }
         }
         catch (Exception e) {
-            Util.alertException(getFrame(), getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
+            Util.alertException(getParentFrame(), getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
             failed("Upload error");
         }
     }

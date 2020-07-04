@@ -20,6 +20,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 
+/**
+ * This "small" progress window is responsible for starting, monitoring, and controlling an export in background.
+ */
 public class ExportFrame extends JFrame implements ExportMonitor {
 
     private final JLabel stateLabel;

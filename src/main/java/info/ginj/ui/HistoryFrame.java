@@ -27,7 +27,7 @@ public class HistoryFrame extends JFrame {
 
     public static final Dimension HISTORY_CELL_SIZE = new Dimension(156, 164);
     public static final Dimension THUMBNAIL_SIZE = new Dimension(113, 91);
-    public static final Dimension WINDOW_DEFAULT_SIZE = new Dimension(680, 550);
+    public static final Dimension MAIN_AREA_DEFAULT_SIZE = new Dimension(680, 466);
     private final ImageIcon exportIcon;
     private final ImageIcon editIcon;
     private final ImageIcon deleteIcon;
@@ -90,7 +90,7 @@ public class HistoryFrame extends JFrame {
         refreshHistoryList();
 
         historyPanel = new JScrollPane(historyList);
-        historyPanel.setPreferredSize(WINDOW_DEFAULT_SIZE);
+        historyPanel.setPreferredSize(MAIN_AREA_DEFAULT_SIZE);
 
         historyPanel.addMouseListener(new MouseAdapter() {
             @Override

@@ -56,8 +56,8 @@ In the meantime, it's just there and it's free... Enjoy :-)
 #### Credits. 
 
 The source code contains classes or snippets from:
-- [JHLabs image filters](http://jhlabs.com/ip/filters/index.html)
-- [The Java Tutorial](https://docs.oracle.com/javase/tutorial/)
+- [The Java Tutorial](https://docs.oracle.com/javase/tutorial/), Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
+- [JHLabs image filters](http://jhlabs.com/ip/filters/index.html) by Jerry Huxtable
 - Discussions at [StackOverflow](https://stackoverflow.com/) and [CodeRanch](https://coderanch.com/)
 
 The user interface uses:
@@ -66,6 +66,5 @@ The user interface uses:
 - Undo icon by Denis Klyuchnikov from [The Noun Project](https://thenounproject.com/)
 - Laptop icon from [Icons8](https://icons8.com/)
 - FTP icon by Pixel perfect from [flaticon](http://www.flaticon.com)
-
 
 Thanks to [Techsmith](https://www.techsmith.com/) for having proposed and supported Jing for so long. Check out their product line.

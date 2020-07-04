@@ -65,6 +65,7 @@ The user interface uses:
 - Many icons from [FeatherIcons](https://feathericons.com/)
 - Undo icon by Denis Klyuchnikov from [The Noun Project](https://thenounproject.com/)
 - Laptop icon from [Icons8](https://icons8.com/)
+- FTP icon by Pixel perfect from [flaticon](http://www.flaticon.com)
 
 
 Thanks to [Techsmith](https://www.techsmith.com/) for having proposed and supported Jing for so long. Check out their product line.

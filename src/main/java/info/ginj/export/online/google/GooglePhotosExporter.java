@@ -32,6 +32,8 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static info.ginj.Ginj.DATE_FORMAT_PATTERN;
@@ -64,8 +66,10 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     }
 
     @Override
-    protected String[] getRequiredScopes() {
-        return GOOGLE_PHOTOS_REQUIRED_SCOPES;
+    protected List<String> getRequiredScopes() {
+        List<String> scopes = new ArrayList<>(super.getRequiredScopes());
+        scopes.addAll(Arrays.asList(GOOGLE_PHOTOS_REQUIRED_SCOPES));
+        return scopes;
     }
 
     @Override

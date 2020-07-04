@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import info.ginj.export.online.AbstractOAuth2Exporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
+import info.ginj.model.Profile;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -15,6 +16,7 @@ import org.apache.hc.core5.net.URIBuilder;
 import javax.swing.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +36,9 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
     private static final String GOOGLE_OAUTH2_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
     private static final String GOOGLE_OAUTH2_TOKEN_URL = "https://oauth2.googleapis.com/token";
     private static final String GOOGLE_OAUTH2_REVOKE_URL = "https://myaccount.google.com/permissions";
+
+    // Access to display username and email
+    private static final String[] GOOGLE_PROFILE_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"};
 
     public GoogleExporter(JFrame frame) {
         super(frame);
@@ -62,6 +67,11 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
     @Override
     protected String getOAuth2RevokeUrl() {
         return GOOGLE_OAUTH2_REVOKE_URL;
+    }
+
+    @Override
+    protected List<String> getRequiredScopes() {
+        return Arrays.asList(GOOGLE_PROFILE_REQUIRED_SCOPES);
     }
 
     public void checkAuthorizations(String accountNumber) throws CommunicationException, AuthorizationException {
@@ -124,5 +134,64 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
             throw new CommunicationException(e);
         }
     }
+
+
+    @Override
+    protected Profile getProfile(String accountNumber) throws CommunicationException, AuthorizationException {
+        CloseableHttpClient client = HttpClients.createDefault();
+
+        HttpGet httpGet;
+        try {
+            URIBuilder builder = new URIBuilder("https://www.googleapis.com/oauth2/v1/userinfo?alt=json");
+            httpGet = new HttpGet(builder.build());
+        }
+        catch (URISyntaxException e) {
+            throw new CommunicationException(e);
+        }
+
+        httpGet.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+
+        try {
+            CloseableHttpResponse response = client.execute(httpGet);
+            if (isStatusOK(response.getCode())) {
+                final String responseText;
+                try {
+                    responseText = EntityUtils.toString(response.getEntity());
+                    // Sample response:
+                    // {
+                    //  "id": "123456789012345678901",
+                    //  "email": "username@gmail.com",
+                    //  "verified_email": true,
+                    //  "name": "My Name",
+                    //  "given_name": "My",
+                    //  "family_name": "Name",
+                    //  "picture": "https://lh4.googleusercontent.com/..../photo.jpg",
+                    //  "locale": "en"
+                    //}
+                    @SuppressWarnings("rawtypes")
+                    Map map = new Gson().fromJson(responseText, Map.class);
+                    Profile profile = new Profile();
+                    profile.setEmail((String) map.get("email"));
+                    profile.setName((String) map.get("name"));
+                    return profile;
+                }
+                catch (ParseException e) {
+                    throw new CommunicationException("Could not parse account information response as String: " + response.getEntity());
+                }
+            }
+            else {
+                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+            }
+        }
+        catch (IOException e) {
+            throw new CommunicationException(e);
+        }
+    }
+
+
+    //////////////////////////
+
+
+
 
 }

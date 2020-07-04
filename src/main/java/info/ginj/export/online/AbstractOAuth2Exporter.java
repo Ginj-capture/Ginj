@@ -9,6 +9,7 @@ import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.model.Capture;
 import info.ginj.model.Prefs;
+import info.ginj.model.Profile;
 import info.ginj.util.Util;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
@@ -69,7 +70,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
 
     protected abstract String getOAuth2RevokeUrl();
 
-    protected abstract String[] getRequiredScopes();
+    protected abstract List<String> getRequiredScopes();
 
     protected abstract Prefs.Key getAccessTokenKeyPrefix();
 
@@ -138,7 +139,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
             // for Google copy/paste mode, use:
             // + "&redirect_uri=" + URLEncoder.encode("urn:ietf:wg:oauth:2.0:oob", UTF_8);
 
-            final String[] requiredScopes = getRequiredScopes();
+            final List<String> requiredScopes = getRequiredScopes();
             if (requiredScopes != null) {
                 url += "&scope=" + encodeScopes(requiredScopes);
             }
@@ -156,6 +157,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
 
             // Wait for code to be received by our http server...
             long timeOutTime = System.currentTimeMillis() + 5 * 60 * 1000;
+            // TODO make sure the progress indicates that browser is opening, and that operation can be cancelled.
             while (receivedCode == null && System.currentTimeMillis() < timeOutTime && !isCancelled()) {
                 //noinspection BusyWait
                 Thread.sleep(100);
@@ -473,7 +475,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
     // Utils
 
 
-    private static String encodeScopes(String[] requiredScopes) {
+    private static String encodeScopes(List<String> requiredScopes) {
         StringBuilder concat = new StringBuilder();
         for (String requiredScope : requiredScopes) {
             if (concat.length() > 0) {
@@ -516,5 +518,6 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
         return errorMsg;
     }
 
+    protected abstract Profile getProfile(String accountNumber) throws CommunicationException, AuthorizationException;
 
 }

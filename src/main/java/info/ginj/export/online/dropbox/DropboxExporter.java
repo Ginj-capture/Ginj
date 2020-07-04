@@ -10,6 +10,7 @@ import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 import info.ginj.model.Capture;
 import info.ginj.model.Prefs;
+import info.ginj.model.Profile;
 import info.ginj.util.Util;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -83,7 +84,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     }
 
     @Override
-    protected String[] getRequiredScopes() {
+    protected List<String> getRequiredScopes() {
         // For Dropbox, no scope means permissions defined at the app level on the site
         // Future : "account_info.read files.content.write sharing.write"
         return null;
@@ -130,48 +131,6 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         }
     }
 
-//    public void OLDauthorize(String accountNumber) throws AuthorizationException, CommunicationException {
-//        // Start authentication procedure
-//        DbxRequestConfig requestConfig = new DbxRequestConfig("Ginj");
-//        DbxAppInfo appInfoWithoutSecret = new DbxAppInfo(getClientAppId());
-//        pkceWebAuth = new DbxPKCEWebAuth(requestConfig, appInfoWithoutSecret);
-//        DbxWebAuth.Request webAuthRequest = DbxWebAuth.newRequestBuilder()
-//                .withNoRedirect()
-//                .withTokenAccessType(TokenAccessType.OFFLINE)
-//                .build();
-//
-//        String url = pkceWebAuth.authorize(webAuthRequest);
-//        receivedCode = JOptionPane.showInputDialog(getFrame(),
-//                Util.createClickableHtmlEditorPane(
-//                        "Please visit <a href='" + url + "'>this Dropbox page</a>, <br>allow " + Ginj.getAppName() + " (you may have to log in to Dropbox first), <br>copy the generated authorization key and paste it below."
-//                ),
-//                "Dropbox authentication", JOptionPane.QUESTION_MESSAGE
-//        );
-//        exchangeCodeForTokens(receivedCode, accountNumber);
-//    }
-//
-//    protected void OLDexchangeCodeForTokens(String receivedCode, String accountNumber) throws AuthorizationException, CommunicationException {
-//        if (receivedCode == null) {
-//            throw new AuthorizationException("No authorization code was provided");
-//        }
-//        receivedCode = receivedCode.trim();
-//        try { // com.dropbox.core.DbxPKCEManager.makeTokenRequest
-//            DbxAuthFinish authFinish = pkceWebAuth.finishFromCode(receivedCode);
-//            String userToken = authFinish.getAccessToken();
-//            String userName = getUserName(userToken);
-//            if (userName != null) {
-//                Prefs.setWithSuffix(Prefs.Key.EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX, accountNumber, userToken);
-//                Prefs.setWithSuffix(Prefs.Key.EXPORTER_DROPBOX_USERNAME_PREFIX, accountNumber, userName);
-//                // Dropbox does not use the following fields for now. Tokens currently never expire.
-//                // Prefs.setWithSuffix(Prefs.Key.EXPORTER_DROPBOX_REFRESH_TOKEN_PREFIX, accountNumber, authFinish.getRefreshToken());
-//                // Prefs.setWithSuffix(Prefs.Key.EXPORTER_DROPBOX_EXPIRES_AT_PREFIX, accountNumber, String.valueOf(authFinish.getExpiresAt()));
-////                    JOptionPane.showMessageDialog(getFrame(), "You are successfully authenticated to Dropbox as " + userName, "Dropbox authentication", JOptionPane.INFORMATION_MESSAGE);
-//            }
-//        }
-//        catch (DbxException e) {
-//            throw new CommunicationException("Error authorizing Dropbox user", e);
-//        }
-//    }
 
     /**
      * This method checks that Dropbox authentication is valid by fetching user info
@@ -189,13 +148,13 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         if (accessToken == null) {
             throw new AuthorizationException("No access token was provided");
         }
-        if (getUserName(accountNumber) == null) {
+        if (getProfile(accountNumber) == null) {
             throw new AuthorizationException("Received empty username");
         }
     }
 
 
-    private String getUserName(String accountNumber) throws CommunicationException, AuthorizationException {
+    protected Profile getProfile(String accountNumber) throws CommunicationException, AuthorizationException {
         CloseableHttpClient client = HttpClients.createDefault();
 
         HttpPost httpPost;
@@ -223,7 +182,10 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                 if (accountInfo == null) {
                     throw new CommunicationException("Returned account info is null.");
                 }
-                return accountInfo.getEmail();
+                Profile profile = new Profile();
+                profile.setName(accountInfo.getName().getDisplayName());
+                profile.setEmail(accountInfo.getEmail());
+                return profile;
             }
             else {
                 throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
@@ -234,23 +196,6 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         }
     }
 
-//    private String OLDgetUserName(String accessToken) throws CommunicationException, AuthorizationException {
-//        try {
-//            // Create Dropbox client
-//            DbxRequestConfig config = new DbxRequestConfig(Ginj.getAppName() + "/" + Ginj.getVersion());
-//            DbxClientV2 client = new DbxClientV2(config, accessToken);
-//
-//            // Get current account info
-//            FullAccount account = client.users().getCurrentAccount();
-//            return account.getName().getDisplayName();
-//        }
-//        catch (InvalidAccessTokenException e) {
-//            throw new AuthorizationException("Authentication error", e);
-//        }
-//        catch (DbxException e) {
-//            throw new CommunicationException("Error checking authorization", e);
-//        }
-//    }
 
 
     /**
@@ -321,6 +266,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                 final String responseText;
                 try {
                     responseText = EntityUtils.toString(response.getEntity());
+                    @SuppressWarnings("rawtypes")
                     Map map = new Gson().fromJson(responseText, Map.class);
                     sessionId = (String) map.get("session_id");
                 }
@@ -498,38 +444,6 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             throw new CommunicationException("Error creatiing shared link", e);
         }
     }
-
-
-//    @Override
-//    public String OLDuploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException {
-//        logProgress("Preparing upload", 10);
-//        final String targetFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + Ginj.IMAGE_EXTENSION;
-//        try {
-//            DbxRequestConfig config = new DbxRequestConfig(Ginj.getAppName() + "/" + Ginj.getVersion());
-//            DbxClientV2 client = new DbxClientV2(config, getAccessToken(accountNumber));
-//
-//            // TODO Upload should be done using sessions - uploadSessionStart etc.
-//            // Required for big files, but also for progress
-//            final File fileToUpload = capture.toFile();
-//            if (fileToUpload.length() < 150_000_000) {
-//                try (InputStream in = new FileInputStream(fileToUpload)) {
-//                    logProgress("Uploading file", 50);
-//                    client.files().uploadBuilder(targetFileName).uploadAndFinish(in);
-//                }
-//                if (Prefs.isTrueWithSuffix(Prefs.Key.EXPORTER_DROPBOX_CREATE_LINK_PREFIX, accountNumber)) {
-//                    final SharedLinkMetadata sharedLinkMetadata = client.sharing().createSharedLinkWithSettings(targetFileName, new SharedLinkSettings());
-//                    return sharedLinkMetadata.getUrl();
-//                }
-//            }
-//            else {
-//                throw new UploadException("Upload of big files not implemented yet");
-//            }
-//        }
-//        catch (IOException | DbxException e) {
-//            throw new UploadException(e);
-//        }
-//        return null;
-//    }
 
 
     ////////////////////////////////////////////////////

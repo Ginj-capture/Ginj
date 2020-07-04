@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Arrays;
 
+/**
+ * This window displays and manages the historized captures
+ */
 public class HistoryFrame extends JFrame {
 
     public static final Dimension HISTORY_CELL_SIZE = new Dimension(156, 164);

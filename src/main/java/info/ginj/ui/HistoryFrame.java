@@ -60,16 +60,8 @@ public class HistoryFrame extends JFrame {
         contentPane.setLayout(new GridBagLayout());
         GridBagConstraints c;
 
-        // Prepare title bar
-        JPanel titleBar = new JPanel();
-        titleBar.setLayout(new BorderLayout());
-        titleBar.setBackground(Color.YELLOW);
-        JLabel testLabel = new JLabel("History");
-        titleBar.add(testLabel, BorderLayout.CENTER);
-        JButton closeButton = new JButton("X");
-        closeButton.addActionListener(e -> onClose());
-        titleBar.add(closeButton, BorderLayout.EAST);
-
+        // Add title bar
+        final JPanel titleBar = Util.getTitleBar("History", e -> onClose());
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;

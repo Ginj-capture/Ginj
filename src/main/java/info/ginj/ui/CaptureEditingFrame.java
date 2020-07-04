@@ -83,18 +83,13 @@ public class CaptureEditingFrame extends JFrame {
         GridBagConstraints c;
 
         // Prepare title bar
-        JPanel titleBar = new JPanel();
-        titleBar.setBackground(Color.YELLOW);
-        JLabel testLabel = new JLabel("Title");
-        titleBar.add(testLabel);
-
         c = new GridBagConstraints();
         c.gridx = 1;
         c.gridy = 0;
         c.gridwidth = 2;
         c.gridheight = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
-        contentPane.add(titleBar, c);
+        contentPane.add(Util.getTitleBar("Capture editing" /* to force non-zero height */, null), c);
 
         // Prepare overlay toolbar
         JPanel toolBar = new JPanel();

@@ -9,6 +9,7 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.awt.color.ColorSpace;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
@@ -257,6 +258,32 @@ public class Util {
         };
         handle.addMouseListener(mouseListener);
         handle.addMouseMotionListener(mouseListener);
+    }
+
+    /**
+     * Creates a panel representing the title bar
+     * @param title text to display at the middle of the window
+     * @param closeListener if specified, a close button (X) is added on the right, and this listener is called upon click.
+     *                      if null, no close button is displayed
+     * @return the title bar component
+     */
+    // TODO fix styling and unify the two cases (w and w/o close)
+    public static JPanel getTitleBar(String title, ActionListener closeListener) {
+        JPanel titleBar = new JPanel();
+        titleBar.setBackground(Color.YELLOW);
+        if (closeListener != null) {
+            titleBar.setLayout(new BorderLayout());
+            titleBar.setBackground(Color.YELLOW);
+            titleBar.add(new JLabel(title, SwingConstants.CENTER), BorderLayout.CENTER);
+            JButton closeButton = new JButton("X");
+            closeButton.addActionListener(closeListener);
+            titleBar.add(closeButton, BorderLayout.EAST);
+        }
+        else {
+            JLabel testLabel = new JLabel("Title");
+            titleBar.add(testLabel);
+        }
+        return titleBar;
     }
 
     // Convenience methods to display a message from a separate Thread

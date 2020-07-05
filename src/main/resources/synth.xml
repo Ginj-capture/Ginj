@@ -356,23 +356,23 @@
     <bind style="File Chooser" type="region" key="FileChooser" />
 
     <!-- The style for list component. -->
-    <style id="List">
+    <style id="ListStyle">
         <insets top="5" left="8" bottom="5" right="8"/>
         <property key="List.rendererUseUIBorder" type="boolean" value="false"/>
         <property key="List.cellHeight" type="integer" value="21"/>
-        <property key="List.rendererUseListColors" type="boolean" value="false"/>
+        <property key="List.rendererUseListColors" type="boolean" value="true"/>
         <state value="ENABLED">
-            <color type="BACKGROUND" value="#FFFFFF"/>
+            <color type="BACKGROUND" value="#DDDAD5"/>
+            <color type="FOREGROUND" value="#000000"/>
         </state>
         <state value="DISABLED">
-            <color type="BACKGROUND" value="#EEEEEE"/>
+            <color type="FOREGROUND" value="#777777"/>
         </state>
         <state value="SELECTED">
-            <color type="TEXT_FOREGROUND" value="#CC6600"/>
-            <color type="TEXT_BACKGROUND" value="#FFEEDD"/>
+            <color type="TEXT_BACKGROUND" value="#FDDB01"/>
         </state>
     </style>
-    <bind style="List" type="region" key="List" />
+    <bind style="ListStyle" type="region" key="List" />
 
 <!--    &lt;!&ndash; The style for menu bar. &ndash;&gt;-->
 <!--    <style id="Menu Bar">-->

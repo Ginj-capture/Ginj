@@ -1059,7 +1059,7 @@
         </state>
         <state value="DISABLED">
             <imagePainter method="buttonBackground" path="/img/laf/button_bg.png" sourceInsets="4 4 4 4"/>
-            <color type="FOREGROUND" value="#BCA053"/>
+            <color type="TEXT_FOREGROUND" value="#9E8B5B"/>
         </state>
     </style>
     <bind style="ButtonStyle" type="region" key="Button" />

@@ -152,35 +152,39 @@
     <bind style="Arrow Button" type="region" key="ArrowButton" />
 
     <!-- The style for check box button. -->
-    <style id="Check Box">
+    <style id="CheckBoxStyle">
         <property key="CheckBox.margin" type="insets" value="2 2 2 2"/>
         <state value="ENABLED">
-            <imageIcon id="Checkbox_Normal" path="resource/1252460248375_checkbox_normal.png"/>
+            <imageIcon id="Checkbox_Normal" path="/img/laf/checkbox_normal.png"/>
             <property key="CheckBox.icon" type="idref" value="Checkbox_Normal"/>
         </state>
         <state value="MOUSE_OVER">
-            <imageIcon id="Checkbox_MouseOver" path="resource/1252460265734_checkbox_mouseover.png"/>
+            <imageIcon id="Checkbox_MouseOver" path="/img/laf/checkbox_mouseover.png"/>
             <property key="CheckBox.icon" type="idref" value="Checkbox_MouseOver"/>
         </state>
         <state value="SELECTED">
-            <imageIcon id="Checkbox_Selected" path="resource/1252460276453_checkbox_selected.png"/>
+            <imageIcon id="Checkbox_Selected" path="/img/laf/checkbox_selected.png"/>
             <property key="CheckBox.icon" type="idref" value="Checkbox_Selected"/>
         </state>
+        <state value="MOUSE_OVER AND SELECTED">
+            <imageIcon id="Checkbox_MouseOver_Selected" path="/img/laf/checkbox_selected.png"/>
+            <property key="CheckBox.icon" type="idref" value="Checkbox_MouseOver_Selected"/>
+        </state>
         <state value="DISABLED">
-            <imageIcon id="Checkbox_Disabled" path="resource/1252460290953_checkbox_disabled.png"/>
+            <imageIcon id="Checkbox_Disabled" path="/img/laf/checkbox_disabled.png"/>
             <property key="CheckBox.icon" type="idref" value="Checkbox_Disabled"/>
             <color type="TEXT_FOREGROUND" value="#999999"/>
         </state>
         <state value="PRESSED">
-            <imageIcon id="Checkbox_Pressed" path="resource/1257478593311_checkbox_pressed.png"/>
+            <imageIcon id="Checkbox_Pressed" path="/img/laf/checkbox_pressed.png"/>
             <property key="CheckBox.icon" type="idref" value="Checkbox_Pressed"/>
         </state>
         <state value="DISABLED and SELECTED">
-            <imageIcon id="Checkbox_Disabled_Selected" path="resource/1264210516109_checkbox_disabled_selected.png"/>
+            <imageIcon id="Checkbox_Disabled_Selected" path="/img/laf/checkbox_disabled_selected.png"/>
             <property key="CheckBox.icon" type="idref" value="Checkbox_Disabled_Selected"/>
         </state>
     </style>
-    <bind style="Check Box" type="region" key="CheckBox" />
+    <bind style="CheckBoxStyle" type="region" key="CheckBox" />
 
     <!-- The style for radio button. -->
     <style id="RadioButtonStyle">

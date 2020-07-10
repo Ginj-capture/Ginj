@@ -233,6 +233,7 @@ public abstract class Overlay extends JPanel {
      * Returns a short String describing this Overlay
      * @return the name to present
      */
+    @java.beans.Transient
     public abstract String getPresentationName();
 
 
@@ -259,6 +260,7 @@ public abstract class Overlay extends JPanel {
      * By convention, when a component is first drawn, getHandles()[0] is the handle at the "end" of the drawing (arrowhead or second point of rectangle).
      * @return the array of all handles for this overlay
      */
+    @java.beans.Transient
     public abstract Point[] getHandles();
 
 

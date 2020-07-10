@@ -9,13 +9,22 @@ public abstract class RectangleOverlay extends Overlay {
     private static final int MIN_RECT_WIDTH = 4;
     private static final int MIN_RECT_HEIGHT = 4;
 
-    // Actual fields to persist and restore
     protected Rectangle rectangle;
 
     public Overlay initialize(Point initialPoint, Color initialColor) {
         setColor(initialColor);
         rectangle = new Rectangle(initialPoint.x, initialPoint.y, 5,5);
         return this;
+    }
+
+    // Getter and setter for peristence
+
+    public Rectangle getRectangle() {
+        return rectangle;
+    }
+
+    public void setRectangle(Rectangle rectangle) {
+        this.rectangle = rectangle;
     }
 
     /**

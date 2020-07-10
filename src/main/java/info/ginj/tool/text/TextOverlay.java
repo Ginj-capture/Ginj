@@ -18,18 +18,18 @@ public class TextOverlay extends RectangleOverlay {
     protected int fontSize;
     protected int fontStyle;
 
-    private JTextPane textPane;
+    private JTextArea textArea;
     private ImageEditorPane imagePane;
     private CaptureEditingFrame frame;
 
     // Getters and setters required for XMLEncoder/XMLDecoder (de)serialization
 
-    public JTextPane getTextPane() {
-        return textPane;
+    public JTextArea getTextArea() {
+        return textArea;
     }
 
-    public void setTextPane(JTextPane textPane) {
-        this.textPane = textPane;
+    public void setTextArea(JTextArea textArea) {
+        this.textArea = textArea;
     }
 
     public Color getTextColor() {
@@ -38,7 +38,7 @@ public class TextOverlay extends RectangleOverlay {
 
     public void setTextColor(Color textColor) {
         this.textColor = textColor;
-        textPane.setForeground(textColor);
+        textArea.setForeground(textColor);
     }
 
     public String getFontName() {
@@ -48,8 +48,8 @@ public class TextOverlay extends RectangleOverlay {
     public void setFontName(String fontName) {
         // Store it
         this.fontName = fontName;
-        // And update the textPane
-        textPane.setFont(new Font(fontName, fontStyle, fontSize));
+        // And update the text area
+        textArea.setFont(new Font(fontName, fontStyle, fontSize));
     }
 
     public int getFontSize() {
@@ -59,8 +59,8 @@ public class TextOverlay extends RectangleOverlay {
     public void setFontSize(int fontSize) {
         // Store it
         this.fontSize = fontSize;
-        // And update the textPane
-        textPane.setFont(new Font(fontName, fontStyle, fontSize));
+        // And update the text area
+        textArea.setFont(new Font(fontName, fontStyle, fontSize));
     }
 
     public int getFontStyle() {
@@ -70,16 +70,16 @@ public class TextOverlay extends RectangleOverlay {
     public void setFontStyle(int fontStyle) {
         // Store it
         this.fontStyle = fontStyle;
-        // And update the textPane
-        textPane.setFont(new Font(fontName, fontStyle, fontSize));
+        // And update the text area
+        textArea.setFont(new Font(fontName, fontStyle, fontSize));
     }
 
     @Override
     public void setSelected(boolean selected) {
         super.setSelected(selected);
         if (selected) {
-            if (!textPane.hasFocus()) {
-                textPane.requestFocusInWindow();
+            if (!textArea.hasFocus()) {
+                textArea.requestFocusInWindow();
             }
         }
     }
@@ -87,12 +87,12 @@ public class TextOverlay extends RectangleOverlay {
     @Override
     public TextOverlay initialize(Point initialPoint, Color initialColor) {
         super.initialize(initialPoint, initialColor);
-        textPane = new JTextPane();
-        textPane.setForeground(initialColor);
+        textArea = new JTextArea();
+        textArea.setForeground(initialColor);
         // TODO current font of overlay should be a variable, initialized with the Tool's default
-        textPane.setFont(new Font("Arial", Font.PLAIN, 18));
+        textArea.setFont(new Font("Arial", Font.PLAIN, 18));
 
-        textPane.addFocusListener(new FocusAdapter() {
+        textArea.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
                 if (!isSelected()) {
@@ -101,11 +101,11 @@ public class TextOverlay extends RectangleOverlay {
                 }
             }
         });
-        textPane.setFocusable(true);
-        textPane.requestFocusInWindow();
-        textPane.getDocument().addUndoableEditListener(
+        textArea.setFocusable(true);
+        textArea.requestFocusInWindow();
+        textArea.getDocument().addUndoableEditListener(
                 e -> frame.addUndoableEdit(e.getEdit()));
-        add(textPane);
+        add(textArea);
         return this;
     }
 
@@ -118,8 +118,8 @@ public class TextOverlay extends RectangleOverlay {
     public void drawComponent(Graphics2D g2d, int xOffset, int yOffset) {
         Rectangle textRectangle = new Rectangle(rectangle);
         textRectangle.grow(-10, -8);
-        textPane.setBounds(textRectangle);
-        textPane.setForeground(getColor());
+        textArea.setBounds(textRectangle);
+        textArea.setForeground(getColor());
         g2d.setColor(Color.WHITE);
         g2d.fillRoundRect(rectangle.x + 2 + xOffset, rectangle.y + 2 + yOffset, rectangle.width - 4, rectangle.height - 4, 8, 8);
         g2d.setColor(getColor());

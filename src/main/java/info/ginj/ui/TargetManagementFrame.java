@@ -13,6 +13,7 @@ import info.ginj.export.online.google.GooglePhotosExporter;
 import info.ginj.model.Account;
 import info.ginj.model.Target;
 import info.ginj.model.TargetPrefs;
+import info.ginj.ui.layout.ButtonLayout;
 import info.ginj.util.UI;
 import org.netbeans.api.wizard.WizardDisplayer;
 import org.netbeans.spi.wizard.*;
@@ -41,7 +42,7 @@ public class TargetManagementFrame extends JFrame {
     public static final String DISK_CONFIGURE_STEP = "disk_configure";
 
     private final StarWindow starWindow;
-    private final DefaultListModel<Target> targetsModel;
+    private final DefaultListModel<Target> targetListModel;
 
     public TargetManagementFrame(StarWindow starWindow) {
         super();
@@ -67,48 +68,63 @@ public class TargetManagementFrame extends JFrame {
         // Prepare main panel
         JPanel mainPanel = new JPanel(new BorderLayout());
 
+        mainPanel.add(new JLabel("Defined targets:"), BorderLayout.NORTH);
+
+
         // Prepare list panel
         JPanel listPanel = new JPanel(new BorderLayout());
-
-        listPanel.add(new JLabel("Defined targets:"), BorderLayout.NORTH);
-
-        targetsModel = new DefaultListModel<>();
+        targetListModel = new DefaultListModel<>();
         loadTargets();
-        final JList<Target> targetList = new JList<>(targetsModel);
+        final JList<Target> targetList = new JList<>(targetListModel);
         listPanel.add(new JScrollPane(targetList), BorderLayout.CENTER);
 
-        // Prepare list panel
+        // Prepare button panel
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+        buttonPanel.setLayout(new ButtonLayout(SwingConstants.TOP, 10));
 
         final JButton addTargetButton = new JButton("Add");
         addTargetButton.addActionListener(e -> onNewTarget());
         buttonPanel.add(addTargetButton);
 
         final JButton editTargetButton = new JButton("Edit");
-editTargetButton.setEnabled(false); // TODO
+        editTargetButton.setEnabled(false);
         editTargetButton.addActionListener(e -> onEditTarget());
         buttonPanel.add(editTargetButton);
 
         final JButton deleteTargetButton = new JButton("Delete");
         deleteTargetButton.addActionListener(e -> onDeleteTarget(targetList.getSelectedIndex()));
+        deleteTargetButton.setEnabled(false);
         buttonPanel.add(deleteTargetButton);
 
         final JButton moveTargetUpButton = new JButton("Move up");
         moveTargetUpButton.addActionListener(e -> onMoveTarget(targetList, -1));
+        moveTargetUpButton.setEnabled(false);
         buttonPanel.add(moveTargetUpButton);
 
         final JButton moveTargetDownButton = new JButton("Move down");
         moveTargetDownButton.addActionListener(e -> onMoveTarget(targetList, +1));
+        moveTargetDownButton.setEnabled(false);
         buttonPanel.add(moveTargetDownButton);
-
-
 
         mainPanel.add(listPanel, BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.EAST);
 
         contentPane.add(mainPanel, BorderLayout.CENTER);
 
+        targetList.addListSelectionListener(e -> {
+            if (targetList.getSelectedIndex() == -1) {
+                editTargetButton.setEnabled(false);
+                deleteTargetButton.setEnabled(false);
+                moveTargetUpButton.setEnabled(false);
+                moveTargetDownButton.setEnabled(false);
+            }
+            else {
+//                editTargetButton.setEnabled(true);
+                deleteTargetButton.setEnabled(true);
+                moveTargetUpButton.setEnabled(targetList.getSelectedIndex() > 0);
+                moveTargetDownButton.setEnabled(targetList.getSelectedIndex() < targetListModel.size() - 1);
+            }
+        });
 
         // Prepare lower panel
         JPanel lowerPanel = new JPanel();
@@ -130,9 +146,9 @@ editTargetButton.setEnabled(false); // TODO
     }
 
     private void loadTargets() {
-        targetsModel.clear();
+        targetListModel.clear();
         for (Target target : Ginj.getTargetPrefs().getTargetList()) {
-            targetsModel.addElement(target);
+            targetListModel.addElement(target);
         }
     }
 
@@ -156,11 +172,11 @@ editTargetButton.setEnabled(false); // TODO
 
     private void onDeleteTarget(int selectedIndex) {
         if (selectedIndex != -1) {
-            final Target target = targetsModel.getElementAt(selectedIndex);
+            final Target target = targetListModel.getElementAt(selectedIndex);
             if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(TargetManagementFrame.this, "Are you sure you want to delete target\n'" + target.toString() + "'?", "Confirm deletion", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
-                targetsModel.removeElementAt(selectedIndex);
+                targetListModel.removeElementAt(selectedIndex);
                 final TargetPrefs targetPrefs = Ginj.getTargetPrefs();
-                targetPrefs.setTargetList(Collections.list(targetsModel.elements()));
+                targetPrefs.setTargetList(Collections.list(targetListModel.elements()));
                 TargetPrefs.save(targetPrefs);
             }
         }
@@ -170,10 +186,10 @@ editTargetButton.setEnabled(false); // TODO
         final int selectedIndex = list.getSelectedIndex();
         if (selectedIndex != -1) {
             final int newIndex = selectedIndex + direction;
-            if (newIndex >= 0 && newIndex < targetsModel.size()) {
-                final Target element = targetsModel.getElementAt(selectedIndex);
-                targetsModel.removeElementAt(selectedIndex);
-                targetsModel.add(newIndex, element);
+            if (newIndex >= 0 && newIndex < targetListModel.size()) {
+                final Target element = targetListModel.getElementAt(selectedIndex);
+                targetListModel.removeElementAt(selectedIndex);
+                targetListModel.add(newIndex, element);
                 list.setSelectedIndex(newIndex);
             }
         }

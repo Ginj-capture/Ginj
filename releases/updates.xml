@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <updateDescriptor baseUrl="">
-  <entry targetMediaFileId="60" updatableVersionMin="" updatableVersionMax="" fileName="Ginj_windows-x64_0_2.exe" newVersion="0.2" newMediaFileId="60" fileSize="56492032" md5Sum="0ce26f1bb68a7db4f22651cb9af655b2" sha256Sum="555da46debb7d1a539b050e58ef220000e40401f702a8434cdee56a3a081a37c" bundledJre="windows-amd64-14.0.1.tar.gz" archive="false" singleBundle="false">
+  <entry targetMediaFileId="60" updatableVersionMin="" updatableVersionMax="" fileName="Ginj_windows-x64_0_2.exe" newVersion="0.2" newMediaFileId="60" fileSize="56492032" md5Sum="9783721885a551cd42b6b74a4beb012d" sha256Sum="fe9be26efa10a4cef5c3f5a3126d674e8e5068af0008e3597de194e36a44a245" bundledJre="windows-amd64-14.0.1.tar.gz" archive="false" singleBundle="false">
     <comment language="en" />
   </entry>
-  <entry targetMediaFileId="61" updatableVersionMin="" updatableVersionMax="" fileName="Ginj_macos_0_2.dmg" newVersion="0.2" newMediaFileId="61" fileSize="52928647" md5Sum="6690258036a671724fb4151b5c99dd26" sha256Sum="bb8da94af446a7e9a7edbd55b13f6a4ab15618014d4ded109de4c4de0b3ecf5a" bundledJre="macos-amd64-14.0.1.tar.gz" archive="false" singleBundle="false">
+  <entry targetMediaFileId="61" updatableVersionMin="" updatableVersionMax="" fileName="Ginj_macos_0_2.dmg" newVersion="0.2" newMediaFileId="61" fileSize="52928647" md5Sum="2984e5a47b57e8097e6bc822b34bb7ad" sha256Sum="126c4b17723861b32c4bbb629113a8970e7adac9829ee4a658dcd628e298a545" bundledJre="macos-amd64-14.0.1.tar.gz" archive="false" singleBundle="false">
     <comment language="en" />
   </entry>
-  <entry targetMediaFileId="65" updatableVersionMin="" updatableVersionMax="" fileName="Ginj_unix_0_2.sh" newVersion="0.2" newMediaFileId="65" fileSize="57740260" md5Sum="fde2473bc42a08d12907d94dbef44f8f" sha256Sum="6dfca057218d2947285daf81589880b9c722cd6ba7825cb14d225debd373dde8" bundledJre="linux-amd64-14.0.1.tar.gz" archive="false" singleBundle="false">
+  <entry targetMediaFileId="65" updatableVersionMin="" updatableVersionMax="" fileName="Ginj_unix_0_2.sh" newVersion="0.2" newMediaFileId="65" fileSize="57740241" md5Sum="df004aa6208f72ab67247b3f7cb9d416" sha256Sum="0e4e47d96d5567d3b692a6df2a672927109d0b98d84b83308931a8bba5cd6b30" bundledJre="linux-amd64-14.0.1.tar.gz" archive="false" singleBundle="false">
     <comment language="en" />
   </entry>
 </updateDescriptor>

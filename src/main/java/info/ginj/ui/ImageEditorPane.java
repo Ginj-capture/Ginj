@@ -225,11 +225,11 @@ public class ImageEditorPane extends JLayeredPane {
             if (selectedOverlay != null) {
                 selectedOverlay.setSelected(false);
             }
+            selectedOverlay = overlay;
             if (overlay != null) {
                 overlay.setSelected(true);
                 frame.setCurrentColor(overlay.getColor());
             }
-            selectedOverlay = overlay;
         }
         repaint();
     }

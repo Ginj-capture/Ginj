@@ -5,7 +5,7 @@ import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 import info.ginj.model.Capture;
-import info.ginj.model.Prefs;
+import info.ginj.model.Target;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,11 +13,12 @@ import java.util.List;
 public class YoutubeExporter extends GoogleExporter implements OnlineExporter {
 
     private static final String[] YOUTUBE_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/youtube.upload"};
+    public static final String NAME = "Youtube";
 
 
     @Override
     public String getExporterName() {
-        return "Youtube";
+        return NAME;
     }
 
     @Override
@@ -26,22 +27,7 @@ public class YoutubeExporter extends GoogleExporter implements OnlineExporter {
     }
 
     @Override
-    protected Prefs.Key getAccessTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_YOUTUBE_ACCESS_TOKEN_PREFIX;
-    }
-
-    @Override
-    protected Prefs.Key getAccessExpiryKeyPrefix() {
-        return Prefs.Key.EXPORTER_YOUTUBE_ACCESS_EXPIRY_PREFIX;
-    }
-
-    @Override
-    protected Prefs.Key getRefreshTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_YOUTUBE_REFRESH_TOKEN_PREFIX;
-    }
-
-    @Override
-    public String getShareText() {
+    public String getDefaultShareText() {
         return "Publish on Youtube";
     }
 
@@ -61,12 +47,11 @@ public class YoutubeExporter extends GoogleExporter implements OnlineExporter {
     }
 
     @Override
-    public void exportCapture(Capture capture, String accountNumber) {
-
+    public void exportCapture(Capture capture, Target target) {
     }
 
     @Override
-    public String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException {
+    public String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // TODO
         return null;
     }

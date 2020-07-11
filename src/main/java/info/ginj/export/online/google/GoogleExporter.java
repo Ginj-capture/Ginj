@@ -2,8 +2,10 @@ package info.ginj.export.online.google;
 
 import com.google.gson.Gson;
 import info.ginj.export.online.AbstractOAuth2Exporter;
+import info.ginj.export.online.OAuthAccount;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
+import info.ginj.model.Account;
 import info.ginj.model.Profile;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -61,7 +63,7 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
     }
 
     @Override
-    protected String getOAuth2RevokeUrl() {
+    public String getOAuth2RevokeUrl() {
         return GOOGLE_OAUTH2_REVOKE_URL;
     }
 
@@ -75,18 +77,26 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
         return true;
     }
 
-    public void checkAuthorizations(String accountNumber) throws CommunicationException, AuthorizationException {
+    /**
+     * This method checks that requested Google authorizations (scopes) are still OK.
+     *
+     * @param account the account to validate
+     * @throws CommunicationException in case a communication error occurs
+     * @throws AuthorizationException in case authorization fails
+     */
+    public void checkAuthorizations(Account account) throws CommunicationException, AuthorizationException {
         logProgress("Checking authorizations", 2);
         CloseableHttpClient client = HttpClients.createDefault();
         HttpGet httpGet;
         try {
             URIBuilder builder = new URIBuilder("https://www.googleapis.com/oauth2/v3/tokeninfo");
-            builder.setParameter("access_token", getAccessToken(accountNumber));
+            builder.setParameter("access_token", getAccessToken(account));
             httpGet = new HttpGet(builder.build());
         }
         catch (URISyntaxException e) {
             throw new CommunicationException(e);
         }
+
         try {
             CloseableHttpResponse response = client.execute(httpGet);
             if (isStatusOK(response.getCode())) {
@@ -95,7 +105,7 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new CommunicationException("Could not parse album list response as String: " + response.getEntity());
+                    throw new CommunicationException("Could not parse token info response as String: " + response.getEntity());
                 }
                 @SuppressWarnings("rawtypes")
                 Map map = new Gson().fromJson(responseText, Map.class);
@@ -112,13 +122,13 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
                         msg += " (" + errorDescription + ")";
                     }
                     // Remove stored tokens to force a reauthorization
-                    clearOAuthTokens(accountNumber);
+                    clearOAuthTokens((OAuthAccount) account);
                     throw new AuthorizationException(msg + ". Please re-authorize...");
                 }
 
                 if (scopeStr == null || scopeStr.isBlank()) {
                     // Remove stored tokens to force a reauthorization
-                    clearOAuthTokens(accountNumber);
+                    clearOAuthTokens((OAuthAccount) account);
                     throw new AuthorizationException("No scope is defined for this token. Please re-authorize...");
                 }
 
@@ -138,7 +148,7 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
 
 
     @Override
-    protected Profile getProfile(String accountNumber) throws CommunicationException, AuthorizationException {
+    protected Profile getProfile(String accessToken) throws CommunicationException, AuthorizationException {
         CloseableHttpClient client = HttpClients.createDefault();
 
         HttpGet httpGet;
@@ -150,7 +160,7 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
             throw new CommunicationException(e);
         }
 
-        httpGet.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpGet.addHeader("Authorization", "Bearer " + accessToken);
 
         try {
             CloseableHttpResponse response = client.execute(httpGet);
@@ -188,11 +198,4 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
             throw new CommunicationException(e);
         }
     }
-
-
-    //////////////////////////
-
-
-
-
 }

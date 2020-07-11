@@ -1,5 +1,7 @@
 package info.ginj.util;
 
+import info.ginj.ui.layout.SpringLayoutUtilities;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -15,9 +17,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Locale;
 
-public class Util {
+public class UI {
     public static final Color AREA_SELECTION_COLOR = new Color(251, 185, 1);
     public static final Color SELECTION_SIZE_BOX_COLOR = new Color(0, 0, 0, 128);
     public static final Color UNSELECTED_AREA_DIMMED_COLOR = new Color(144, 144, 144, 112);
@@ -68,11 +69,21 @@ public class Util {
     }
 
     /**
+     * Create an ImageIcon of the given width (and scaled proportionally) from an image loaded from the given URL
+     * @param resource the URL of the source image
+     * @param width the desired width
+     * @return the scaled ImageIcon
+     */
+    public static ImageIcon createIcon(URL resource, int width) {
+        return createIcon(resource, width, -1, null);
+    }
+
+    /**
      * Create an ImageIcon of the given width x height and with the given base color from an image loaded from the given URL
      * @param resource the URL of the source image
      * @param width the desired width
-     * @param height the desired height
-     * @param color the desired base color to shift this image to
+     * @param height the desired height (if -1, image is scaled proportionally to reach the desired width)
+     * @param color the desired base color to shift this image to (if null, no tint change is applied)
      * @see #tint(BufferedImage, Color) for more info about color shift
      * @return the scaled ImageIcon
      */
@@ -81,6 +92,9 @@ public class Util {
             BufferedImage image = ImageIO.read(resource);
             if (color != null) {
                 image = tint(image, color);
+            }
+            if (height == -1) {
+                height = (width * image.getHeight()) / image.getWidth();
             }
             Image scaledImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
             return new ImageIcon(scaledImage);
@@ -287,35 +301,79 @@ public class Util {
     }
 
     // Convenience methods to display a message from a separate Thread
-    public static void alertException(JFrame frame, String title, String messagePrefix, Exception e) {
+    public static void alertException(Component parentComponent, String title, String messagePrefix, Exception e) {
         e.printStackTrace();
-        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information.", title, JOptionPane.ERROR_MESSAGE));
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information.", title, JOptionPane.ERROR_MESSAGE));
     }
 
-    public static void alertError(JFrame frame, String title, String message) {
-        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, message, title, JOptionPane.ERROR_MESSAGE));
+    public static void alertError(Component parentComponent, String title, String message) {
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent, message, title, JOptionPane.ERROR_MESSAGE));
     }
 
-    public static String getPrettySize(double bytes) {
-        if (bytes < 1024) return bytes + " B";
-        var i = -1;
-        do {
-            bytes = bytes / 1024;
-            i++;
+    /**
+     * Returns a panel with the given fields
+     * @param keyValues must alternate between String (the label to display) and value (the component for users to enter value)
+     * @return
+     */
+    public static JPanel getFieldPanel(Object ... keyValues) {
+        if (keyValues.length % 2 != 0) {
+            throw new RuntimeException("Field panels must receive an even number of components");
         }
-        while (bytes > 1024);
-        return String.format(Locale.US, "%.1f", bytes) + SIZE_UNITS[i];
+
+        JPanel fieldsPanel = new JPanel(new BorderLayout());
+        JPanel fieldsInnerPanel = new JPanel(new SpringLayout());
+        int componentNumber = 0;
+        while(componentNumber < keyValues.length) {
+            try {
+                String key = (String) keyValues[componentNumber];
+                JLabel keyLabel = new JLabel(key, JLabel.TRAILING);
+                fieldsInnerPanel.add(keyLabel);
+
+                JComponent valueComponent = (JComponent) keyValues[componentNumber + 1];
+                keyLabel.setLabelFor(valueComponent);
+                fieldsInnerPanel.add(valueComponent);
+
+                keyLabel.setVisible(valueComponent.isVisible());
+            }
+            catch (ClassCastException e) {
+                throw new RuntimeException("Field panels must alternate between JLabel and other components. Received " + keyValues[componentNumber]);
+            }
+            componentNumber += 2;
+        }
+        SpringLayoutUtilities.makeCompactGrid(fieldsInnerPanel, keyValues.length/2, 2, 6, 6, 6, 6);
+
+        fieldsPanel.add(fieldsInnerPanel, BorderLayout.NORTH);
+        return fieldsPanel;
     }
 
-    public static String getPrettySizeRatio(double bytesPartial, double bytesTotal) {
-        if (bytesTotal < 1024) return bytesPartial + "/" + bytesTotal + " B";
-        var i = -1;
-        do {
-            bytesTotal = bytesTotal / 1024;
-            bytesPartial = bytesPartial / 1024;
-            i++;
+    // Wizard related utils
+
+    public static JTextField getWizardTextField(String name, String defaultText, boolean isEnabled, boolean isVisible) {
+        JTextField textField = new JTextField(defaultText, 30);
+        textField.setName(name);
+        textField.setEnabled(isEnabled);
+        textField.setVisible(isVisible);
+        return textField;
+    }
+
+    public static JCheckBox getWizardCheckBox(String name, boolean defaultSelected, boolean isEnabled, boolean isVisible) {
+        JCheckBox checkBox = new JCheckBox("", defaultSelected);
+        checkBox.setName(name);
+        checkBox.setEnabled(isEnabled);
+        checkBox.setVisible(isVisible);
+        return checkBox;
+    }
+
+    public static JList getWizardList(String name, Object[] values, int defaultIndex, boolean isEnabled, boolean isVisible) {
+        DefaultListModel model = new DefaultListModel();
+        for (Object value: values) {
+            model.addElement(value);
         }
-        while (bytesTotal > 1024);
-        return String.format(Locale.US, "%.1f", bytesPartial) + "/" + String.format(Locale.US, "%.1f", bytesTotal) + SIZE_UNITS[i];
+        JList list = new JList(model);
+        list.setName(name);
+        list.setSelectedIndex(defaultIndex);
+        list.setEnabled(isEnabled);
+        list.setVisible(isVisible);
+        return list;
     }
 }

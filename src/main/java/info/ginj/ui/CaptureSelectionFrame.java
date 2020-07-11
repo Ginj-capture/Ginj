@@ -5,7 +5,7 @@ import info.ginj.ui.component.GinjBorderedLabel;
 import info.ginj.ui.component.GinjLowerButton;
 import info.ginj.ui.component.GinjLowerButtonBar;
 import info.ginj.util.Coords;
-import info.ginj.util.Util;
+import info.ginj.util.UI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,9 +54,11 @@ public class CaptureSelectionFrame extends JFrame {
     private final GinjBorderedLabel captureSizeLabel;
     private final JButton imageButton;
     private final JButton videoButton;
+    private final StarWindow starWindow;
 
-    public CaptureSelectionFrame() {
+    public CaptureSelectionFrame(StarWindow starWindow) {
         super();
+        this.starWindow = starWindow;
 // Simulate a half screen to be able to debug in parallel of "full screen" capture window on top
 //screenSize.setSize(screenSize.width/2, screenSize.height);
 
@@ -80,23 +82,23 @@ public class CaptureSelectionFrame extends JFrame {
         actionPanel.setName("GinjPanel"); // To be used as a selector in synth.xml
         JPanel buttonBar = new GinjLowerButtonBar();
 
-        imageButton = new GinjLowerButton("Capture image", Util.createIcon(getClass().getResource("/img/icon/image.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        imageButton = new GinjLowerButton("Capture image", UI.createIcon(getClass().getResource("/img/icon/image.png"), 16, 16, UI.ICON_ENABLED_COLOR));
         imageButton.addActionListener(e -> onCaptureImage());
         buttonBar.add(imageButton);
-        videoButton = new GinjLowerButton("Capture video", Util.createIcon(getClass().getResource("/img/icon/video.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        videoButton = new GinjLowerButton("Capture video", UI.createIcon(getClass().getResource("/img/icon/video.png"), 16, 16, UI.ICON_ENABLED_COLOR));
         videoButton.addActionListener(e -> onCaptureVideo());
         buttonBar.add(videoButton);
-        final JButton redoButton = new GinjLowerButton("Redo selection", Util.createIcon(getClass().getResource("/img/icon/redo_selection.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton redoButton = new GinjLowerButton("Redo selection", UI.createIcon(getClass().getResource("/img/icon/redo_selection.png"), 16, 16, UI.ICON_ENABLED_COLOR));
         redoButton.addActionListener(e -> onRedo());
         buttonBar.add(redoButton);
-        final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton cancelButton = new GinjLowerButton("Cancel", UI.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, UI.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
         captureSizeLabel = new GinjBorderedLabel("9999 x 9999");
         buttonBar.add(captureSizeLabel);
 
         actionPanel.add(buttonBar);
-        Util.packPanel(actionPanel);
+        UI.packPanel(actionPanel);
         contentPane.add(actionPanel);
 
         addKeyboardShortcuts();
@@ -141,7 +143,7 @@ public class CaptureSelectionFrame extends JFrame {
             }
 
             // Prepared a dimmed & greyscale version to be used for "unselected area"
-            dimmedScreenImg = Util.makeDimmedImage(capturedScreenImg);
+            dimmedScreenImg = UI.makeDimmedImage(capturedScreenImg);
         }
 
         @Override
@@ -172,7 +174,7 @@ public class CaptureSelectionFrame extends JFrame {
                 g2d.setClip(0, 0, screenSize.width, screenSize.height);
 
                 // Draw the selection rectangle
-                g2d.setColor(Util.AREA_SELECTION_COLOR);
+                g2d.setColor(UI.AREA_SELECTION_COLOR);
                 g2d.setStroke(new BasicStroke(2));
                 g2d.drawRect(rectangleToDraw.x, rectangleToDraw.y, rectangleToDraw.width, rectangleToDraw.height);
             }
@@ -185,7 +187,7 @@ public class CaptureSelectionFrame extends JFrame {
                 // First selection in progress
 
                 // Draw cross lines
-                g2d.setColor(Util.AREA_SELECTION_COLOR);
+                g2d.setColor(UI.AREA_SELECTION_COLOR);
                 g2d.setStroke(new BasicStroke(3));
                 g2d.drawLine(mousePosition.x, 0, mousePosition.x, (int) screenSize.getHeight());
                 g2d.drawLine(0, mousePosition.y, (int) screenSize.getWidth(), mousePosition.y);
@@ -212,7 +214,7 @@ public class CaptureSelectionFrame extends JFrame {
                 // Use antialiasing
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 // Draw the selection size box
-                g2d.setColor(Util.SELECTION_SIZE_BOX_COLOR);
+                g2d.setColor(UI.SELECTION_SIZE_BOX_COLOR);
                 int sizeBoxX = mousePosition.x + SIZE_BOX_OFFSET;
                 if (sizeBoxX + SIZE_BOX_WIDTH > screenSize.width) {
                     sizeBoxX = mousePosition.x - SIZE_BOX_OFFSET - SIZE_BOX_WIDTH;
@@ -224,7 +226,7 @@ public class CaptureSelectionFrame extends JFrame {
                 g2d.fillRoundRect(sizeBoxX, sizeBoxY, SIZE_BOX_WIDTH, SIZE_BOX_HEIGHT, 4, 4);
 
                 // And print size
-                g2d.setColor(Util.AREA_SELECTION_COLOR);
+                g2d.setColor(UI.AREA_SELECTION_COLOR);
                 if (font == null) {
                     font = g2d.getFont();
                     fontRenderContext = g2d.getFontRenderContext();
@@ -534,7 +536,7 @@ public class CaptureSelectionFrame extends JFrame {
         // Crop image
         final Rectangle croppedSelection = selection.intersection(new Rectangle(screenSize));
         final BufferedImage capturedImg = capturedScreenImg.getSubimage(croppedSelection.x, croppedSelection.y, croppedSelection.width, croppedSelection.height);
-        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(capturedImg);
+        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capturedImg);
         captureEditingFrame.setVisible(true);
         dispose();
     }

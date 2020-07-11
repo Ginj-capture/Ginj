@@ -2,7 +2,8 @@ package info.ginj.export.clipboard;
 
 import info.ginj.export.GinjExporter;
 import info.ginj.model.Capture;
-import info.ginj.util.Util;
+import info.ginj.model.Target;
+import info.ginj.util.UI;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -16,13 +17,15 @@ import java.awt.datatransfer.Clipboard;
 public class ClipboardExporter extends GinjExporter {
 
 
+    public static final String NAME = "Clipboard";
+
     @Override
     public String getExporterName() {
-        return "Clipboard";
+        return NAME;
     }
 
     @Override
-    public String getShareText() {
+    public String getDefaultShareText() {
         return "Copy";
     }
 
@@ -52,21 +55,21 @@ public class ClipboardExporter extends GinjExporter {
      * should go through synchronized objects or be enclosed in a SwingUtilities.invokeLater() logic
      *
      * @param capture        the capture to export
-     * @param accountNumber  (ignored)
+     * @param target the target to export this capture to
      * @return true if export completed, or false otherwise
      */
     @Override
-    public void exportCapture(Capture capture, String accountNumber) {
+    public void exportCapture(Capture capture, Target target) {
         if (capture.isVideo()) {
-            Util.alertError(getParentFrame(), "Export error", "Video contents cannot be copied to the clipboard");
+            UI.alertError(parentFrame, "Export error", "Video contents cannot be copied to the clipboard");
             failed("Error copying capture");
             return;
         }
         try {
-            logProgress("Reading file", 50);
-            Image image = capture.transientGetRenderedImage();
+            logProgress("Reading source", 50);
+            Image image = capture.getRenderedImage();
             if (image == null) {
-                image = ImageIO.read(capture.transientGetFile());
+                image = ImageIO.read(capture.getOriginalFile());
             }
             TransferableImage transferableImage = new TransferableImage(image);
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -77,7 +80,7 @@ public class ClipboardExporter extends GinjExporter {
             complete("Image copied to clipboard");
         }
         catch (Exception e) {
-            Util.alertException(getParentFrame(), "Export error", "There was an error copying image to the clipboard", e);
+            UI.alertException(parentFrame, "Export error", "There was an error copying image to the clipboard", e);
             failed("Error copying capture");
         }
     }

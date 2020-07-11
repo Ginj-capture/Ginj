@@ -1,7 +1,6 @@
 package info.ginj.ui;
 
 import info.ginj.Ginj;
-import info.ginj.model.Prefs;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
 
 import javax.imageio.ImageIO;
@@ -78,6 +77,8 @@ public class StarWindow extends JWindow {
     private int highlightedButtonId = BTN_NONE;
 
     private HistoryFrame historyFrame;
+    private MoreFrame moreFrame;
+    private TargetManagementFrame targetManagementFrame;
 
     public StarWindow() {
         super();
@@ -103,14 +104,30 @@ public class StarWindow extends JWindow {
         return appIcon;
     }
 
-    public void setHistoryFrame(HistoryFrame historyFrame) {
-        this.historyFrame = historyFrame;
-    }
 
     public HistoryFrame getHistoryFrame() {
         return historyFrame;
     }
 
+    public void setHistoryFrame(HistoryFrame historyFrame) {
+        this.historyFrame = historyFrame;
+    }
+
+    public MoreFrame getMoreFrame() {
+        return moreFrame;
+    }
+
+    public void setMoreFrame(MoreFrame moreFrame) {
+        this.moreFrame = moreFrame;
+    }
+
+    public TargetManagementFrame getTargetManagementFrame() {
+        return targetManagementFrame;
+    }
+
+    public void setTargetManagementFrame(TargetManagementFrame targetManagementFrame) {
+        this.targetManagementFrame = targetManagementFrame;
+    }
 
     public class MainPane extends JPanel {
         private BufferedImage starOnlyImg;
@@ -421,7 +438,7 @@ public class StarWindow extends JWindow {
         // Hide star icon during the capture
         setVisible(false);
         // Creating the capture selection window will cause the screenshot to happen
-        CaptureSelectionFrame frame = new CaptureSelectionFrame();
+        CaptureSelectionFrame frame = new CaptureSelectionFrame(this);
         // Show star icon again
         setVisible(true);
         // And show capture selection window
@@ -439,14 +456,11 @@ public class StarWindow extends JWindow {
 
 
     private void onMore() {
-        // TODO
-        JOptionPane.showMessageDialog(null, "This should open the more window - Now exiting...");
-        quit();
-    }
-
-    private void quit() {
-        Prefs.save();
-        System.exit(Ginj.ERR_STATUS_OK);
+        if (moreFrame == null) {
+            moreFrame = new MoreFrame(this);
+        }
+        moreFrame.setVisible(true);
+        moreFrame.requestFocus();
     }
 
 }

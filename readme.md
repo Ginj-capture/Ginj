@@ -55,6 +55,12 @@ In the meantime, it's just there and it's free... Enjoy :-)
 
 #### Credits. 
 
+The app makes use of the following libraries:
+- HttpComponents, Copyright © 2005–2020 The Apache Software Foundation.
+- GSon, Copyright 2008 Google Inc.
+- SLF4j, Copyright (c) 2004-2017 QOS.ch
+- Wizard by Timothy Boudreau of Netbeans, originally hosted at https://wizard.dev.java.net , v1.1 saved by Lonzak and available at https://github.com/Lonzak/Wizard-API
+
 The source code contains classes or snippets from:
 - [The Java Tutorial](https://docs.oracle.com/javase/tutorial/), Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
 - [JHLabs image filters](http://jhlabs.com/ip/filters/index.html) by Jerry Huxtable

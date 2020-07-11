@@ -7,10 +7,11 @@ import info.ginj.Ginj;
 import info.ginj.export.GinjExporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
+import info.ginj.model.Account;
 import info.ginj.model.Capture;
-import info.ginj.model.Prefs;
 import info.ginj.model.Profile;
-import info.ginj.util.Util;
+import info.ginj.model.Target;
+import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -33,7 +34,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.*;
 
@@ -46,62 +46,57 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * see https://www.dropbox.com/lp/developers/reference/oauth-guide
  */
 public abstract class AbstractOAuth2Exporter extends GinjExporter implements OnlineExporter {
-    public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + Util.colorToHex(Util.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + Util.colorToHex(Util.LABEL_FOREGROUND_COLOR) + ";} a{color:" + Util.colorToHex(Util.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
+    public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + UI.colorToHex(UI.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + UI.colorToHex(UI.LABEL_FOREGROUND_COLOR) + ";} a{color:" + UI.colorToHex(UI.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";
     protected static final int PORT_GINJ = 6193;
 
     // TODO mabye make the following fields ThreadLocal ?
     protected String verifier;
     protected String receivedCode = null;
+    protected List<String> receivedScopes = null;
     protected HttpServer server;
 
 
+    @java.beans.Transient
     protected abstract String getClientAppId();
 
+    @java.beans.Transient
     protected abstract String getSecretAppKey();
 
+    @java.beans.Transient
     protected abstract String getOAuth2AuthorizeUrl();
 
+    @java.beans.Transient
     protected String getAdditionalAuthorizeParam() {
         return "";
     }
 
-    protected abstract String getOAuth2RevokeUrl();
+    @java.beans.Transient
+    public abstract String getOAuth2RevokeUrl();
 
+    @java.beans.Transient
     protected abstract List<String> getRequiredScopes();
 
-    protected abstract Prefs.Key getAccessTokenKeyPrefix();
-
-    protected abstract Prefs.Key getAccessExpiryKeyPrefix();
-
-    protected abstract Prefs.Key getRefreshTokenKeyPrefix();
-
-
     @Override
-    public boolean prepare(Capture capture, String accountNumber) {
+    public boolean prepare(Capture capture, Target target) {
         try {
-            checkAuthorizations(accountNumber);
+            checkAuthorizations(target.getAccount());
         }
         catch (AuthorizationException e) {
-            // TODO should we just show an error here ? Authorization should be done in account management
-            try {
-                authorize(accountNumber);
-            }
-            catch (AuthorizationException | CommunicationException exception) {
-                Util.alertException(getParentFrame(), getExporterName() + " authorization error", "There was an error authorizing you on " + getExporterName(), e);
-                failed("Authorization error");
-                return false;
-            }
+            UI.alertException(parentFrame, getExporterName() + " authorization error", "Ginj was not authorized on " + getExporterName() + ".\nPlease go to " + Ginj.getAppName() + " preferences to re-authorize.", e);
+            failed("Authorization error");
+            return false;
         }
         catch (CommunicationException e) {
-            Util.alertException(getParentFrame(), getExporterName() + " authorization check error", "There was an error checking authorization on " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + " authorization check error", "There was an error checking authorization on " + getExporterName(), e);
             failed("Communication error");
             return false;
         }
         return true;
     }
 
-    public void authorize(String accountNumber) throws AuthorizationException, CommunicationException {
+    public OAuthAccount authorize() throws AuthorizationException, CommunicationException {
+        OAuthAccount oAuthAccount = null;
         try {
             // Start web server to receive Google responses
             server = getHttpServer();
@@ -156,15 +151,15 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
             // Wait for code to be received by our http server...
             long timeOutTime = System.currentTimeMillis() + 5 * 60 * 1000;
             // TODO make sure the progress indicates that browser is opening, and that operation can be cancelled.
-            while (receivedCode == null && System.currentTimeMillis() < timeOutTime && !isCancelled()) {
+            while (receivedCode == null && System.currentTimeMillis() < timeOutTime && !cancelRequested()) {
                 //noinspection BusyWait
                 Thread.sleep(100);
             }
             // When we get here, it's because of either an abort request, a response, or a time-out
-            if (!isCancelled()) {
+            if (!cancelRequested()) {
                 if (receivedCode != null) {
                     // Step 5: Exchange authorization code for refresh and access tokens
-                    exchangeCodeForTokens(receivedCode, accountNumber);
+                    oAuthAccount = exchangeCodeForTokens(receivedCode, receivedScopes);
                 }
                 else {
                     // time-out
@@ -181,11 +176,13 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                 server.stop(2);
             }
         }
+        return oAuthAccount;
     }
 
+    @java.beans.Transient
     protected abstract String getOAuth2TokenUrl();
 
-    protected void exchangeCodeForTokens(String code, String accountNumber) throws AuthorizationException {
+    protected OAuthAccount exchangeCodeForTokens(String code, List<String> allowedScopes) throws AuthorizationException, CommunicationException {
         logProgress("Getting tokens");
 
         CloseableHttpClient client = HttpClients.createDefault();
@@ -223,18 +220,14 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                 // System.out.println("expiresIn = " + expiresIn);
                 // System.out.println("refreshToken = " + refreshToken);
                 if (accessToken != null) {
-                    Prefs.setWithSuffix(getAccessTokenKeyPrefix(), accountNumber, accessToken);
-                    Prefs.save();
                     if (expiresIn != null && refreshToken != null) {
                         LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(expiresIn.longValue());
-                        String expiryTimeStr = DateTimeFormatter.ofPattern(Ginj.DATETIME_FORMAT_PATTERN).format(expiryTime);
-                        Prefs.setWithSuffix(getAccessExpiryKeyPrefix(), accountNumber, expiryTimeStr);
-                        Prefs.setWithSuffix(getRefreshTokenKeyPrefix(), accountNumber, refreshToken);
-                        Prefs.save();
+                        final Profile profile = getProfile(accessToken);
+                        return new OAuthAccount("", profile.getName(), profile.getEmail(), accessToken, expiryTime, refreshToken, allowedScopes);
                     }
-//                    else {
-//                        System.out.println("No expires_in or refresh_token. Response was:\n" + responseText);
-//                    }
+                    else {
+                        throw new AuthorizationException("No expires_in or refresh_token. Response was:\n" + responseText);
+                    }
                 }
                 else {
                     throw new AuthorizationException("Could not parse access_token, expires_in or refresh_token from received json '" + responseText + "'.");
@@ -245,10 +238,11 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
             }
         }
         catch (IOException e) {
-            throw new AuthorizationException(e);
+            throw new CommunicationException(e);
         }
     }
 
+    @java.beans.Transient
     private HttpServer getHttpServer() throws IOException {
         // TODO Note: create throws a SocketException if already bound (and maybe when firewall refuses to open port)
         // TODO catch it and switch to copy/paste mode in that case
@@ -259,10 +253,14 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
             Map<String, String> params = queryToMap(httpExchange.getRequestURI().getQuery());
             final String error = params.get("error");
             final String code = params.get("code");
-            final String scopes = params.get("scope");
+            final String scopeStr = params.get("scope");
 
             try {
-                checkScopesResponse(error, code, scopes);
+                if (scopeStr != null) {
+                    receivedScopes = Arrays.asList(scopeStr.split(" "));
+                }
+
+                checkScopesResponse(error, code, receivedScopes);
                 // Send response
                 sendTextResponse(httpExchange, HTML_BODY_OPEN + "<h1>Authorization received.</h1>"
                         + "<p>Congratulations! " + Ginj.getAppName() + " is now authorized to upload and share your captures on your " + getExporterName() + " account.<br/>"
@@ -295,7 +293,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
         out.close();
     }
 
-    private void checkScopesResponse(String error, String code, String scopeStr) throws AuthorizationException {
+    private void checkScopesResponse(String error, String code, List<String> allowedScopes) throws AuthorizationException {
         if (error != null) {
             throw new AuthorizationException(getExporterName() + " returned an error: " + error);
         }
@@ -303,10 +301,10 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
             throw new AuthorizationException("Missing code (" + code + ") in " + getExporterName() + " response.");
         }
         if (getRequiredScopes() != null) {
-            if (scopeStr == null || scopeStr.isBlank()) {
-                throw new AuthorizationException("Missing scope (" + scopeStr + ") in " + getExporterName() + " response.");
+            if (allowedScopes == null || allowedScopes.isEmpty()) {
+                throw new AuthorizationException("No allowed scope received in " + getExporterName() + " response.");
             }
-            List<String> missingScopes = getMissingScopes(scopeStr);
+            List<String> missingScopes = getMissingScopes(allowedScopes);
             if (missingScopes.isEmpty()) {
                 return;
             }
@@ -314,8 +312,13 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
         }
     }
 
+    @java.beans.Transient
     protected List<String> getMissingScopes(String scopeStr) {
-        final List<String> acceptedScopes = Arrays.asList(scopeStr.split(" "));
+        return getMissingScopes(Arrays.asList(scopeStr.split(" ")));
+    }
+
+    @java.beans.Transient
+    protected List<String> getMissingScopes(List<String> acceptedScopes) {
         List<String> missingScopes = new ArrayList<>();
         for (String requiredScope : getRequiredScopes()) {
             if (!acceptedScopes.contains(requiredScope)) {
@@ -325,18 +328,19 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
         return missingScopes;
     }
 
-    public String getAccessToken(String accountNumber) throws AuthorizationException {
-        String accessToken = Prefs.getWithSuffix(getAccessTokenKeyPrefix(), accountNumber);
-        String expiryStr = Prefs.getWithSuffix(getAccessExpiryKeyPrefix(), accountNumber);
-        if (accessToken == null || expiryStr == null || accessToken.isBlank() || expiryStr.isBlank()) {
+    @java.beans.Transient
+    public String getAccessToken(Account account) throws AuthorizationException {
+
+        String accessToken = ((OAuthAccount)account).getAccessToken();
+        LocalDateTime accessExpiry = ((OAuthAccount)account).getAccessExpiry();
+        if (accessToken == null || accessToken.isBlank() || accessExpiry == null ) {
             throw new AuthorizationException("No previous information found in preferences");
         }
 
         // Let's take a 1-minute security margin
-        String nowStr = DateTimeFormatter.ofPattern(Ginj.DATETIME_FORMAT_PATTERN).format(LocalDateTime.now().plusMinutes(1));
-        if (nowStr.compareTo(expiryStr) > 0) {
+        if (LocalDateTime.now().plusMinutes(1).isAfter(accessExpiry)) {
             // Token is expired (or will be in 1 minute). Ask a new one
-            accessToken = refreshAccessToken(accountNumber);
+            accessToken = refreshAccessToken(account);
         }
         // Return access token
         return accessToken;
@@ -346,13 +350,14 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
      * Implements e.g. https://developers.google.com/identity/protocols/oauth2/native-app#offline
      * Note: if server responds with Error 400 invalid_grant, a list of possible reasons is at
      * https://blog.timekit.io/google-oauth-invalid-grant-nightmare-and-how-to-fix-it-9f4efaf1da35
+     * @param account
      */
-    private String refreshAccessToken(String accountNumber) throws AuthorizationException {
+    private String refreshAccessToken(Account account) throws AuthorizationException {
         CloseableHttpClient client = HttpClients.createDefault();
 
         HttpPost httpPost = new HttpPost(getOAuth2TokenUrl());
 
-        final String refreshToken = Prefs.getWithSuffix(getRefreshTokenKeyPrefix(), accountNumber);
+        String refreshToken = ((OAuthAccount)account).getRefreshToken();
 
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new AuthorizationException();
@@ -380,7 +385,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                 @SuppressWarnings("rawtypes")
                 Map map = new Gson().fromJson(responseText, Map.class);
                 String accessToken = (String) map.get("access_token");
-                Double expiresIn = (Double) map.get("expires_in");
+                Double expiresInSecs = (Double) map.get("expires_in");
                 String scopeStr = (String) map.get("scope");
 
                 if (scopeStr != null) { // e.g. Dropbox does not currently return scopes
@@ -390,20 +395,19 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                         throw new AuthorizationException("The following authorizations are missing: " + missingScopes + ". Please re-authorize this account.");
                     }
                 }
-                if (accessToken != null && expiresIn != null) {
-                    LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(expiresIn.longValue());
-                    String expiryTimeStr = DateTimeFormatter.ofPattern(Ginj.DATETIME_FORMAT_PATTERN).format(expiryTime);
+                if (accessToken != null && expiresInSecs != null) {
+                    LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(expiresInSecs.longValue());
 
-                    Prefs.setWithSuffix(getAccessTokenKeyPrefix(), accountNumber, accessToken);
-                    Prefs.setWithSuffix(getAccessExpiryKeyPrefix(), accountNumber, expiryTimeStr);
-                    Prefs.save();
+                    ((OAuthAccount)account).setAccessToken(accessToken);
+                    ((OAuthAccount)account).setAccessExpiry(expiryTime);
+                    Ginj.getTargetPrefs().save();
 
                     return accessToken;
                 }
                 else {
                     throw new AuthorizationException("Could not parse access_token or expires_in from received json '" + responseText + "'.");
                 }
-        }
+            }
             else {
                 // throw new AuthorizationException("Server returned code " + getResponseError(response));
                 // This code used to track a nasty bug and throw additional info in that case... I'm leaving it.
@@ -434,7 +438,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                         if ("invalid_grant".equals(error) && "Token has been expired or revoked.".equals(errorDescription)) {
                             // Well known (and unexplained) error.
                             // Remove stored tokens to force a reauthorization
-                            clearOAuthTokens(accountNumber);
+                            clearOAuthTokens((OAuthAccount)account);
                             throw new AuthorizationException("Google refuses to refresh the access token. Clearing previous refresh_token to force re-authorize...\nError was: " + code + " (" + responseText + ")");
                         }
                     }
@@ -449,11 +453,11 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
         }
     }
 
-    protected void clearOAuthTokens(String accountNumber) {
-        Prefs.removeWithSuffix(getAccessTokenKeyPrefix(), accountNumber);
-        Prefs.removeWithSuffix(getAccessExpiryKeyPrefix(), accountNumber);
-        Prefs.removeWithSuffix(getRefreshTokenKeyPrefix(), accountNumber);
-        Prefs.save();
+    protected void clearOAuthTokens(OAuthAccount account) {
+        account.setAccessToken(null);
+        account.setAccessExpiry(null);
+        account.setRefreshToken(null);
+        Ginj.getTargetPrefs().save();
     }
 
     public void cancel() {
@@ -502,6 +506,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
         return code >= 200 && code < 300;
     }
 
+    @java.beans.Transient
     protected static String getResponseError(CloseableHttpResponse response) {
         String errorMsg = String.valueOf(response.getCode());
         try {
@@ -516,6 +521,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
         return errorMsg;
     }
 
-    protected abstract Profile getProfile(String accountNumber) throws CommunicationException, AuthorizationException;
+    @java.beans.Transient
+    protected abstract Profile getProfile(String accessToken) throws CommunicationException, AuthorizationException;
 
 }

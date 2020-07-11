@@ -1,6 +1,6 @@
 package info.ginj.ui.component;
 
-import info.ginj.util.Util;
+import info.ginj.util.UI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,10 +32,10 @@ public class GinjColorToggleButton extends JToggleButton {
         this.color = color;
         setName("GinjColorToggleButton"); // To be addressed in synth.xml
         if (color != null) {
-            setIcon(Util.createRectColorIcon(color, COLOR_BUTTON_ICON_WIDTH, COLOR_BUTTON_ICON_HEIGHT));
+            setIcon(UI.createRectColorIcon(color, COLOR_BUTTON_ICON_WIDTH, COLOR_BUTTON_ICON_HEIGHT));
         }
         else {
-            setIcon(Util.createRectColorIcon(Color.BLACK, COLOR_BUTTON_ICON_WIDTH, COLOR_BUTTON_ICON_HEIGHT));
+            setIcon(UI.createRectColorIcon(Color.BLACK, COLOR_BUTTON_ICON_WIDTH, COLOR_BUTTON_ICON_HEIGHT));
         }
     }
 

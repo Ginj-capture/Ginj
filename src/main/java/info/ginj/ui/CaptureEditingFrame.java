@@ -5,6 +5,7 @@ import info.ginj.action.AbstractUndoableAction;
 import info.ginj.export.GinjExporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Prefs;
+import info.ginj.model.Target;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
 import info.ginj.tool.arrow.ArrowTool;
@@ -12,8 +13,10 @@ import info.ginj.tool.frame.FrameTool;
 import info.ginj.tool.highlight.HighlightTool;
 import info.ginj.tool.text.TextTool;
 import info.ginj.ui.component.*;
-import info.ginj.util.Util;
+import info.ginj.util.Misc;
+import info.ginj.util.UI;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.UndoableEditEvent;
@@ -22,6 +25,7 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,8 +41,8 @@ public class CaptureEditingFrame extends JFrame {
     public static final Color DEFAULT_TOOL_COLOR = Color.RED;
 
     // State
-    private final BufferedImage capturedImg;
-    private final String captureId;
+    private final StarWindow starWindow;
+    private final Capture capture;
     private final ImageEditorPane imagePane;
     private final GinjMiniToolButton undoButton;
     private final GinjMiniToolButton redoButton;
@@ -48,14 +52,19 @@ public class CaptureEditingFrame extends JFrame {
 
     GinjTool currentTool;
 
-    public CaptureEditingFrame(BufferedImage capturedImg) {
-        this(capturedImg, new SimpleDateFormat(Ginj.DATETIME_FORMAT_PATTERN).format(new Date())); // ENHANCEMENT: seconds
+
+    public CaptureEditingFrame(StarWindow starWindow, BufferedImage capturedImg) {
+        this(starWindow, new Capture(new SimpleDateFormat(Misc.DATETIME_FORMAT_PATTERN).format(new Date()), capturedImg)); // ENHANCEMENT: seconds
     }
 
-    public CaptureEditingFrame(BufferedImage capturedImg, String captureId) {
+    public CaptureEditingFrame(StarWindow starWindow, BufferedImage capturedImg, String captureId) {
+        this(starWindow, new Capture(captureId, capturedImg));
+    }
+
+    public CaptureEditingFrame(StarWindow starWindow, Capture capture) {
         super();
-        this.capturedImg = capturedImg;
-        this.captureId = captureId;
+        this.starWindow = starWindow;
+        this.capture = capture;
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " Preview");
@@ -67,14 +76,36 @@ public class CaptureEditingFrame extends JFrame {
         // Make it transparent
         setBackground(new Color(0, 0, 0, 0));
         // Add default "draggable window" behaviour
-        Util.addDraggableWindowMouseBehaviour(this, this);
+        UI.addDraggableWindowMouseBehaviour(this, this);
 
 
         // Prepare main image panel first because it will be needed in ActionHandlers
-        imagePane = new ImageEditorPane(this, capturedImg);
+        BufferedImage originalImage;
+        if (capture.isVideo()) {
+            throw new RuntimeException("TODO Video");
+        }
+        else {
+            originalImage = capture.getOriginalImage();
+            if (originalImage == null) {
+                try {
+                    originalImage = ImageIO.read(capture.getOriginalFile());
+                }
+                catch (IOException e) {
+                    UI.alertException(this, "Load error", "Error loading capture file '" + capture.getOriginalFile() + "'", e);
+                    originalImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+                }
+            }
+        }
+        imagePane = new ImageEditorPane(this, originalImage);
+
 
         // Absolute positioning of components over the image
         imagePane.setLayout(null);
+
+        // Restore overlays, if any
+        for (Overlay overlay : capture.getOverlays()) {
+            imagePane.add(overlay);
+        }
 
         final Container contentPane = getContentPane();
         contentPane.setLayout(new GridBagLayout());
@@ -87,7 +118,7 @@ public class CaptureEditingFrame extends JFrame {
         c.gridwidth = 2;
         c.gridheight = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
-        contentPane.add(Util.getTitleBar("Capture editing" /* to force non-zero height */, null), c);
+        contentPane.add(UI.getTitleBar("Capture editing" /* to force non-zero height */, null), c);
 
         // Prepare overlay toolbar
         JPanel toolBar = new JPanel();
@@ -100,7 +131,7 @@ public class CaptureEditingFrame extends JFrame {
             addToolButton(toolBar, tool, toolButtonGroup);
         }
 
-        colorToolButton = new GinjToolButton(Util.createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        colorToolButton = new GinjToolButton(UI.createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
         colorToolButton.addActionListener(e -> onColorButtonClick());
         colorToolButton.setToolTipText("Tool Color");
         toolBar.add(colorToolButton);
@@ -110,8 +141,8 @@ public class CaptureEditingFrame extends JFrame {
         JPanel undoRedoPanel = new JPanel();
         undoRedoPanel.setAlignmentX(0); // Otherwise the panel adds horizontal space...
         undoRedoPanel.setLayout(new BoxLayout(undoRedoPanel, BoxLayout.X_AXIS));
-        undoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("/img/icon/undo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
-        redoButton = new GinjMiniToolButton(Util.createIcon(getClass().getResource("/img/icon/redo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
+        undoButton = new GinjMiniToolButton(UI.createIcon(getClass().getResource("/img/icon/undo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, UI.TOOLBAR_ICON_ENABLED_COLOR));
+        redoButton = new GinjMiniToolButton(UI.createIcon(getClass().getResource("/img/icon/redo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, UI.TOOLBAR_ICON_ENABLED_COLOR));
 
         undoButton.setEnabled(false);
         undoButton.addActionListener(e -> attemptUndo());
@@ -190,23 +221,25 @@ public class CaptureEditingFrame extends JFrame {
         actionPanel.setName("GinjPanel"); // To be used as a selector in synth.xml
         JPanel buttonBar = new GinjLowerButtonBar();
 
-        GinjLowerButton shareButton = new GinjLowerButton("Share...", Util.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        GinjLowerButton shareButton = new GinjLowerButton("Share...", UI.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, UI.ICON_ENABLED_COLOR));
         shareButton.addActionListener(e -> onShare(shareButton));
         buttonBar.add(shareButton);
 
-        for (GinjExporter target : GinjExporter.getList()) {
-            if (target.isImageSupported()) {
-                GinjLowerButton targetButton = new GinjLowerButton(target.getShareText(), target.getButtonIcon(16));
+        for (Target target : Ginj.getTargetPrefs().getTargetList()) {
+            GinjExporter exporter = target.getExporter();
+            if (exporter.isImageSupported() && (!exporter.isOnlineService() || Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS))) {
+                GinjLowerButton targetButton = new GinjLowerButton(target.getDisplayName(), exporter.getButtonIcon(16));
                 targetButton.addActionListener(e -> onExport(target));
                 buttonBar.add(targetButton);
             }
         }
 
-        final JButton cancelButton = new GinjLowerButton("Cancel", Util.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+        final JButton cancelButton = new GinjLowerButton("Cancel", UI.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, UI.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
-        // TODO where do we customize buttons ?
-//        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", Util.createIcon(getClass().getResource("/img/icon/customize.png"), 16, 16, Util.ICON_ENABLED_COLOR));
+
+        // Do we restore this button ?
+//        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", UI.createIcon(getClass().getResource("/img/icon/customize.png"), 16, 16, UI.ICON_ENABLED_COLOR));
 //        customizeButton.addActionListener(e -> onCustomize());
 //        buttonBar.add(customizeButton);
 
@@ -220,10 +253,10 @@ public class CaptureEditingFrame extends JFrame {
         contentPane.add(actionPanel, c);
 
         // Prefill and select name
-        // TODO does not work
-        nameTextField.setText(captureId);
-        nameTextField.requestFocusInWindow();
+        nameTextField.setText(capture.getBaseFilename());
         nameTextField.selectAll();
+        // TODO focus does not work
+        nameTextField.requestFocusInWindow();
 
         /////////////////////////////
         // Check that the window fits on screen, or adjust size and add a scrollpane if needed
@@ -289,7 +322,7 @@ public class CaptureEditingFrame extends JFrame {
     }
 
     public void updateColorButtonIcon() {
-        colorToolButton.setIcon(Util.createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        colorToolButton.setIcon(UI.createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
     }
 
     private void onColorButtonClick() {
@@ -304,9 +337,9 @@ public class CaptureEditingFrame extends JFrame {
 
     private void addToolButton(JPanel toolBar, GinjTool tool, ButtonGroup group) {
         // Create button
-        GinjToolToggleButton toolButton = new GinjToolToggleButton(Util.createIcon(
+        GinjToolToggleButton toolButton = new GinjToolToggleButton(UI.createIcon(
                 getClass().getResource("/img/icon/tool_" + tool.getName().toLowerCase() + ".png"),
-                TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, Util.TOOLBAR_ICON_ENABLED_COLOR));
+                TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, UI.TOOLBAR_ICON_ENABLED_COLOR));
         // Add it to the toolbar, followed by a spacer
         toolButton.setToolTipText(tool.getName());
         toolBar.add(toolButton);
@@ -387,22 +420,16 @@ public class CaptureEditingFrame extends JFrame {
     }
 
 
-    private void onExport(GinjExporter exporter) {
+    private void onExport(Target target) {
         // Render image and overlays, but no handles
         imagePane.setSelectedOverlay(null);
         BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics g = renderedImage.getGraphics();
         imagePane.paint(g);
         g.dispose();
+        capture.setRenderedImage(renderedImage);
 
-        // Perform export
-
-        // Prepare capture object
-        Capture capture = new Capture();
-        capture.setVideo(false);
-        capture.setId(captureId);
-        capture.transientSetOriginalImage(capturedImg);
-        capture.transientSetRenderedImage(renderedImage);
+        // Save name and overlays
         capture.setName(nameTextField.getText());
 
         List<Overlay> overlays = new ArrayList<>();
@@ -413,6 +440,8 @@ public class CaptureEditingFrame extends JFrame {
         }
         capture.setOverlays(overlays);
 
+        // Perform export
+        GinjExporter exporter = target.getExporter();
         ExportFrame exportFrame = new ExportFrame(this, capture, exporter);
         exporter.initialize(this, exportFrame);
         // Note the chicken/egg problem:
@@ -422,8 +451,7 @@ public class CaptureEditingFrame extends JFrame {
 
         exportFrame.setVisible(true);
 
-        // TODO account number
-        if (exportFrame.startExport("1")) {
+        if (exportFrame.startExport(target)) {
             // Hide this window during export. It will be "re-opened" in case of failure or cancellation
             setVisible(false);
         }
@@ -439,19 +467,28 @@ public class CaptureEditingFrame extends JFrame {
         JPopupMenu popup = new JPopupMenu();
 
         JMenuItem menuItem;
-        for (GinjExporter exporter : GinjExporter.getList()) {
+        for (Target target : Ginj.getTargetPrefs().getTargetList()) {
+            GinjExporter exporter = target.getExporter();
             if (exporter.isOnlineService()) {
-                menuItem = new JMenuItem(exporter.getShareText(), exporter.getButtonIcon(24));
-                menuItem.addActionListener(e -> onExport(exporter));
+                menuItem = new JMenuItem(target.getDisplayName(), exporter.getButtonIcon(24));
+                menuItem.addActionListener(e -> onExport(target));
                 popup.add(menuItem);
             }
         }
 
-        menuItem = new JMenuItem("Manage accounts...", Util.createIcon(getClass().getResource("/img/icon/share.png"), 24, 24));
-        menuItem.addActionListener(e -> System.out.println("Launch account management")); // TODO
+        menuItem = new JMenuItem("Manage targets...", UI.createIcon(getClass().getResource("/img/icon/share.png"), 24, 24));
+        menuItem.addActionListener(e -> onConfigureTargets());
         popup.add(menuItem);
 
         popup.show(button, button.getWidth() / 2, button.getHeight() / 2);
+    }
+
+    private void onConfigureTargets() {
+        if (starWindow.getTargetManagementFrame() == null) {
+            starWindow.setTargetManagementFrame(new TargetManagementFrame(starWindow));
+        }
+        starWindow.getTargetManagementFrame().setVisible(true);
+        starWindow.getTargetManagementFrame().requestFocus();
     }
 
     private void onCustomize() {

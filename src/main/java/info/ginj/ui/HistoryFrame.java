@@ -5,7 +5,8 @@ import info.ginj.model.Capture;
 import info.ginj.ui.component.GinjBorderedLabel;
 import info.ginj.ui.component.GinjLabel;
 import info.ginj.ui.layout.WrapLayout;
-import info.ginj.util.Util;
+import info.ginj.util.Misc;
+import info.ginj.util.UI;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -18,7 +19,10 @@ import java.beans.XMLDecoder;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * This window displays and manages the historized captures
@@ -31,21 +35,18 @@ public class HistoryFrame extends JFrame {
     private final ImageIcon exportIcon;
     private final ImageIcon editIcon;
     private final ImageIcon deleteIcon;
-    private final Color defaultBgColor;
-//    private final Color defaultLabelForeground;
 
-    private StarWindow parentWindow;
+    private final StarWindow starWindow;
     private HistoryItemPanel selectedItem;
     private final JPanel historyList;
 
-    public HistoryFrame(StarWindow parentWindow) {
+    public HistoryFrame(StarWindow starWindow) {
         super();
-        this.parentWindow = parentWindow;
+        this.starWindow = starWindow;
 
-        exportIcon = Util.createIcon(getClass().getResource("/img/icon/export.png"), 16, 16, Util.ICON_ENABLED_COLOR);
-        editIcon = Util.createIcon(getClass().getResource("/img/icon/edit.png"), 16, 16, Util.ICON_ENABLED_COLOR);
-        deleteIcon = Util.createIcon(getClass().getResource("/img/icon/delete.png"), 16, 16, Util.ICON_ENABLED_COLOR);
-        defaultBgColor = getBackground();
+        exportIcon = UI.createIcon(getClass().getResource("/img/icon/export.png"), 16, 16, UI.ICON_ENABLED_COLOR);
+        editIcon = UI.createIcon(getClass().getResource("/img/icon/edit.png"), 16, 16, UI.ICON_ENABLED_COLOR);
+        deleteIcon = UI.createIcon(getClass().getResource("/img/icon/delete.png"), 16, 16, UI.ICON_ENABLED_COLOR);
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " History");
@@ -61,7 +62,7 @@ public class HistoryFrame extends JFrame {
         GridBagConstraints c;
 
         // Add title bar
-        final JPanel titleBar = Util.getTitleBar("History", e -> onClose());
+        final JPanel titleBar = UI.getTitleBar("History", e -> onClose());
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
@@ -121,7 +122,7 @@ public class HistoryFrame extends JFrame {
         contentPane.add(statusPanel, c);
 
         // Add default "draggable window" behaviour
-        Util.addDraggableWindowMouseBehaviour(this, titleBar);
+        UI.addDraggableWindowMouseBehaviour(this, titleBar);
 
         // TODO should be resizeable with the bottom right corner handle (min 3x1)
 
@@ -134,10 +135,10 @@ public class HistoryFrame extends JFrame {
 
     public void refreshHistoryList() {
         historyList.removeAll();
-        final File[] files = Ginj.getHistoryFolder().listFiles((dir, name) -> name.toLowerCase().endsWith(Ginj.METADATA_EXTENSION));
+        final File[] files = Ginj.getHistoryFolder().listFiles((dir, name) -> name.toLowerCase().endsWith(Misc.METADATA_EXTENSION));
 
         if (files == null) {
-            Util.alertError(this, "History error", "Could not list files in history folder '" + Ginj.getHistoryFolder().getAbsolutePath() +"'");
+            UI.alertError(this, "History error", "Could not list files in history folder '" + Ginj.getHistoryFolder().getAbsolutePath() +"'");
             historyList.add(new JLabel("Error"));
         }
         else {
@@ -152,16 +153,22 @@ public class HistoryFrame extends JFrame {
 
 
     private void onClose() {
-        parentWindow.setHistoryFrame(null);
+        starWindow.setHistoryFrame(null);
         // Close window
         dispose();
     }
 
     private void onEdit(Capture capture) {
-        // TODO should create a copy of the capture and open the edit window on it
-        // Q: Do we duplicate the source media ? Would be silly
-        //    If not, a delete should not delete the source media while it's still in use by at least one capture !
-        //    Maybe Use a naming convention, like capture_id = <orig_capture_id> + "_" + <number>
+        try {
+            Capture newCapture = capture.clone();
+            newCapture.setVersion(capture.getVersion() + 1);
+            newCapture.setOriginalFile(getCaptureFile(capture));
+            final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, newCapture);
+            captureEditingFrame.setVisible(true);
+        }
+        catch (CloneNotSupportedException e) {
+            UI.alertException(this, "Clone error", "Error creating clone of previous capture", e);
+        }
     }
 
     private void onExport(Capture capture) {
@@ -172,15 +179,44 @@ public class HistoryFrame extends JFrame {
     private void onDelete(Capture capture) {
         // TODO ask the question: Also delete from storages (and list them) ?
         // TODO if re-exported captures point to the same source, only delete the source media when it's the last one
-        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "The selected capture will be deleted from the History.\nFor now, the exported version (if any) will remain untouched.\nAre you sure you want to delete capture '" + capture.getName() + "'?", "Delete Capture", JOptionPane.YES_NO_OPTION)) {
-            boolean ok = new File(Ginj.getHistoryFolder(), capture.getId() + Ginj.METADATA_EXTENSION).delete();
-            ok = ok && new File(Ginj.getHistoryFolder(), capture.getId() + Ginj.THUMBNAIL_EXTENSION).delete();
-            ok = ok && new File(Ginj.getHistoryFolder(), capture.getId() + (capture.isVideo() ? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION)).delete();
+        final List<String> sharingCaptures = getCapturesSharingSourceFile(capture);
+        String message = "The selected capture will be deleted from the history.\n";
+        message += "(For now, the exported version (if any) will remain untouched.)\n";
+        if (!sharingCaptures.isEmpty()) {
+            message += "NOTE: the source file will remain on disk because it is shared with the following capture(s): " + sharingCaptures + "\n";
+        }
+        message += "Are you sure you want to delete capture '" + capture.getName() + "'?";
+        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, message, "Delete Capture", JOptionPane.YES_NO_OPTION)) {
+            boolean ok = new File(Ginj.getHistoryFolder(), capture.getBaseFilename() + Misc.METADATA_EXTENSION).delete();
+            ok = ok && new File(Ginj.getHistoryFolder(), capture.getBaseFilename() + Misc.THUMBNAIL_EXTENSION).delete();
+            if (sharingCaptures.isEmpty()) {
+                ok = ok && getCaptureFile(capture).delete();
+            }
             if (!ok) {
-                Util.alertError(this, "Delete error", "There was an error deleting history files for catpure id '" + capture.getId() + "'!");
+                UI.alertError(this, "Delete error", "There was an error deleting history files for capture\n" + capture.toString());
             }
             refreshHistoryList();
         }
+    }
+
+    private List<String> getCapturesSharingSourceFile(Capture captureToDelete) {
+        // Find all other metadata files sharing the same ID
+        final File[] metadataFiles = Ginj.getHistoryFolder().listFiles((dir, name) -> name.startsWith(captureToDelete.getId()) && name.endsWith(Misc.METADATA_EXTENSION) && !name.startsWith(captureToDelete.getBaseFilename()));
+        List<String> siblingCaptureNames = new ArrayList<>();
+        for (File metadataFile : metadataFiles) {
+            try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(metadataFile)))) {
+                Capture siblingCapture = (Capture) xmlDecoder.readObject();
+                siblingCaptureNames.add(siblingCapture.getName());
+            }
+            catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        return siblingCaptureNames;
+    }
+
+    private File getCaptureFile(Capture capture) {
+        return new File(Ginj.getHistoryFolder(), capture.getId() + (capture.isVideo() ? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION));
     }
 
     public HistoryItemPanel getSelectedItem() {
@@ -205,7 +241,6 @@ public class HistoryFrame extends JFrame {
     // Inner classes
 
     private class HistoryItemPanel extends JPanel {
-        private final String xmlFilename;
         private Capture capture = null;
         private final JLabel nameLabel;
         private final JLabel sizeLabel;
@@ -220,12 +255,12 @@ public class HistoryFrame extends JFrame {
 
         public HistoryItemPanel(HistoryFrame historyFrame, File file) {
             super();
-            xmlFilename = file.getAbsolutePath();
+            String xmlFilename = file.getAbsolutePath();
 
             setLayout(new GridBagLayout());
             setBorder(new EmptyBorder(5, 5, 5, 5));
 
-            final JPanel imageLabel = new ThumbnailPanel(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + Ginj.THUMBNAIL_EXTENSION);
+            final JPanel imageLabel = new ThumbnailPanel(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + Misc.THUMBNAIL_EXTENSION);
             imageLabel.setBackground(null);
             GridBagConstraints c = new GridBagConstraints();
             c.gridx = 0;
@@ -249,7 +284,7 @@ public class HistoryFrame extends JFrame {
                 });
             }
             catch (Exception e) {
-                Util.alertException(HistoryFrame.this, "Load error", "Error loading capture '" + file.getAbsolutePath() + "'", e);
+                UI.alertException(HistoryFrame.this, "Load error", "Error loading capture '" + file.getAbsolutePath() + "'", e);
                 e.printStackTrace();
             }
             c = new GridBagConstraints();
@@ -262,8 +297,8 @@ public class HistoryFrame extends JFrame {
             sizeLabel = new GinjLabel("?");
             sizeLabel.setBackground(null);
             sizeLabel.setPreferredSize(new Dimension(55, 16));
-            File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + (capture.isVideo()? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION));
-            sizeLabel.setText(Util.getPrettySize(captureFile.length()));
+            File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + (capture.isVideo()? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION));
+            sizeLabel.setText(Misc.getPrettySize(captureFile.length()));
             sizeLabel.setHorizontalAlignment(SwingConstants.RIGHT);
             c = new GridBagConstraints();
             c.gridx = 1;
@@ -309,25 +344,25 @@ public class HistoryFrame extends JFrame {
 
         public void setSelected(boolean selected) {
             if (selected) {
-                this.setBackground(Util.HISTORY_SELECTED_ITEM_BACKGROUND_COLOR);
+                this.setBackground(UI.HISTORY_SELECTED_ITEM_BACKGROUND_COLOR);
                 nameLabel.setForeground(Color.BLACK);
                 sizeLabel.setForeground(Color.BLACK);
                 editButton.setVisible(true);
-                // exportButton.setVisible(true);
+                exportButton.setVisible(true);
                 deleteButton.setVisible(true);
             }
             else {
                 this.setBackground(null);
-                nameLabel.setForeground(Util.LABEL_FOREGROUND_COLOR);
-                sizeLabel.setForeground(Util.LABEL_FOREGROUND_COLOR);
+                nameLabel.setForeground(UI.LABEL_FOREGROUND_COLOR);
+                sizeLabel.setForeground(UI.LABEL_FOREGROUND_COLOR);
                 editButton.setVisible(false);
-                // exportButton.setVisible(false);
+                exportButton.setVisible(false);
                 deleteButton.setVisible(false);
             }
         }
     }
 
-    private class ThumbnailPanel extends JPanel {
+    private static class ThumbnailPanel extends JPanel {
 
         private BufferedImage image = null;
 

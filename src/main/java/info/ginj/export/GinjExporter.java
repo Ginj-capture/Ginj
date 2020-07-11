@@ -5,7 +5,8 @@ import info.ginj.export.disk.DiskExporter;
 import info.ginj.export.online.dropbox.DropboxExporter;
 import info.ginj.export.online.google.GooglePhotosExporter;
 import info.ginj.model.Capture;
-import info.ginj.util.Util;
+import info.ginj.model.Target;
+import info.ginj.util.UI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,13 +19,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class GinjExporter implements Cancellable {
 
     // TODO mabye make the following fields ThreadLocal ?
-    private JFrame parentFrame;
+    protected JFrame parentFrame;
     private ExportMonitor exportMonitor;
 
     /**
      * This static method returns an list of all exporters.
+     *
      * @return a list containing an instance of all available exporters
      */
+    @java.beans.Transient
     public static List<GinjExporter> getList() {
         final ArrayList<GinjExporter> exporters = new ArrayList<>();
         exporters.add(new DiskExporter());
@@ -34,18 +37,10 @@ public abstract class GinjExporter implements Cancellable {
         return exporters;
     }
 
+    @java.beans.Transient
     public abstract String getExporterName();
 
     private final AtomicBoolean cancelRequested = new AtomicBoolean(false);
-
-
-    public JFrame getParentFrame() {
-        return parentFrame;
-    }
-
-    public ExportMonitor getExportMonitor() {
-        return exportMonitor;
-    }
 
     public void initialize(JFrame parentFrame, ExportMonitor logger) {
         this.parentFrame = parentFrame;
@@ -57,33 +52,39 @@ public abstract class GinjExporter implements Cancellable {
      * This method is run in Swing's Event Dispatching Thread before launching the actual export.
      * It's the right time to e.g.  prompt user for additional information before launching the export.
      *
-     * @param capture       the capture to export
-     * @param accountNumber the accountNumber to export this capture to (if relevant)
+     * @param capture the capture to export
+     * @param target  the target to export this capture to
      * @return true if we should continue, false to cancel export
      */
-    public boolean prepare(Capture capture, String accountNumber) {
+    public boolean prepare(Capture capture, Target target) {
         // Do nothing by default
         return true;
     }
 
-    public abstract String getShareText();
+    @java.beans.Transient
+    public abstract String getDefaultShareText();
 
+    @java.beans.Transient
     public abstract String getIconPath();
 
+    @java.beans.Transient
     public abstract boolean isOnlineService();
 
+    @java.beans.Transient
     public abstract boolean isImageSupported();
 
+    @java.beans.Transient
     public abstract boolean isVideoSupported();
 
+    @java.beans.Transient
     public ImageIcon getButtonIcon(int size) {
         if (isOnlineService()) {
             // Use official logo and don't colorize
-            return Util.createIcon(getClass().getResource(getIconPath()), size, size);
+            return UI.createIcon(getClass().getResource(getIconPath()), size, size);
         }
         else {
             // Colorize
-            return Util.createIcon(getClass().getResource(getIconPath()), size, size, Util.ICON_ENABLED_COLOR);
+            return UI.createIcon(getClass().getResource(getIconPath()), size, size, UI.ICON_ENABLED_COLOR);
         }
     }
 
@@ -93,10 +94,10 @@ public abstract class GinjExporter implements Cancellable {
      * This method is run in its own thread and should not access the GUI directly. All interaction
      * should go through synchronized objects or be enclosed in a SwingUtilities.invokeLater() logic
      *
-     * @param capture       the capture to export
-     * @param accountNumber the accountNumber to export this capture to (if relevant)
+     * @param capture the capture to export
+     * @param target  the target to export this capture to
      */
-    public abstract void exportCapture(Capture capture, String accountNumber);
+    public abstract void exportCapture(Capture capture, Target target);
 
 
     /////////////////////////
@@ -149,7 +150,12 @@ public abstract class GinjExporter implements Cancellable {
         cancelRequested.set(true);
     }
 
-    protected boolean isCancelled() {
+    protected boolean cancelRequested() {
         return cancelRequested.get();
+    }
+
+    @Override
+    public String toString() {
+        return getExporterName();
     }
 }

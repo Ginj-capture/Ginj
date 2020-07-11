@@ -4,13 +4,13 @@ import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
 import info.ginj.ui.CaptureEditingFrame;
 import info.ginj.ui.ImageEditorPane;
-import info.ginj.util.Util;
+import info.ginj.util.UI;
 
 import java.awt.*;
 
 public class TextTool implements GinjTool {
     // Remember color for new text overlays
-    Color textColor = Util.TEXT_TOOL_DEFAULT_FOREGROUND_COLOR;
+    Color textColor = UI.TEXT_TOOL_DEFAULT_FOREGROUND_COLOR;
 
     public Color getTextColor() {
         return textColor;

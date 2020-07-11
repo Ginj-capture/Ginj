@@ -5,7 +5,7 @@ import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 import info.ginj.model.Capture;
-import info.ginj.model.Prefs;
+import info.ginj.model.Target;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,11 +16,12 @@ import java.util.List;
  */
 public class GoogleDriveExporter extends GoogleExporter implements OnlineExporter {
     private static final String[] GOOGLE_DRIVE_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/drive"};
+    public static final String NAME = "Google Drive";
 
 
     @Override
     public String getExporterName() {
-        return "Google Drive";
+        return NAME;
     }
 
     @Override
@@ -29,22 +30,7 @@ public class GoogleDriveExporter extends GoogleExporter implements OnlineExporte
     }
 
     @Override
-    protected Prefs.Key getAccessTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_GOOGLE_DRIVE_ACCESS_TOKEN_PREFIX;
-    }
-
-    @Override
-    protected Prefs.Key getAccessExpiryKeyPrefix() {
-        return Prefs.Key.EXPORTER_GOOGLE_DRIVE_ACCESS_EXPIRY_PREFIX;
-    }
-
-    @Override
-    protected Prefs.Key getRefreshTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_GOOGLE_DRIVE_REFRESH_TOKEN_PREFIX;
-    }
-
-    @Override
-    public String getShareText() {
+    public String getDefaultShareText() {
         return "Add to Google Drive";
     }
 
@@ -68,16 +54,16 @@ public class GoogleDriveExporter extends GoogleExporter implements OnlineExporte
      * This method is run in its own thread and should not access the GUI directly. All interaction
      * should go through synchronized objects or be enclosed in a SwingUtilities.invokeLater() logic
      *
-     * @param capture       the capture to export
-     * @param accountNumber the accountNumber to export this capture to (if relevant)
+     * @param capture the capture to export
+     * @param target  the target to export this capture to
      */
     @Override
-    public void exportCapture(Capture capture, String accountNumber) {
+    public void exportCapture(Capture capture, Target target) {
         // TODO
     }
 
     @Override
-    public String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException {
+    public String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // TODO
         return null;
     }

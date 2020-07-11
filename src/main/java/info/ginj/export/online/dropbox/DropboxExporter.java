@@ -8,10 +8,9 @@ import info.ginj.export.online.AbstractOAuth2Exporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
-import info.ginj.model.Capture;
-import info.ginj.model.Prefs;
-import info.ginj.model.Profile;
-import info.ginj.util.Util;
+import info.ginj.model.*;
+import info.ginj.util.Misc;
+import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -39,11 +38,12 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     private static final String DROPBOX_REVOKE_URL = "https://www.dropbox.com/account/connected_apps";
 
     public static final int CHUNK_SIZE = 262144; // 256k
+    public static final String NAME = "Dropbox";
 
 
     @Override
     public String getExporterName() {
-        return "Dropbox";
+        return NAME;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     }
 
     @Override
-    protected String getOAuth2RevokeUrl() {
+    public String getOAuth2RevokeUrl() {
         return DROPBOX_REVOKE_URL;
     }
 
@@ -85,22 +85,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     }
 
     @Override
-    protected Prefs.Key getAccessTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX;
-    }
-
-    @Override
-    protected Prefs.Key getAccessExpiryKeyPrefix() {
-        return Prefs.Key.EXPORTER_DROPBOX_ACCESS_EXPIRY_PREFIX;
-    }
-
-    @Override
-    protected Prefs.Key getRefreshTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_DROPBOX_REFRESH_TOKEN_PREFIX;
-    }
-
-    @Override
-    public String getShareText() {
+    public String getDefaultShareText() {
         return "Add to Dropbox";
     }
 
@@ -130,50 +115,54 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
      * This method is run in its own thread and should not access the GUI directly. All interaction
      * should go through synchronized objects or be enclosed in a SwingUtilities.invokeLater() logic
      *
-     * @param capture       the capture to export
-     * @param accountNumber the accountNumber to export this capture to
+     * @param capture the capture to export
+     * @param target  the target to export this capture to
      */
     @Override
-    public void exportCapture(Capture capture, String accountNumber) {
+    public void exportCapture(Capture capture, Target target) {
         try {
-            final String captureUrl = uploadCapture(capture, accountNumber);
+            final String captureUrl = uploadCapture(capture, target);
+            String message = "Upload successful.";
+
             if (captureUrl != null) {
-                copyTextToClipboard(captureUrl);
-                capture.addExport(getExporterName(), captureUrl, null); // TODO store media Id. UploadCapture should return an Export object
-                // Indicate export is complete.
-                complete("Upload successful. A link to your capture was copied to the clipboard");
+                if (Misc.isTrue(target.getOptions().get(TargetPrefs.MUST_COPY_PATH_KEY))) {
+                    copyTextToClipboard(captureUrl);
+                    message += "\nA link to your capture was copied to the clipboard";
+                }
             }
+            capture.addExport(getExporterName(), captureUrl, null); // TODO store media Id. UploadCapture should return an Export object
+            // Indicate export is complete.
+            complete(message);
         }
         catch (Exception e) {
-            Util.alertException(getParentFrame(), getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
             failed("Upload error");
         }
     }
 
 
     /**
-     * This method checks that Dropbox authentication is valid by fetching user info
+     * This method checks that Dropbox authorizations are OK by fetching user info
      *
-     * @param accountNumber the accountNumber to export this capture to
+     * @param account the account to validate
      * @throws CommunicationException in case a communication error occurs
      * @throws AuthorizationException in case authorization fails
      */
     @Override
-    public void checkAuthorizations(String accountNumber) throws CommunicationException, AuthorizationException {
+    public void checkAuthorizations(Account account) throws CommunicationException, AuthorizationException {
         logProgress("Checking authorizations", 2);
 
-        //String userToken = Prefs.getWithSuffix(Prefs.Key.EXPORTER_DROPBOX_ACCESS_TOKEN_PREFIX, accountNumber);
-        String accessToken = getAccessToken(accountNumber);
+        String accessToken = getAccessToken(account);
         if (accessToken == null) {
             throw new AuthorizationException("No access token was provided");
         }
-        if (getProfile(accountNumber) == null) {
+        if (getProfile(accessToken) == null) {
             throw new AuthorizationException("Received empty username");
         }
     }
 
 
-    protected Profile getProfile(String accountNumber) throws CommunicationException, AuthorizationException {
+    protected Profile getProfile(String accessToken) throws CommunicationException, AuthorizationException {
         CloseableHttpClient client = HttpClients.createDefault();
 
         HttpPost httpPost;
@@ -185,7 +174,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             throw new CommunicationException(e);
         }
 
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Authorization", "Bearer " + accessToken);
 
         try {
             CloseableHttpResponse response = client.execute(httpPost);
@@ -216,22 +205,21 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     }
 
 
-
     /**
-     * Uploads a capture to Dropbox, shares it, and returns the URL of the shared media.
+     * Uploads a capture to Dropbox, and optionally shares it and returns the URL of the shared media.
      *
-     * @param capture       The object representing the captured screenshot or video
-     * @param accountNumber the number of this account among Google Photos accounts
+     * @param capture The object representing the captured screenshot or video
+     * @param target  the target to export this capture to
      * @return a public URL to share to give access to the uploaded media.
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
      * @throws UploadException        if an upload-specfic error occurs
      */
     @Override
-    public String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException {
+    public String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
         try {
-            capture.toFile();
+            capture.toRenderedFile();
         }
         catch (IOException e) {
             throw new UploadException("Error preparing file to upload", e);
@@ -240,18 +228,21 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         final CloseableHttpClient client = HttpClients.createDefault();
 
         // Step 1: Upload the file
-        final FileMetadata fileMetadata = uploadFile(client, accountNumber, capture);
+        final FileMetadata fileMetadata = uploadFile(client, target, capture);
 
-        // Step 2: Share it
-        SharedLinkMetadata sharedLinkMetadata = shareFile(client, accountNumber, fileMetadata);
+        if (Misc.isTrue(target.getOptions().get(TargetPrefs.MUST_SHARE_KEY))) {
+            // Step 2: Share it
+            SharedLinkMetadata sharedLinkMetadata = shareFile(client, target, fileMetadata);
 
-        return sharedLinkMetadata.getUrl();
+            return sharedLinkMetadata.getUrl();
+        }
+        else return null;
     }
 
-    public FileMetadata uploadFile(CloseableHttpClient client, String accountNumber, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
+    public FileMetadata uploadFile(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
         String sessionId;
 
-        final File file = capture.transientGetFile();
+        final File file = capture.getOriginalFile();
 
         int maxChunkSize = CHUNK_SIZE;
         byte[] buffer = new byte[maxChunkSize];
@@ -270,7 +261,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         logProgress("Uploading", 10);
         HttpPost httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/start");
 
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
         httpPost.addHeader("Dropbox-API-Arg", "{\"close\": false}");
 
@@ -320,7 +311,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             logProgress("Uploading", (int) (10 + (80 * offset) / file.length()), offset, file.length());
             httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/append_v2");
 
-            httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+            httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
             //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
             httpPost.addHeader("Dropbox-API-Arg",
                     "{\"cursor\": " +
@@ -358,18 +349,18 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         // Step 3: Finish session (optionally with the remaining bytes)
         logProgress("Uploading", (int) (10 + (80 * offset) / file.length()), offset, file.length());
 
-        final String targetFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + (capture.isVideo() ? Ginj.VIDEO_EXTENSION : Ginj.IMAGE_EXTENSION);
+        final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + (capture.isVideo() ? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION);
         FileMetadata fileMetadata;
 
         httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/finish");
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
         httpPost.addHeader("Dropbox-API-Arg",
                 "{\"cursor\": " +
                         "{\"session_id\": \"" + sessionId + "\"," +
                         "\"offset\": " + offset + "}" +
                         ",\"commit\": " +
-                        "{\"path\": \"" + targetFileName + "\"," +
+                        "{\"path\": \"" + destinationFileName + "\"," +
                         "\"mode\": \"add\"," +
                         "\"autorename\": true," +
                         "\"mute\": false," +
@@ -428,10 +419,10 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         return bytesRead;
     }
 
-    private SharedLinkMetadata shareFile(CloseableHttpClient client, String accountNumber, FileMetadata fileMetadata) throws AuthorizationException, CommunicationException {
+    private SharedLinkMetadata shareFile(CloseableHttpClient client, Target target, FileMetadata fileMetadata) throws AuthorizationException, CommunicationException {
         HttpPost httpPost = new HttpPost("https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings");
 
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         httpPost.addHeader("Content-Type", "application/json");
         httpPost.setEntity(new StringEntity(
                 "{\"path\": \"" + fileMetadata.getPathDisplay() + "\"," +

@@ -3,7 +3,7 @@ package info.ginj.tool.text;
 import info.ginj.tool.RectangleOverlay;
 import info.ginj.ui.CaptureEditingFrame;
 import info.ginj.ui.ImageEditorPane;
-import info.ginj.util.Util;
+import info.ginj.util.UI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +13,7 @@ import java.awt.event.FocusEvent;
 public class TextOverlay extends RectangleOverlay {
 
     // TODO Implement use of the following fields (popup to select font and color)
-    protected Color textColor = Util.TEXT_TOOL_DEFAULT_FOREGROUND_COLOR;
+    protected Color textColor = UI.TEXT_TOOL_DEFAULT_FOREGROUND_COLOR;
     protected String fontName;
     protected int fontSize;
     protected int fontStyle;
@@ -95,6 +95,9 @@ public class TextOverlay extends RectangleOverlay {
         textArea.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
+
+// TODO what happens after de/serialization of the overlay ?
+
                 if (!isSelected()) {
                     // Set this one as selected, but also deselect others
                     imagePane.setSelectedOverlay(TextOverlay.this);
@@ -127,18 +130,22 @@ public class TextOverlay extends RectangleOverlay {
         g2d.drawRoundRect(rectangle.x + xOffset, rectangle.y + yOffset, rectangle.width, rectangle.height, 16, 16);
     }
 
+    @java.beans.Transient
     public void setImagePane(ImageEditorPane imagePane) {
         this.imagePane = imagePane;
     }
 
+    @java.beans.Transient
     public ImageEditorPane getImagePane() {
         return imagePane;
     }
 
+    @java.beans.Transient
     public void setFrame(CaptureEditingFrame frame) {
         this.frame = frame;
     }
 
+    @java.beans.Transient
     public CaptureEditingFrame getFrame() {
         return frame;
     }

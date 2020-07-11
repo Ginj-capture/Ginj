@@ -11,8 +11,10 @@ import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 import info.ginj.model.Capture;
-import info.ginj.model.Prefs;
-import info.ginj.util.Util;
+import info.ginj.model.Target;
+import info.ginj.model.TargetPrefs;
+import info.ginj.util.Misc;
+import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -35,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static info.ginj.Ginj.DATE_FORMAT_PATTERN;
+import static info.ginj.util.Misc.DATE_FORMAT_PATTERN;
 
 /**
  * Handles interaction with Google Photos service
@@ -53,11 +55,30 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     public static final ByteArrayEntity EMPTY_ENTITY = new ByteArrayEntity(new byte[]{}, ContentType.APPLICATION_OCTET_STREAM);
 
     public static final int CHUNK_SIZE = 262144; // 256k
+    public static final String NAME = "Google Photos";
+
+    public enum Granularity {
+        APP("for " + Ginj.getAppName()),
+        DAY("per day"),
+        SESSION("per " + Ginj.getAppName() + " session"),
+        NAME("per name"),
+        CAPTURE("per capture");
+
+        private final String friendlyName;
+
+        Granularity(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+
+        public String toString() {
+            return friendlyName;
+        }
+    }
 
 
     @Override
     public String getExporterName() {
-        return "Google Photos";
+        return NAME;
     }
 
     @Override
@@ -68,22 +89,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     }
 
     @Override
-    protected Prefs.Key getAccessTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ACCESS_TOKEN_PREFIX;
-    }
-
-    @Override
-    protected Prefs.Key getAccessExpiryKeyPrefix() {
-        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ACCESS_EXPIRY_PREFIX;
-    }
-
-    @Override
-    protected Prefs.Key getRefreshTokenKeyPrefix() {
-        return Prefs.Key.EXPORTER_GOOGLE_PHOTOS_REFRESH_TOKEN_PREFIX;
-    }
-
-    @Override
-    public String getShareText() {
+    public String getDefaultShareText() {
         return "Add to Google Photos";
     }
 
@@ -107,46 +113,50 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
      * This method is run in its own thread and should not access the GUI directly. All interaction
      * should go through synchronized objects or be enclosed in a SwingUtilities.invokeLater() logic
      *
-     * @param capture       the capture to export
-     * @param accountNumber the accountNumber to export this capture to (if relevant)
+     * @param capture the capture to export
+     * @param target  the target to export this capture to
      */
     @Override
-    public void exportCapture(Capture capture, String accountNumber) {
+    public void exportCapture(Capture capture, Target target) {
         try {
-            final String albumUrl = uploadCapture(capture, accountNumber);
+            final String albumUrl = uploadCapture(capture, target);
+            String message = "Upload successful.";
             if (albumUrl != null) {
-                copyTextToClipboard(albumUrl);
-                capture.addExport(getExporterName(), albumUrl, null); // TODO store media Id. UploadCapture should return an Export object
-                // Indicate export is complete.
-                complete("Upload successful. A link to the album containing your capture was copied to the clipboard");
+                if (Misc.isTrue(target.getOptions().get(TargetPrefs.MUST_COPY_PATH_KEY))) {
+                    copyTextToClipboard(albumUrl);
+                    message += "\nA link to the album containing your capture was copied to the clipboard";
+                }
             }
+            capture.addExport(getExporterName(), albumUrl, null); // TODO store media Id. UploadCapture should return an Export object
+            // Indicate export is complete.
+            complete(message);
         }
         catch (Exception e) {
-            Util.alertException(getParentFrame(), getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
             failed("Upload error");
         }
     }
 
 
-    
     ///////////////////////////////////////
     // Low level
 
 
     /**
-     * Upload a capture to the Google Photo service and return the URL of the shared album containing the item.
+     * Uploads a capture to the Google Photo service and optionally share the album containing the item and return its URL.
+     *
      * @param capture The object representing the captured screenshot or video
-     * @param accountNumber the number of this account among Google Photos accounts
+     * @param target  the target to export this capture to
      * @return a public URL to share to give access to the uploaded media.
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specfic error occurs
      */
     @Override
-    public String uploadCapture(Capture capture, String accountNumber) throws AuthorizationException, UploadException, CommunicationException {
+    public String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
         try {
-            capture.toFile();
+            capture.toRenderedFile();
         }
         catch (IOException e) {
             throw new UploadException("Error preparing file to upload", e);
@@ -155,47 +165,51 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         final CloseableHttpClient client = HttpClients.createDefault();
 
         // Step 1: Retrieve Ginj album ID, or create it if needed
-        // + Share the album (one cannot share a single media using the API)
-        final Album album = getOrCreateAlbum(client, accountNumber, capture);
+        // + Optionally share the album (one cannot share a single media using the API)
+        final Album album = getOrCreateAlbum(client, target, capture);
 
         // Step 2: Upload bytes
-        final String uploadToken = uploadFileBytes(client, accountNumber, capture);
+        final String uploadToken = uploadFileBytes(client, target, capture);
 
         // Step 3: Create a media item in the album
         @SuppressWarnings("unused")
-        String mediaId = createMediaItem(client, accountNumber, capture, album.getId(), uploadToken);
+        String mediaId = createMediaItem(client, target, capture, album.getId(), uploadToken);
         // Unfortunately, mediaId seems to be useless as we can only share the album...
 
-        return album.getShareInfo().getShareableUrl();
+        if (Misc.isTrue(target.getOptions().get(TargetPrefs.MUST_SHARE_KEY))) {
+            return album.getShareInfo().getShareableUrl();
+        }
+        else {
+            return null;
+        }
     }
 
     /**
      * Retrieves the album to upload image to, or create it if needed.
      * Also checks the album is shared, or shares it if needed.
      *
-     * @param client the {@link CloseableHttpClient}
-     * @param accountNumber the number of this account among Google Photos accounts
+     * @param client  the {@link CloseableHttpClient}
+     * @param target  the target to export this capture to
      * @param capture The object representing the captured screenshot or video
      * @return the retrieved or created album
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
      */
-    private Album getOrCreateAlbum(CloseableHttpClient client, String accountNumber, Capture capture) throws AuthorizationException, CommunicationException {
+    private Album getOrCreateAlbum(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, CommunicationException {
         // Determine target album accorging to "granularity" preference:
         // Single album / One per day / One per Ginj session / One per capture name / one per capture id
-        String granularity = Prefs.getWithSuffix(Prefs.Key.EXPORTER_GOOGLE_PHOTOS_ALBUM_GRANULARITY, accountNumber, "APP");
+        Granularity granularity = Granularity.valueOf(target.getOptions().get(TargetPrefs.ALBUM_GRANULARITY_KEY));
         String albumName = switch (granularity) {
-            case "APP" -> Ginj.getAppName() + " uploads";
-            case "DAY" -> Ginj.getAppName() + " uploads of " + DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(LocalDateTime.now());
-            case "SESSION" -> Ginj.getAppName() + " session of " + Ginj.getSession();
-            case "NAME" -> capture.getName();
-            case "CAPTURE" -> Ginj.getAppName() + " capture " + capture.getId();
-            default -> throw new IllegalStateException("Unexpected granularity: " + granularity);
+            case APP -> Ginj.getAppName() + " uploads";
+            case DAY -> Ginj.getAppName() + " uploads of " + DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(LocalDateTime.now());
+            case SESSION -> Ginj.getAppName() + " session of " + Ginj.getSession();
+            case NAME -> capture.getName();
+            case CAPTURE -> Ginj.getAppName() + " capture " + capture.getId();
         };
 
         // Try to find the album in the list of existing albums
         logProgress("Getting album", 6);
-        Album album = getAlbumByName(client, accountNumber, albumName);
+        Album album = getAlbumByName(client, target, albumName);
 
         // See if we found it
         if (album != null) {
@@ -203,17 +217,17 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             if (album.getShareInfo() == null || album.getShareInfo().getShareableUrl() == null) {
                 // No, share it
                 logProgress("Sharing album", 8);
-                shareAlbum(client, accountNumber, album);
+                shareAlbum(client, target, album);
             }
         }
         else {
             // Not found. Create it
             logProgress("Creating album", 5);
-            album = createAlbum(client, accountNumber, albumName);
+            album = createAlbum(client, target, albumName);
 
             // And, share it
             logProgress("Sharing album", 4);
-            shareAlbum(client, accountNumber, album);
+            shareAlbum(client, target, album);
         }
 
         return album;
@@ -221,19 +235,19 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 
 
     /**
-     * List all application albums and return the one with the given name.
+     * Lists all application albums and return the one with the given name.
      *
-     * @param client the {@link CloseableHttpClient}
-     * @param accountNumber the number of this account among Google Photos accounts
+     * @param client    the {@link CloseableHttpClient}
+     * @param target    the target to export this capture to
      * @param albumName the album name to find
      * @return the album found, or null if not found
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
      */
-    private Album getAlbumByName(CloseableHttpClient client, String accountNumber, String albumName) throws AuthorizationException, CommunicationException {
+    private Album getAlbumByName(CloseableHttpClient client, Target target, String albumName) throws AuthorizationException, CommunicationException {
         AlbumList albumList = null;
         do {
-            albumList = getNextAlbumPage(client, accountNumber, (albumList==null)?null:albumList.getNextPageToken());
+            albumList = getNextAlbumPage(client, target, (albumList == null) ? null : albumList.getNextPageToken());
             for (Album candidate : albumList.albums) {
                 if (albumName.equals(candidate.title)) {
                     return candidate;
@@ -247,16 +261,17 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     }
 
     /**
-     * List a page of albums
+     * Lists a page of albums
      * Implements https://developers.google.com/photos/library/reference/rest/v1/albums/list
-     * @param client the {@link CloseableHttpClient}
-     * @param accountNumber the number of this account among Google Photos accounts
+     *
+     * @param client    the {@link CloseableHttpClient}
+     * @param target    the target to export this capture to
      * @param pageToken the token to access a given page in the iteration, or null to start
      * @return a page of albums
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
      */
-    private AlbumList getNextAlbumPage(CloseableHttpClient client, String accountNumber, String pageToken) throws AuthorizationException, CommunicationException {
+    private AlbumList getNextAlbumPage(CloseableHttpClient client, Target target, String pageToken) throws AuthorizationException, CommunicationException {
         HttpGet httpGet;
         try {
             URIBuilder builder = new URIBuilder("https://photoslibrary.googleapis.com/v1/albums");
@@ -269,7 +284,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             throw new CommunicationException(e);
         }
 
-        httpGet.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpGet.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         httpGet.addHeader("Content-type", "application/json");
 
         try {
@@ -296,16 +311,17 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     /**
      * Shares the given album
      * Implements https://developers.google.com/photos/library/reference/rest/v1/albums/share
+     *
      * @param client the {@link CloseableHttpClient}
-     * @param accountNumber the number of this account among Google Photos accounts
-     * @param album the album to share. Will be modified to include ShareInfo once shared.
+     * @param target the target to export this capture to
+     * @param album  the album to share. Will be modified to include ShareInfo once shared.
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
      */
-    private void shareAlbum(CloseableHttpClient client, String accountNumber, Album album) throws AuthorizationException, CommunicationException {
+    private void shareAlbum(CloseableHttpClient client, Target target, Album album) throws AuthorizationException, CommunicationException {
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/albums/" + album.id + ":share");
 
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         httpPost.addHeader("Content-type", "application/json");
 
         // Build JSON query:
@@ -344,20 +360,20 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     }
 
     /**
-     * Retrieve a specific album.
+     * Retrieves a specific album.
      * Implements https://developers.google.com/photos/library/reference/rest/v1/albums/get
-     * @param client the {@link CloseableHttpClient}
-     * @param accountNumber the number of this account among Google Photos accounts
+     *
+     * @param client  the {@link CloseableHttpClient}
+     * @param target  the target to export this capture to
      * @param albumId the ID of the album to retrieve
      * @return the retrieved album
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
      */
-    @SuppressWarnings("unused")
-    private Album getAlbumById(CloseableHttpClient client, String accountNumber, String albumId) throws AuthorizationException, CommunicationException {
+    private Album getAlbumById(CloseableHttpClient client, Target target, String albumId) throws AuthorizationException, CommunicationException {
         HttpGet httpGet = new HttpGet("https://photoslibrary.googleapis.com/v1/albums/" + albumId);
 
-        httpGet.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpGet.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         httpGet.addHeader("Content-type", "application/json");
 
         try {
@@ -382,19 +398,20 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     }
 
     /**
-     * Create an application album with the given name.
+     * Creates an application album with the given name.
      * Implements https://developers.google.com/photos/library/reference/rest/v1/albums/create
-     * @param client the {@link CloseableHttpClient}
-     * @param accountNumber the number of this account among Google Photos accounts
+     *
+     * @param client    the {@link CloseableHttpClient}
+     * @param target    the target to export this capture to
      * @param albumName the name of the album to create
      * @return the created album
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
      */
-    private Album createAlbum(CloseableHttpClient client, String accountNumber, String albumName) throws AuthorizationException, CommunicationException {
+    private Album createAlbum(CloseableHttpClient client, Target target, String albumName) throws AuthorizationException, CommunicationException {
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/albums");
 
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         httpPost.addHeader("Content-type", "application/json");
 
         Album album = new Album();
@@ -431,7 +448,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     }
 
 //    /**
-//     * Upload the captured file contents to Google Photos.
+//     * Uploads the captured file contents to Google Photos.
 //     * Implements https://developers.google.com/photos/library/guides/upload-media#uploading-bytes
 //     *
 //     * @param client the {@link CloseableHttpClient}
@@ -474,27 +491,27 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 //    }
 
     /**
-     * Upload the captured file contents to Google Photos in "resumable" mode
+     * Uploads the captured file contents to Google Photos in "resumable" mode
      * Implements https://developers.google.com/photos/library/guides/resumable-uploads
      *
-     * @param client the {@link CloseableHttpClient}
-     * @param accountNumber the number of this account among Google Photos accounts
+     * @param client  the {@link CloseableHttpClient}
+     * @param target  the target to export this capture to
      * @param capture to upload
      * @return the uploadToken to be used to link this content to a media
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specfic error occurs
      */
-    private String uploadFileBytes(CloseableHttpClient client, String accountNumber, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
+    private String uploadFileBytes(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
         String uploadToken = null;
 
-        final File file = capture.transientGetFile();
+        final File file = capture.getOriginalFile();
 
         // Step 1: Initiating an upload session
         logProgress("Uploading", 10);
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/uploads");
 
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
         httpPost.addHeader("X-Goog-Upload-Command", "start");
         httpPost.addHeader("X-Goog-Upload-Content-Type", capture.isVideo() ? "video/mp4" : "image/png");
@@ -542,7 +559,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         // Step 3: Uploading the file
 
         int maxChunkSize = CHUNK_SIZE;
-        maxChunkSize = (maxChunkSize/chunkGranularityBytes) * chunkGranularityBytes;
+        maxChunkSize = (maxChunkSize / chunkGranularityBytes) * chunkGranularityBytes;
         byte[] buffer = new byte[maxChunkSize];
         int offset = 0;
         long remainingBytes = file.length();
@@ -564,10 +581,10 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 throw new UploadException("Could not read bytes from file");
             }
 
-            logProgress("Uploading", (int) (10 + (80 * offset)/file.length()), offset, file.length());
+            logProgress("Uploading", (int) (10 + (80 * offset) / file.length()), offset, file.length());
 
             httpPost = new HttpPost(uploadUrl);
-            httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+            httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
             //httpPost.addHeader("Content-Length", chunkSize); // Don't put it here, it causes a "dupe header" error as there is an entity.
             httpPost.addHeader("X-Goog-Upload-Command", command);
             httpPost.addHeader("X-Goog-Upload-Offset", offset);
@@ -609,22 +626,23 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     /**
      * Creates a media entry in the given application album.
      * Implements https://developers.google.com/photos/library/reference/rest/v1/mediaItems/batchCreate
-     * @param client the {@link CloseableHttpClient}
-     * @param accountNumber the number of this account among Google Photos accounts
-     * @param capture The object representing the captured screenshot or video
-     * @param albumId The ID of the album to create the capture in
+     *
+     * @param client      the {@link CloseableHttpClient}
+     * @param target      the target to export this capture to
+     * @param capture     The object representing the captured screenshot or video
+     * @param albumId     The ID of the album to create the capture in
      * @param uploadToken The token to the actual contents uploaded using uploadFileBytes
      * @return the ID of the created media
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specfic error occurs
      */
-    private String createMediaItem(CloseableHttpClient client, String accountNumber, Capture capture, String albumId, String uploadToken) throws AuthorizationException, UploadException, CommunicationException {
+    private String createMediaItem(CloseableHttpClient client, Target target, Capture capture, String albumId, String uploadToken) throws AuthorizationException, UploadException, CommunicationException {
 
         logProgress("Creating media", 95);
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate");
 
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(accountNumber));
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         httpPost.addHeader("Content-type", "application/json");
 
         // Build JSON query:
@@ -680,7 +698,6 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             throw new CommunicationException("Error creating media", e);
         }
     }
-
 
 
     ////////////////////////////////////////////////////
@@ -917,24 +934,24 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     /**
      * AlbumList example
      * {
-     *   "albums": [
-     *     {
-     *       "id": "ABWT9pnV2YqWyhiUj4oTewsezef9BLHEyRIdNyXx6rkvwjc0gMzsl6la2CY5R_YD9JllYuOBP_OJ",
-     *       "title": "Ginj",
-     *       "productUrl": "https://photos.google.com/lr/album/ABWT9pnV2YqWyhiUj4oTewsezef9BLHEyRIdNyXx6rkvwjc0gMzsl6la2CY5R_YD9JllYuOBP_OJ",
-     *       "isWriteable": true,
-     *       "shareInfo": {
-     *         "sharedAlbumOptions": {},
-     *         "shareableUrl": "https://photos.app.goo.gl/4uskYMvDvdSfHPTD7",
-     *         "shareToken": "AOVP0rSljkRvVA9-0d0R4GsAp3WlH9zLEr3x8BoAoHdBMLA8qOe2UQnvS3PSL4_SjtpDu8dtebMlAxteF1AADUx6vrP9Xnr6vztdhHynJqFrY-QzXAwDXpTu9kWVmhkBLTg",
-     *         "isJoined": true,
-     *         "isOwned": true
-     *       },
-     *       "mediaItemsCount": "8",
-     *       "coverPhotoBaseUrl": "https://lh3.googleusercontent.com/lr/AFBm1_Zo4K2OVb-vCI1LEty3Ec7l8HemK_gJfjT1bSaISMnq8_pRe-jm7m92d6WBovPX59M7mYHQ1NSpaF842AOBYiJvT6XrIJaksi1TZNCZdcIq2MiU3AB3VZiGmVla9Vjk-HA-C2VQjHQhiIXobNZbaPcyyRSJOGKxAlSQ7lzXvglD_5VajflbWNpGATLNtZaE-JjwWRqL8pLUKsY3FfUFcqVe1olT143Tpfz6HL85mp1vqWCCQYgNkjkdyTT2vnMtMECQpRJMvGyEDPOzZn7TWCR4aRm_HrpNSy8spGAlkzUK7eVEnQmTAQq1bJEvD3jT8kLBJVCGu5yBe6BsnVWFAu4mXySS2ZJA6cohfn7p3S_gLNqCj2wPYPJOsjdUtID7IGYqssuhwNxA54xv__JZysJ6g9a8bwlD340JuZo0aZqqzP1GzJ7nC4YkauG7b33U9GzAOMy5Ed7R8XZElrIi6yyW1NX9VpQbslbDhrNdQ8LrWzkMZLD7hl4Gd5SL_-pjcsIv-BDu64XYqd_PLlUPhJ_hsFjZZQlxsbanlad0tSZuDhJZwnYzVwDm2lJPOPsTFZUTyaLO1etSd-RTbUnCVzXzSMz8Og-x6C426m5L1vYWG6ub1RVR_Yt2bBximegIUPwv4MApxRqzHV57zB2Wjnsy6_Zw3EtLtdLRaCdo8RYkO0qL09TtvgHHkgFb4pMEYp4oE5m9ay7AKtt6W2hzcNKUq5ziN3n46xK8a8qAzzdiyXvBasUSCy_MfBeYzq20oOGhiqTN9ccS_af3-pIbIHvMWwwNO4s1V-vmuLbQ-CYqRHmRZv3dDm_cFAxGWAs6aw",
-     *       "coverPhotoMediaItemId": "ABWT9pl3-DjE3dCouIYTnOSeTUUtDH3chFO0lU82ZdsIA0FwUpyTyJT0jUqckemBl4RoHZrLQMEsYfeBa4A9S0YJJVFbFdw0LQ"
-     *     }
-     *   ]
+     * "albums": [
+     * {
+     * "id": "ABWT9pnV2YqWyhiUj4oTewsezef9BLHEyRIdNyXx6rkvwjc0gMzsl6la2CY5R_YD9JllYuOBP_OJ",
+     * "title": "Ginj",
+     * "productUrl": "https://photos.google.com/lr/album/ABWT9pnV2YqWyhiUj4oTewsezef9BLHEyRIdNyXx6rkvwjc0gMzsl6la2CY5R_YD9JllYuOBP_OJ",
+     * "isWriteable": true,
+     * "shareInfo": {
+     * "sharedAlbumOptions": {},
+     * "shareableUrl": "https://photos.app.goo.gl/4uskYMvDvdSfHPTD7",
+     * "shareToken": "AOVP0rSljkRvVA9-0d0R4GsAp3WlH9zLEr3x8BoAoHdBMLA8qOe2UQnvS3PSL4_SjtpDu8dtebMlAxteF1AADUx6vrP9Xnr6vztdhHynJqFrY-QzXAwDXpTu9kWVmhkBLTg",
+     * "isJoined": true,
+     * "isOwned": true
+     * },
+     * "mediaItemsCount": "8",
+     * "coverPhotoBaseUrl": "https://lh3.googleusercontent.com/lr/AFBm1_Zo4K2OVb-vCI1LEty3Ec7l8HemK_gJfjT1bSaISMnq8_pRe-jm7m92d6WBovPX59M7mYHQ1NSpaF842AOBYiJvT6XrIJaksi1TZNCZdcIq2MiU3AB3VZiGmVla9Vjk-HA-C2VQjHQhiIXobNZbaPcyyRSJOGKxAlSQ7lzXvglD_5VajflbWNpGATLNtZaE-JjwWRqL8pLUKsY3FfUFcqVe1olT143Tpfz6HL85mp1vqWCCQYgNkjkdyTT2vnMtMECQpRJMvGyEDPOzZn7TWCR4aRm_HrpNSy8spGAlkzUK7eVEnQmTAQq1bJEvD3jT8kLBJVCGu5yBe6BsnVWFAu4mXySS2ZJA6cohfn7p3S_gLNqCj2wPYPJOsjdUtID7IGYqssuhwNxA54xv__JZysJ6g9a8bwlD340JuZo0aZqqzP1GzJ7nC4YkauG7b33U9GzAOMy5Ed7R8XZElrIi6yyW1NX9VpQbslbDhrNdQ8LrWzkMZLD7hl4Gd5SL_-pjcsIv-BDu64XYqd_PLlUPhJ_hsFjZZQlxsbanlad0tSZuDhJZwnYzVwDm2lJPOPsTFZUTyaLO1etSd-RTbUnCVzXzSMz8Og-x6C426m5L1vYWG6ub1RVR_Yt2bBximegIUPwv4MApxRqzHV57zB2Wjnsy6_Zw3EtLtdLRaCdo8RYkO0qL09TtvgHHkgFb4pMEYp4oE5m9ay7AKtt6W2hzcNKUq5ziN3n46xK8a8qAzzdiyXvBasUSCy_MfBeYzq20oOGhiqTN9ccS_af3-pIbIHvMWwwNO4s1V-vmuLbQ-CYqRHmRZv3dDm_cFAxGWAs6aw",
+     * "coverPhotoMediaItemId": "ABWT9pl3-DjE3dCouIYTnOSeTUUtDH3chFO0lU82ZdsIA0FwUpyTyJT0jUqckemBl4RoHZrLQMEsYfeBa4A9S0YJJVFbFdw0LQ"
+     * }
+     * ]
      * }
      */
     @SuppressWarnings("unused")
@@ -1006,7 +1023,6 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 
         /**
          * No args constructor for use in serialization
-         *
          */
         public Album() {
         }
@@ -1091,19 +1107,19 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 
     /**
      * ShareResult example:
-     *
+     * <p>
      * {
-     *     "shareInfo":
-     *     {
-     *         "sharedAlbumOptions": {
-     *         "isCollaborative": false,
-     *                 "isCommentable": false
-     *     },
-     *         "shareableUrl": "http://fqsdfsd.com",
-     *             "shareToken": "12345sqsd",
-     *             "isJoined": false,
-     *             "isOwned": true
-     *     }
+     * "shareInfo":
+     * {
+     * "sharedAlbumOptions": {
+     * "isCollaborative": false,
+     * "isCommentable": false
+     * },
+     * "shareableUrl": "http://fqsdfsd.com",
+     * "shareToken": "12345sqsd",
+     * "isJoined": false,
+     * "isOwned": true
+     * }
      * }
      */
     @SuppressWarnings("unused")

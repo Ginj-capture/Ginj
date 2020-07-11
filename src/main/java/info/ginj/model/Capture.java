@@ -2,6 +2,7 @@ package info.ginj.model;
 
 import info.ginj.Ginj;
 import info.ginj.tool.Overlay;
+import info.ginj.util.Misc;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -13,16 +14,25 @@ import java.util.List;
 /**
  * A capture is something (screenshot or screen recording) ready for export
  */
-public class Capture {
+public class Capture implements Cloneable {
     String id;
-    boolean isVideo;
+    int version = 1;
+    boolean isVideo = false;
     String name;
-    List<Overlay> overlays;
+    List<Overlay> overlays = new ArrayList<>();
     List<Export> exports = new ArrayList<>();
-    File file;
+    File originalFile;
     BufferedImage originalImage;
+    File renderedFile;
     BufferedImage renderedImage;
 
+    public Capture() {
+    }
+
+    public Capture(String id, BufferedImage image) {
+        this.id = id;
+        this.originalImage = image;
+    }
 
     public String getId() {
         return id;
@@ -30,6 +40,14 @@ public class Capture {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 
     public boolean isVideo() {
@@ -68,53 +86,57 @@ public class Capture {
         exports.add(new Export(exporter, id, url));
     }
 
-    /**
-     * Getter renamed to non-javabeans convention so it is skipped by XMLEncoder
-     */
-    public File transientGetFile() {
-        return file;
+    // Note: Transient to prevent being saved to disk
+
+    @java.beans.Transient
+    public File getOriginalFile() {
+        return originalFile;
     }
 
-    /**
-     * Setter renamed to non-javabeans convention so it is skipped by XMLDecoder
-     */
-    public void transientSetFile(File file) {
-        this.file = file;
+    @java.beans.Transient
+    public void setOriginalFile(File originalFile) {
+        this.originalFile = originalFile;
     }
 
-    /**
-     * Getter renamed to non-javabeans convention so it is skipped by XMLEncoder
-     */
-    public BufferedImage transientGetOriginalImage() {
+    @java.beans.Transient
+    public BufferedImage getOriginalImage() {
         return originalImage;
     }
 
-    /**
-     * Setter renamed to non-javabeans convention so it is skipped by XMLDecoder
-     */
-    public void transientSetOriginalImage(BufferedImage originalImage) {
+    @java.beans.Transient
+    public void setOriginalImage(BufferedImage originalImage) {
         this.originalImage = originalImage;
     }
 
-    /**
-     * Getter renamed to non-javabeans convention so it is skipped by XMLEncoder
-     */
-    public BufferedImage transientGetRenderedImage() {
+    @java.beans.Transient
+    public File getRenderedFile() {
+        return renderedFile;
+    }
+
+    @java.beans.Transient
+    public void setRenderedFile(File renderedFile) {
+        this.renderedFile = renderedFile;
+    }
+
+    @java.beans.Transient
+    public BufferedImage getRenderedImage() {
         return renderedImage;
     }
 
-    /**
-     * Setter renamed to non-javabeans convention so it is skipped by XMLDecoder
-     */
-    public void transientSetRenderedImage(BufferedImage renderedImage) {
+    @java.beans.Transient
+    public void setRenderedImage(BufferedImage renderedImage) {
         this.renderedImage = renderedImage;
     }
 
-    // Utils
-
-    public String getType() {
-        return isVideo ? "Video" : "Image";
+    @Override
+    public Capture clone() throws CloneNotSupportedException {
+        return (Capture)super.clone();
     }
+
+
+// Utils
+
+
 
     /**
      * Returns the file of the capture, or writes the BufferedImage to a temp file and returns it if file was empty
@@ -122,13 +144,18 @@ public class Capture {
      * @return The file
      * @throws IOException in case file had to be created and an error occurred
      */
-    public File toFile() throws IOException {
-        if (file == null) {
-            file = new File(Ginj.getTempDir(), id + Ginj.IMAGE_EXTENSION);
-            ImageIO.write(renderedImage, Ginj.IMAGE_FORMAT_PNG, file);
-            file.deleteOnExit();
+    public File toRenderedFile() throws IOException {
+        if (renderedFile == null) {
+            renderedFile = new File(Ginj.getTempDir(), id + Misc.IMAGE_EXTENSION);
+            ImageIO.write(renderedImage, Misc.IMAGE_FORMAT_PNG, renderedFile);
+            renderedFile.deleteOnExit();
         }
-        return file;
+        return renderedFile;
+    }
+
+    @java.beans.Transient
+    public String getType() {
+        return isVideo ? "Video" : "Image";
     }
 
     /**
@@ -136,6 +163,7 @@ public class Capture {
      *
      * @return
      */
+    @java.beans.Transient
     public String getDefaultName() {
         if (name == null || name.isBlank()) {
             return id;
@@ -143,10 +171,16 @@ public class Capture {
         return name;
     }
 
+    @java.beans.Transient
+    public String getBaseFilename() {
+        return getId() + "_v" + getVersion();
+    }
+
     @Override
     public String toString() {
         return "Capture{" +
                 "id='" + id + '\'' +
+                ", version=" + version +
                 ", isVideo=" + isVideo +
                 ", name='" + name + '\'' +
                 '}';

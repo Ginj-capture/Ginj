@@ -237,8 +237,6 @@ public class TargetManagementFrame extends JFrame {
     }
 
     private static class ServiceSelectionPage extends WizardPage {
-        @SuppressWarnings("rawtypes")
-        private JList exporterJList;
 
         public ServiceSelectionPage() {
             super(SELECT_TARGET_TYPE_STEP, "Select target type");
@@ -248,7 +246,8 @@ public class TargetManagementFrame extends JFrame {
         protected void renderingPage() {
             super.renderingPage();
 
-            exporterJList = UI.getWizardList(TargetPrefs.EXPORTER_KEY, GinjExporter.getList().toArray(), -1, true, true);
+            //noinspection rawtypes
+            JList exporterJList = UI.getWizardList(TargetPrefs.EXPORTER_KEY, GinjExporter.getList().toArray(), -1, true, true);
 
             JPanel intermediatePanel = new JPanel();
             intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
@@ -530,7 +529,7 @@ public class TargetManagementFrame extends JFrame {
         }
 
         @Override
-        public Object finish(Map map) throws WizardException {
+        public Object finish(Map map) {
             try {
                 final GinjExporter exporter = (GinjExporter) map.get(TargetPrefs.EXPORTER_KEY);
                 if (exporter != null) {
@@ -560,7 +559,7 @@ public class TargetManagementFrame extends JFrame {
                 }
                 else {
                     System.err.println(map);
-                    return Summary.create("There was an error saving target, inconsistent data found (exporter = '" + exporter + "').", map);
+                    return Summary.create("There was an error saving target, no exporter in map.", map);
                 }
             }
             catch (Exception e) {

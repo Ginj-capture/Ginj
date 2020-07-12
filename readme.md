@@ -73,4 +73,6 @@ The user interface uses:
 - Laptop icon from [Icons8](https://icons8.com/)
 - FTP icon by Pixel perfect from [flaticon](http://www.flaticon.com)
 
-Thanks to [Techsmith](https://www.techsmith.com/) for having proposed and supported Jing for so long. Check out their product line.
+Many thanks: 
+- to [ej-technologies](https://www.ej-technologies.com/) for providing free licences of [Install4J, the best multi-platform installer builder](https://www.ej-technologies.com/products/install4j/overview.html) for non-profit open source projects.
+- to [Techsmith](https://www.techsmith.com/) for having proposed and supported Jing for so long. Check out their product line.

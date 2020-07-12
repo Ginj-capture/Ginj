@@ -150,7 +150,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
      */
     @Override
     public void checkAuthorizations(Account account) throws CommunicationException, AuthorizationException {
-        logProgress("Checking authorizations", 2);
+        logProgress("Checking authorizations", PROGRESS_CHECK_AUTHORIZE_START);
 
         String accessToken = getAccessToken(account);
         if (accessToken == null) {
@@ -218,6 +218,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     @Override
     public String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
+        logProgress("Rendering file", PROGRESS_RENDER_START);
         try {
             capture.toRenderedFile();
         }
@@ -242,7 +243,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     public FileMetadata uploadFile(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
         String sessionId;
 
-        final File file = capture.getOriginalFile();
+        final File file = capture.getRenderedFile();
 
         int maxChunkSize = CHUNK_SIZE;
         byte[] buffer = new byte[maxChunkSize];
@@ -258,7 +259,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
 
         // Step 1: Initiating an upload session with the first CHUNK
-        logProgress("Uploading", 10);
+        logProgress("Uploading", PROGRESS_UPLOAD_START);
         HttpPost httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/start");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -308,7 +309,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
         // Step 2: Append to session with more CHUNKS, if needed
         while (remainingBytes > CHUNK_SIZE) {
-            logProgress("Uploading", (int) (10 + (80 * offset) / file.length()), offset, file.length());
+            logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
             httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/append_v2");
 
             httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -347,7 +348,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
 
         // Step 3: Finish session (optionally with the remaining bytes)
-        logProgress("Uploading", (int) (10 + (80 * offset) / file.length()), offset, file.length());
+        logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
 
         final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + (capture.isVideo() ? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION);
         FileMetadata fileMetadata;
@@ -402,7 +403,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         }
 
 
-        logProgress("Uploaded", 90, file.length(), file.length());
+        logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
 
         return fileMetadata;
     }

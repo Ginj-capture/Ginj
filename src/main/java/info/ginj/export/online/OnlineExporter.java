@@ -9,6 +9,15 @@ import info.ginj.model.Target;
 
 public interface OnlineExporter {
 
+    int PROGRESS_CHECK_AUTHORIZE_START = 2;
+    int PROGRESS_CREATING_ALBUM = 5;
+    int PROGRESS_GETTING_ALBUM = 6;
+    int PROGRESS_SHARING_ALBUM = 8;
+    int PROGRESS_RENDER_START = 10;
+    int PROGRESS_UPLOAD_START = 20;
+    int PROGRESS_UPLOAD_END = 90;
+    int PROGRESS_CREATING_MEDIA = 95;
+
     Account authorize() throws AuthorizationException, CommunicationException;
 
     /**

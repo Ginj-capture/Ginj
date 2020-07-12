@@ -33,7 +33,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.*;
 
@@ -53,7 +52,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
     // TODO mabye make the following fields ThreadLocal ?
     protected String verifier;
     protected String receivedCode = null;
-    protected List<String> receivedScopes = null;
+    protected ArrayList<String> receivedScopes = null;
     protected HttpServer server;
 
 
@@ -182,7 +181,8 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
     @java.beans.Transient
     protected abstract String getOAuth2TokenUrl();
 
-    protected OAuthAccount exchangeCodeForTokens(String code, List<String> allowedScopes) throws AuthorizationException, CommunicationException {
+    // Note: forcing an ArrayList because it will have to be persisted and we have to make sure it has a no-arg constructor (e.g. not Arrays.asList())
+    protected OAuthAccount exchangeCodeForTokens(String code, ArrayList<String> allowedScopes) throws AuthorizationException, CommunicationException {
         logProgress("Getting tokens");
 
         CloseableHttpClient client = HttpClients.createDefault();
@@ -214,16 +214,12 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                 @SuppressWarnings("rawtypes")
                 Map map = new Gson().fromJson(responseText, Map.class);
                 String accessToken = (String) map.get("access_token");
-                Double expiresIn = (Double) map.get("expires_in");
+                Double expiresInSecs = (Double) map.get("expires_in");
                 String refreshToken = (String) map.get("refresh_token");
-                // System.out.println("accessToken = " + accessToken);
-                // System.out.println("expiresIn = " + expiresIn);
-                // System.out.println("refreshToken = " + refreshToken);
                 if (accessToken != null) {
-                    if (expiresIn != null && refreshToken != null) {
-                        LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(expiresIn.longValue());
+                    if (expiresInSecs != null && refreshToken != null) {
                         final Profile profile = getProfile(accessToken);
-                        return new OAuthAccount("", profile.getName(), profile.getEmail(), accessToken, expiryTime, refreshToken, allowedScopes);
+                        return new OAuthAccount("", profile.getName(), profile.getEmail(), accessToken, computeExpiryTime(expiresInSecs), refreshToken, allowedScopes);
                     }
                     else {
                         throw new AuthorizationException("No expires_in or refresh_token. Response was:\n" + responseText);
@@ -257,7 +253,7 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
 
             try {
                 if (scopeStr != null) {
-                    receivedScopes = Arrays.asList(scopeStr.split(" "));
+                    receivedScopes = new ArrayList<>(Arrays.asList(scopeStr.split(" "))); // Convert to Arraylist because Arrays.asList() cannot be persisted (no no-arg constructor)
                 }
 
                 checkScopesResponse(error, code, receivedScopes);
@@ -332,13 +328,15 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
     public String getAccessToken(Account account) throws AuthorizationException {
 
         String accessToken = ((OAuthAccount)account).getAccessToken();
-        LocalDateTime accessExpiry = ((OAuthAccount)account).getAccessExpiry();
+        Date accessExpiry = ((OAuthAccount)account).getAccessExpiry();
         if (accessToken == null || accessToken.isBlank() || accessExpiry == null ) {
             throw new AuthorizationException("No previous information found in preferences");
         }
 
         // Let's take a 1-minute security margin
-        if (LocalDateTime.now().plusMinutes(1).isAfter(accessExpiry)) {
+        Calendar inOneMinute = Calendar.getInstance();
+        inOneMinute.add(Calendar.MINUTE, 1);
+        if (inOneMinute.after(accessExpiry)) {
             // Token is expired (or will be in 1 minute). Ask a new one
             accessToken = refreshAccessToken(account);
         }
@@ -350,7 +348,6 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
      * Implements e.g. https://developers.google.com/identity/protocols/oauth2/native-app#offline
      * Note: if server responds with Error 400 invalid_grant, a list of possible reasons is at
      * https://blog.timekit.io/google-oauth-invalid-grant-nightmare-and-how-to-fix-it-9f4efaf1da35
-     * @param account
      */
     private String refreshAccessToken(Account account) throws AuthorizationException {
         CloseableHttpClient client = HttpClients.createDefault();
@@ -396,10 +393,8 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
                     }
                 }
                 if (accessToken != null && expiresInSecs != null) {
-                    LocalDateTime expiryTime = LocalDateTime.now().plusSeconds(expiresInSecs.longValue());
-
                     ((OAuthAccount)account).setAccessToken(accessToken);
-                    ((OAuthAccount)account).setAccessExpiry(expiryTime);
+                    ((OAuthAccount)account).setAccessExpiry(computeExpiryTime(expiresInSecs));
                     Ginj.getTargetPrefs().save();
 
                     return accessToken;
@@ -451,6 +446,12 @@ public abstract class AbstractOAuth2Exporter extends GinjExporter implements Onl
         catch (IOException e) {
             throw new AuthorizationException(e);
         }
+    }
+
+    private Date computeExpiryTime(Double expiresInSecs) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.SECOND, expiresInSecs.intValue());
+        return calendar.getTime();
     }
 
     protected void clearOAuthTokens(OAuthAccount account) {

@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class CaptureEditingFrame extends JFrame {
+public class CaptureEditingFrame extends JFrame implements TargetListChangeListener {
 
     public static final int TOOL_BUTTON_ICON_WIDTH = 24;
     public static final int TOOL_BUTTON_ICON_HEIGHT = 24;
@@ -51,6 +51,7 @@ public class CaptureEditingFrame extends JFrame {
     private final JTextField nameTextField;
 
     GinjTool currentTool;
+    private JPanel actionPanel;
 
 
     public CaptureEditingFrame(StarWindow starWindow, BufferedImage capturedImg) {
@@ -65,6 +66,8 @@ public class CaptureEditingFrame extends JFrame {
         super();
         this.starWindow = starWindow;
         this.capture = capture;
+
+        starWindow.addTargetChangeListener(this);
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " Preview");
@@ -216,34 +219,10 @@ public class CaptureEditingFrame extends JFrame {
 
 
         // Prepare horizontal button bar
-        JPanel actionPanel = new JPanel();
+        actionPanel = new JPanel();
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         actionPanel.setName("GinjPanel"); // To be used as a selector in synth.xml
-        JPanel buttonBar = new GinjLowerButtonBar();
-
-        GinjLowerButton shareButton = new GinjLowerButton("Share...", UI.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, UI.ICON_ENABLED_COLOR));
-        shareButton.addActionListener(e -> onShare(shareButton));
-        buttonBar.add(shareButton);
-
-        for (Target target : Ginj.getTargetPrefs().getTargetList()) {
-            GinjExporter exporter = target.getExporter();
-            if (exporter.isImageSupported() && (!exporter.isOnlineService() || Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS))) {
-                GinjLowerButton targetButton = new GinjLowerButton(target.getDisplayName(), exporter.getButtonIcon(16));
-                targetButton.addActionListener(e -> onExport(target));
-                buttonBar.add(targetButton);
-            }
-        }
-
-        final JButton cancelButton = new GinjLowerButton("Cancel", UI.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, UI.ICON_ENABLED_COLOR));
-        cancelButton.addActionListener(e -> onCancel());
-        buttonBar.add(cancelButton);
-
-        // Do we restore this button ?
-//        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", UI.createIcon(getClass().getResource("/img/icon/customize.png"), 16, 16, UI.ICON_ENABLED_COLOR));
-//        customizeButton.addActionListener(e -> onCustomize());
-//        buttonBar.add(customizeButton);
-
-        actionPanel.add(buttonBar);
+        actionPanel.add(createExportButtonBar());
 
         c = new GridBagConstraints();
         c.gridx = 1;
@@ -303,6 +282,40 @@ public class CaptureEditingFrame extends JFrame {
 
         // Center window
         setLocationRelativeTo(null);
+    }
+
+    @Override
+    public void onTargetListChange() {
+        actionPanel.removeAll();
+        actionPanel.add(createExportButtonBar());
+        revalidate();
+    }
+
+    private JPanel createExportButtonBar() {
+        JPanel buttonBar = new GinjLowerButtonBar();
+
+        GinjLowerButton shareButton = new GinjLowerButton("Share...", UI.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+        shareButton.addActionListener(e -> onShare(shareButton));
+        buttonBar.add(shareButton);
+
+        for (Target target : Ginj.getTargetPrefs().getTargetList()) {
+            GinjExporter exporter = target.getExporter();
+            if (exporter.isImageSupported() && (!exporter.isOnlineService() || Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS))) {
+                GinjLowerButton targetButton = new GinjLowerButton(target.getDisplayName(), exporter.getButtonIcon(16));
+                targetButton.addActionListener(e -> onExport(target));
+                buttonBar.add(targetButton);
+            }
+        }
+
+        final JButton cancelButton = new GinjLowerButton("Cancel", UI.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+        cancelButton.addActionListener(e -> onCancel());
+        buttonBar.add(cancelButton);
+
+        // Do we restore this button ?
+//        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", UI.createIcon(getClass().getResource("/img/icon/customize.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+//        customizeButton.addActionListener(e -> onCustomize());
+//        buttonBar.add(customizeButton);
+        return buttonBar;
     }
 
     public Color getCurrentColor() {
@@ -494,4 +507,11 @@ public class CaptureEditingFrame extends JFrame {
     private void onCustomize() {
         // TODO
     }
+
+    @Override
+    public void dispose() {
+        starWindow.removeTargetChangeListener(this);
+        super.dispose();
+    }
+
 }

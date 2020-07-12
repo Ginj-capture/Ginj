@@ -85,7 +85,7 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
      * @throws AuthorizationException in case authorization fails
      */
     public void checkAuthorizations(Account account) throws CommunicationException, AuthorizationException {
-        logProgress("Checking authorizations", 2);
+        logProgress("Checking authorizations", PROGRESS_CHECK_AUTHORIZE_START);
         CloseableHttpClient client = HttpClients.createDefault();
         HttpGet httpGet;
         try {

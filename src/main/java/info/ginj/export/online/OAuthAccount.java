@@ -2,17 +2,23 @@ package info.ginj.export.online;
 
 import info.ginj.model.Account;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 public class OAuthAccount extends Account {
-    String accessToken;
-    LocalDateTime accessExpiry;
-    String refreshToken;
-    List<String> allowedScopes;
+    private String accessToken;
+
+    // Note : accessExpiry is a Date instead of LocalDateTime because the latter is not a Java Bean and cannot be serialized using XMLEncoder
+    private Date accessExpiry;
+    private String refreshToken;
+    private List<String> allowedScopes;
 
 
-    public OAuthAccount(String id, String name, String email, String accessToken, LocalDateTime accessExpiry, String refreshToken, List<String> allowedScopes) {
+    public OAuthAccount() {
+        super();
+    }
+
+    public OAuthAccount(String id, String name, String email, String accessToken, Date accessExpiry, String refreshToken, List<String> allowedScopes) {
         super(id, name, email);
         this.accessToken = accessToken;
         this.accessExpiry = accessExpiry;
@@ -28,11 +34,11 @@ public class OAuthAccount extends Account {
         this.accessToken = accessToken;
     }
 
-    public LocalDateTime getAccessExpiry() {
+    public Date getAccessExpiry() {
         return accessExpiry;
     }
 
-    public void setAccessExpiry(LocalDateTime accessExpiry) {
+    public void setAccessExpiry(Date accessExpiry) {
         this.accessExpiry = accessExpiry;
     }
 

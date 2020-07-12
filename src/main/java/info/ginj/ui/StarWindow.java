@@ -11,6 +11,8 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This "Star" Window is the original widget displayed at the border of the screen to initiate a capture
@@ -76,9 +78,11 @@ public class StarWindow extends JWindow {
     private boolean isDragging = false;
     private int highlightedButtonId = BTN_NONE;
 
+    // Monitor opened frames
     private HistoryFrame historyFrame;
     private MoreFrame moreFrame;
     private TargetManagementFrame targetManagementFrame;
+    private final Set<TargetListChangeListener> targetListChangeListener = new HashSet<>();
 
     public StarWindow() {
         super();
@@ -461,6 +465,21 @@ public class StarWindow extends JWindow {
         }
         moreFrame.setVisible(true);
         moreFrame.requestFocus();
+    }
+
+
+    public void addTargetChangeListener(TargetListChangeListener listener) {
+        targetListChangeListener.add(listener);
+    }
+
+    public void removeTargetChangeListener(TargetListChangeListener listener) {
+        targetListChangeListener.add(listener);
+    }
+
+    public void notifyTargetListChange() {
+        for (TargetListChangeListener targetListChangeListener : targetListChangeListener) {
+            targetListChangeListener.onTargetListChange();
+        }
     }
 
 }

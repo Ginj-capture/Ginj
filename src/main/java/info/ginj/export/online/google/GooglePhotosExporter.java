@@ -155,6 +155,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     @Override
     public String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
+        logProgress("Rendering file", PROGRESS_RENDER_START);
         try {
             capture.toRenderedFile();
         }
@@ -208,7 +209,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         };
 
         // Try to find the album in the list of existing albums
-        logProgress("Getting album", 6);
+        logProgress("Getting album", OnlineExporter.PROGRESS_GETTING_ALBUM);
         Album album = getAlbumByName(client, target, albumName);
 
         // See if we found it
@@ -216,17 +217,17 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             // Yes. See if it is shared
             if (album.getShareInfo() == null || album.getShareInfo().getShareableUrl() == null) {
                 // No, share it
-                logProgress("Sharing album", 8);
+                logProgress("Sharing album", OnlineExporter.PROGRESS_SHARING_ALBUM);
                 shareAlbum(client, target, album);
             }
         }
         else {
             // Not found. Create it
-            logProgress("Creating album", 5);
+            logProgress("Creating album", OnlineExporter.PROGRESS_CREATING_ALBUM);
             album = createAlbum(client, target, albumName);
 
             // And, share it
-            logProgress("Sharing album", 4);
+            logProgress("Sharing album", OnlineExporter.PROGRESS_SHARING_ALBUM);
             shareAlbum(client, target, album);
         }
 
@@ -505,10 +506,10 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     private String uploadFileBytes(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
         String uploadToken = null;
 
-        final File file = capture.getOriginalFile();
+        final File file = capture.getRenderedFile();
 
         // Step 1: Initiating an upload session
-        logProgress("Uploading", 10);
+        logProgress("Uploading", PROGRESS_UPLOAD_START);
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/uploads");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -581,7 +582,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 throw new UploadException("Could not read bytes from file");
             }
 
-            logProgress("Uploading", (int) (10 + (80 * offset) / file.length()), offset, file.length());
+            logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
 
             httpPost = new HttpPost(uploadUrl);
             httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -618,7 +619,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             offset += bytesRead;
             remainingBytes = file.length() - offset;
         }
-        logProgress("Uploaded", 90, file.length(), file.length());
+        logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
 
         return uploadToken;
     }
@@ -639,7 +640,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
      */
     private String createMediaItem(CloseableHttpClient client, Target target, Capture capture, String albumId, String uploadToken) throws AuthorizationException, UploadException, CommunicationException {
 
-        logProgress("Creating media", 95);
+        logProgress("Creating media", OnlineExporter.PROGRESS_CREATING_MEDIA);
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));

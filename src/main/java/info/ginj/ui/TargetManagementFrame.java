@@ -21,15 +21,13 @@ import org.netbeans.spi.wizard.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.List;
+import java.util.*;
 
 /**
  * This window displays and manages the export targets
  */
-public class TargetManagementFrame extends JFrame {
+public class TargetManagementFrame extends JFrame implements TargetListChangeListener {
     public static final Dimension CONFIG_PREFERRED_SIZE = new Dimension(400, 300);
     public static final Dimension DETAIL_PANEL_PREFERRED_SIZE = new Dimension(500, 400);
 
@@ -41,12 +39,13 @@ public class TargetManagementFrame extends JFrame {
     public static final String CLIPBOARD_CONFIGURE_STEP = "clipboard_configure";
     public static final String DISK_CONFIGURE_STEP = "disk_configure";
 
-    private final StarWindow starWindow;
+    private static StarWindow starWindow = null;
     private final DefaultListModel<Target> targetListModel;
 
     public TargetManagementFrame(StarWindow starWindow) {
         super();
-        this.starWindow = starWindow;
+        TargetManagementFrame.starWindow = starWindow;
+        starWindow.addTargetChangeListener(this);
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " target configuration");
@@ -61,7 +60,7 @@ public class TargetManagementFrame extends JFrame {
         contentPane.setLayout(new BorderLayout());
 
         // Prepare title bar
-        JPanel titleBar = UI.getTitleBar("Target configuration", e -> onClose());
+        JPanel titleBar = UI.getTitleBar("Target management", e -> onClose());
         contentPane.add(titleBar, BorderLayout.NORTH);
 
 
@@ -146,7 +145,6 @@ public class TargetManagementFrame extends JFrame {
     }
 
     private void loadTargets() {
-        targetListModel.clear();
         for (Target target : Ginj.getTargetPrefs().getTargetList()) {
             targetListModel.addElement(target);
         }
@@ -160,24 +158,18 @@ public class TargetManagementFrame extends JFrame {
 
         // Map map = (Map) WizardDisplayer.showWizard(wizard);
         WizardDisplayer.showWizard(wizard);
-
-        // Here we have returned from the wizard. Refresh list
-        loadTargets();
     }
 
     private void onEditTarget() {
-        // TODO Add an Image to UIManager under the key wizard.sidebar.image.
-
+        // TODO.
     }
 
     private void onDeleteTarget(int selectedIndex) {
         if (selectedIndex != -1) {
             final Target target = targetListModel.getElementAt(selectedIndex);
-            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(TargetManagementFrame.this, "Are you sure you want to delete target\n'" + target.toString() + "'?", "Confirm deletion", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+            if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(TargetManagementFrame.this, "Are you sure you want to delete the target\n'" + target.toString() + "'?", "Confirm deletion", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
                 targetListModel.removeElementAt(selectedIndex);
-                final TargetPrefs targetPrefs = Ginj.getTargetPrefs();
-                targetPrefs.setTargetList(Collections.list(targetListModel.elements()));
-                TargetPrefs.save(targetPrefs);
+                saveTargetListModelToPrefs();
             }
         }
     }
@@ -190,18 +182,39 @@ public class TargetManagementFrame extends JFrame {
                 final Target element = targetListModel.getElementAt(selectedIndex);
                 targetListModel.removeElementAt(selectedIndex);
                 targetListModel.add(newIndex, element);
+                saveTargetListModelToPrefs();
                 list.setSelectedIndex(newIndex);
             }
         }
     }
 
+    private void saveTargetListModelToPrefs() {
+        final TargetPrefs targetPrefs = Ginj.getTargetPrefs();
+        final List<Target> targetList = targetPrefs.getTargetList();
+        targetList.clear();
+        targetList.addAll(Collections.list(targetListModel.elements()));
+        targetPrefs.save();
+        starWindow.notifyTargetListChange();
+    }
+
     private void onClose() {
-        // TODO find and update all open CaptureEditingFrame's
-        starWindow.setTargetManagementFrame(null);
         // Close window
         dispose();
     }
 
+    @Override
+    public void onTargetListChange() {
+        targetListModel.clear();
+        loadTargets();
+    }
+
+    @Override
+    public void dispose() {
+        // Unregister this window
+        starWindow.setTargetManagementFrame(null);
+        starWindow.removeTargetChangeListener(this);
+        super.dispose();
+    }
 
     /////////////////////////////
     // Wizard flow inner classes
@@ -222,6 +235,7 @@ public class TargetManagementFrame extends JFrame {
             exporterWizardMap.put(GooglePhotosExporter.NAME, WizardPage.createWizard(new WizardPage[]{new GoogleAuthorizePage(), new GooglePhotosConfigurationPage()}, new GooglePhotosAccountResultProducer()));
         }
 
+        @SuppressWarnings("rawtypes")
         public Wizard getWizardForStep(String step, Map data) {
 //            System.err.println("Get Wizard For Step " + step + " with " + data);
             if (SELECT_TARGET_TYPE_STEP.equals(step)) {
@@ -309,6 +323,7 @@ public class TargetManagementFrame extends JFrame {
         protected abstract ImageIcon getConnectIcon();
 
 
+        @SuppressWarnings("rawtypes")
         @Override
         public WizardPanelNavResult allowNext(String stepName, Map settings, Wizard wizard) {
             return new WizardPanelNavResult() {
@@ -400,6 +415,7 @@ public class TargetManagementFrame extends JFrame {
             super(GOOGLE_PHOTOS_CONFIGURE_STEP, "Configure");
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public WizardPanelNavResult allowBack(String stepName, Map settings, Wizard wizard) {
             // Prevent back button because re-authenticating throws an exception. TODO see why...
@@ -523,6 +539,7 @@ public class TargetManagementFrame extends JFrame {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     public static class TextResultProducer implements WizardPage.WizardResultProducer {
 
         public TextResultProducer() {
@@ -554,6 +571,7 @@ public class TargetManagementFrame extends JFrame {
                     final TargetPrefs targetPrefs = Ginj.getTargetPrefs();
                     targetPrefs.getTargetList().add(target);
                     targetPrefs.save();
+                    starWindow.notifyTargetListChange();
 
                     return Summary.create("The following target was configured successfully:\n\n" + map.get(TargetPrefs.DISPLAY_NAME_KEY) + "\n\n" + getAdditionalFinishText(map), map);
                 }
@@ -572,7 +590,6 @@ public class TargetManagementFrame extends JFrame {
         /**
          * Can be overridden to add optional text to the "success" box
          */
-        @SuppressWarnings("rawtypes")
         protected String getAdditionalFinishText(Map map) {
             return "";
         }

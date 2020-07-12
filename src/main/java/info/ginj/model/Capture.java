@@ -173,7 +173,11 @@ public class Capture implements Cloneable {
 
     @java.beans.Transient
     public String getBaseFilename() {
-        return getId() + "_v" + getVersion();
+        String baseFilename = getId();
+        if (getVersion() > 1) {
+            baseFilename += "_v" + getVersion();
+        }
+        return baseFilename;
     }
 
     @Override

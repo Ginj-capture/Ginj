@@ -22,6 +22,8 @@ import java.util.concurrent.ExecutionException;
 public class DiskExporter extends GinjExporter {
 
     public static final String NAME = "Disk";
+    public static final int PROGRESS_SAVE_CALC_DESTINATION = 5;
+    public static final int PROGRESS_SAVE = 50;
     private File destinationFile;
 
 
@@ -66,7 +68,7 @@ public class DiskExporter extends GinjExporter {
      */
     @Override
     public boolean prepare(Capture capture, Target target) {
-        logProgress("Determining target file", 5);
+        logProgress("Determining target file", PROGRESS_SAVE_CALC_DESTINATION);
         // Determine where to save the file
         boolean askForLocation = Misc.isTrue(target.getOptions().get(TargetPrefs.ALWAYS_ASK_DIR_KEY));
         String saveDirName;
@@ -142,7 +144,7 @@ public class DiskExporter extends GinjExporter {
     @Override
     public void exportCapture(Capture capture, Target target) {
         try {
-            logProgress("Saving capture", 50);
+            logProgress("Saving capture", PROGRESS_SAVE);
             if (capture.isVideo()) {
                 throw new RuntimeException("TODO video");
             }

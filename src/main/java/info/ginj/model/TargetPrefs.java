@@ -43,12 +43,6 @@ public class TargetPrefs {
     private static TargetPrefs getDefaultTargetPrefs() {
         TargetPrefs targetPrefs = new TargetPrefs();
 
-        Target clipboardTarget = new Target();
-        final ClipboardExporter clipboardExporter = new ClipboardExporter();
-        clipboardTarget.setExporter(clipboardExporter);
-        clipboardTarget.setDisplayName(clipboardExporter.getDefaultShareText());
-        targetPrefs.getTargetList().add(clipboardTarget);
-
         Target diskTarget = new Target();
         final DiskExporter diskExporter = new DiskExporter();
         diskTarget.setExporter(diskExporter);
@@ -58,10 +52,16 @@ public class TargetPrefs {
         diskTarget.getOptions().put(TargetPrefs.MUST_COPY_PATH_KEY, "true");
         targetPrefs.getTargetList().add(diskTarget);
 
+        Target clipboardTarget = new Target();
+        final ClipboardExporter clipboardExporter = new ClipboardExporter();
+        clipboardTarget.setExporter(clipboardExporter);
+        clipboardTarget.setDisplayName(clipboardExporter.getDefaultShareText());
+        targetPrefs.getTargetList().add(clipboardTarget);
+
         return targetPrefs;
     }
 
-    public static synchronized void save(TargetPrefs targetPrefs) {
+    public synchronized void save() {
         File targetPrefsFile = Ginj.getTargetPrefsFile();
 
         if (targetPrefsFile.exists()) {
@@ -75,16 +75,12 @@ public class TargetPrefs {
             targetPrefsFile.renameTo(backupFile);
         }
         try (XMLEncoder xmlEncoder = new XMLEncoder(new BufferedOutputStream(new FileOutputStream(targetPrefsFile)))) {
-            xmlEncoder.writeObject(targetPrefs);
+            xmlEncoder.writeObject(this);
         }
         catch (IOException e) {
             e.printStackTrace();
             System.err.println("Cannot save targets to '" + targetPrefsFile.getAbsolutePath() + "'. Targets are note saved.");
         }
-    }
-
-    public void save() {
-        save(this);
     }
 
     public List<Target> getTargetList() {

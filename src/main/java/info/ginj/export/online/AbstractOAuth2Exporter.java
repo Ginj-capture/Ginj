@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import info.ginj.Ginj;
-import info.ginj.export.GinjExporter;
+import info.ginj.export.Exporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.model.Account;
@@ -44,7 +44,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * see https://developers.google.com/identity/protocols/oauth2/native-app
  * see https://www.dropbox.com/lp/developers/reference/oauth-guide
  */
-public abstract class AbstractOAuth2Exporter extends GinjExporter implements OnlineExporter {
+public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineExporter {
     public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + UI.colorToHex(UI.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + UI.colorToHex(UI.LABEL_FOREGROUND_COLOR) + ";} a{color:" + UI.colorToHex(UI.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";
     protected static final int PORT_GINJ = 6193;

@@ -1,7 +1,7 @@
 package info.ginj.export.disk;
 
 import info.ginj.Ginj;
-import info.ginj.export.GinjExporter;
+import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Target;
 import info.ginj.model.TargetPrefs;
@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * This exporter saves the image as a PNG file to disk, and optionally copies its path to the clipboard
  */
-public class DiskExporter extends GinjExporter {
+public class DiskExporter extends Exporter {
 
     public static final String NAME = "Disk";
     public static final int PROGRESS_SAVE_CALC_DESTINATION = 5;

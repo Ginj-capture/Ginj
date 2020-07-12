@@ -1,7 +1,7 @@
 package info.ginj.ui;
 
 import info.ginj.Ginj;
-import info.ginj.export.GinjExporter;
+import info.ginj.export.Exporter;
 import info.ginj.export.clipboard.ClipboardExporter;
 import info.ginj.export.disk.DiskExporter;
 import info.ginj.export.online.AbstractOAuth2Exporter;
@@ -240,7 +240,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 //            System.err.println("Get Wizard For Step " + step + " with " + data);
             if (SELECT_TARGET_TYPE_STEP.equals(step)) {
                 //check data in the map to decide which wizard will follow
-                final GinjExporter exporter = (GinjExporter) data.get(TargetPrefs.EXPORTER_KEY);
+                final Exporter exporter = (Exporter) data.get(TargetPrefs.EXPORTER_KEY);
                 if (exporter != null) {
                     return exporterWizardMap.get(exporter.getExporterName());
                 }
@@ -261,7 +261,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             super.renderingPage();
 
             //noinspection rawtypes
-            JList exporterJList = UI.getWizardList(TargetPrefs.EXPORTER_KEY, GinjExporter.getList().toArray(), -1, true, true);
+            JList exporterJList = UI.getWizardList(TargetPrefs.EXPORTER_KEY, Exporter.getList().toArray(), -1, true, true);
 
             JPanel intermediatePanel = new JPanel();
             intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
@@ -424,7 +424,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         @Override
         protected void renderingPage() {
-            final GinjExporter exporter = (GinjExporter) getWizardData(TargetPrefs.EXPORTER_KEY);
+            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
             final OAuthAccount account = (OAuthAccount) getWizardData(TargetPrefs.ACCOUNT_KEY);
 
             JPanel intermediatePanel = new JPanel();
@@ -453,7 +453,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         @Override
         protected void renderingPage() {
-            final GinjExporter exporter = (GinjExporter) getWizardData(TargetPrefs.EXPORTER_KEY);
+            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
             final OAuthAccount account = (OAuthAccount) getWizardData(TargetPrefs.ACCOUNT_KEY);
 
             JPanel intermediatePanel = new JPanel();
@@ -483,7 +483,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         protected void renderingPage() {
             String defaultName = "";
 
-            final GinjExporter exporter = (GinjExporter) getWizardData(TargetPrefs.EXPORTER_KEY);
+            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
             if (exporter != null) {
                 defaultName = exporter.getDefaultShareText();
             }
@@ -511,7 +511,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         protected void renderingPage() {
             String defaultName = "";
 
-            final GinjExporter exporter = (GinjExporter) getWizardData(TargetPrefs.EXPORTER_KEY);
+            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
             if (exporter != null) {
                 defaultName = exporter.getDefaultShareText();
             }
@@ -548,7 +548,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         @Override
         public Object finish(Map map) {
             try {
-                final GinjExporter exporter = (GinjExporter) map.get(TargetPrefs.EXPORTER_KEY);
+                final Exporter exporter = (Exporter) map.get(TargetPrefs.EXPORTER_KEY);
                 if (exporter != null) {
                     // Persist
                     Target target = new Target();

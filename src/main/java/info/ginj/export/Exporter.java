@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class GinjExporter implements Cancellable {
+public abstract class Exporter implements Cancellable {
 
     // TODO mabye make the following fields ThreadLocal ?
     protected JFrame parentFrame;
@@ -28,8 +28,8 @@ public abstract class GinjExporter implements Cancellable {
      * @return a list containing an instance of all available exporters
      */
     @java.beans.Transient
-    public static List<GinjExporter> getList() {
-        final ArrayList<GinjExporter> exporters = new ArrayList<>();
+    public static List<Exporter> getList() {
+        final ArrayList<Exporter> exporters = new ArrayList<>();
         exporters.add(new DiskExporter());
         exporters.add(new ClipboardExporter());
         exporters.add(new DropboxExporter());

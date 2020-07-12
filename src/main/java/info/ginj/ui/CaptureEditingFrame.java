@@ -2,7 +2,7 @@ package info.ginj.ui;
 
 import info.ginj.Ginj;
 import info.ginj.action.AbstractUndoableAction;
-import info.ginj.export.GinjExporter;
+import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Prefs;
 import info.ginj.model.Target;
@@ -299,7 +299,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         buttonBar.add(shareButton);
 
         for (Target target : Ginj.getTargetPrefs().getTargetList()) {
-            GinjExporter exporter = target.getExporter();
+            Exporter exporter = target.getExporter();
             if (exporter.isImageSupported() && (!exporter.isOnlineService() || Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS))) {
                 GinjLowerButton targetButton = new GinjLowerButton(target.getDisplayName(), exporter.getButtonIcon(16));
                 targetButton.addActionListener(e -> onExport(target));
@@ -454,7 +454,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         capture.setOverlays(overlays);
 
         // Perform export
-        GinjExporter exporter = target.getExporter();
+        Exporter exporter = target.getExporter();
         ExportFrame exportFrame = new ExportFrame(this, capture, exporter);
         exporter.initialize(this, exportFrame);
         // Note the chicken/egg problem:
@@ -481,7 +481,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
         JMenuItem menuItem;
         for (Target target : Ginj.getTargetPrefs().getTargetList()) {
-            GinjExporter exporter = target.getExporter();
+            Exporter exporter = target.getExporter();
             if (exporter.isOnlineService()) {
                 menuItem = new JMenuItem(target.getDisplayName(), exporter.getButtonIcon(24));
                 menuItem.addActionListener(e -> onExport(target));

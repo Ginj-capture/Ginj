@@ -1,6 +1,6 @@
 package info.ginj.export.clipboard;
 
-import info.ginj.export.GinjExporter;
+import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Target;
 import info.ginj.util.UI;
@@ -14,7 +14,7 @@ import java.awt.datatransfer.Clipboard;
  *
  * Based on code from https://coderanch.com/t/333565/java/BufferedImage-System-Clipboard
  */
-public class ClipboardExporter extends GinjExporter {
+public class ClipboardExporter extends Exporter {
 
 
     public static final String NAME = "Clipboard";

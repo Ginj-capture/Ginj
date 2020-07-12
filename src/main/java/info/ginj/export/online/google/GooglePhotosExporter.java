@@ -44,7 +44,6 @@ import static info.ginj.util.Misc.DATE_FORMAT_PATTERN;
  * see https://developers.google.com/photos/library/guides/authorization
  * see https://developers.google.com/photos/library/reference/rest
  * <p>
- * TODO: when creating account, remember to tell user that Ginj medias are uploaded in full quality and will count in the user quota
  * TODO: videos must be max 10GB
  */
 public class GooglePhotosExporter extends GoogleExporter implements OnlineExporter {

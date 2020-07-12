@@ -1,6 +1,6 @@
 package info.ginj.model;
 
-import info.ginj.export.GinjExporter;
+import info.ginj.export.Exporter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +10,7 @@ import java.util.Map;
  * It is linked to an exporter on creation
  */
 public class Target {
-    private GinjExporter exporter;
+    private Exporter exporter;
     private Account account;
     private String displayName;
     // TODO options should be a GinjExporterSettings object (or subclass thereof)
@@ -22,16 +22,16 @@ public class Target {
     public Target() {
     }
 
-    public Target(GinjExporter exporter, Account account) {
+    public Target(Exporter exporter, Account account) {
         this.exporter = exporter;
         this.account = account;
     }
 
-    public GinjExporter getExporter() {
+    public Exporter getExporter() {
         return exporter;
     }
 
-    public void setExporter(GinjExporter exporter) {
+    public void setExporter(Exporter exporter) {
         this.exporter = exporter;
     }
 

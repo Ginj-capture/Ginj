@@ -2,7 +2,7 @@ package info.ginj.ui;
 
 import info.ginj.Ginj;
 import info.ginj.export.ExportMonitor;
-import info.ginj.export.GinjExporter;
+import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Target;
 import info.ginj.ui.component.GinjLabel;
@@ -32,9 +32,9 @@ public class ExportFrame extends JFrame implements ExportMonitor {
     private final BoundedRangeModel progressModel;
     private final Window parentWindow;
     private final Capture capture;
-    private GinjExporter exporter;
+    private Exporter exporter;
 
-    public ExportFrame(Window parentWindow, Capture capture, GinjExporter exporter) {
+    public ExportFrame(Window parentWindow, Capture capture, Exporter exporter) {
         super();
         this.parentWindow = parentWindow;
         this.capture = capture;

@@ -542,6 +542,7 @@ public class CaptureSelectionFrame extends JFrame {
     }
 
     private void onCaptureVideo() {
+        UI.featureNotImplementedDialog(this);
         // TODO
     }
 

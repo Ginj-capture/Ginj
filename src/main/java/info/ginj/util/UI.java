@@ -1,5 +1,6 @@
 package info.ginj.util;
 
+import info.ginj.Ginj;
 import info.ginj.ui.layout.SpringLayoutUtilities;
 
 import javax.imageio.ImageIO;
@@ -303,11 +304,20 @@ public class UI {
     // Convenience methods to display a message from a separate Thread
     public static void alertException(Component parentComponent, String title, String messagePrefix, Exception e) {
         e.printStackTrace();
-        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information.", title, JOptionPane.ERROR_MESSAGE));
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information (or start '" + Ginj.getAppName() + " /create-i4j-log' next time to save logs)", title, JOptionPane.ERROR_MESSAGE));
     }
 
     public static void alertError(Component parentComponent, String title, String message) {
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent, message, title, JOptionPane.ERROR_MESSAGE));
+    }
+
+    public static void featureNotImplementedDialog(Component parentComponent) {
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent,
+                "This feature is not implemented yet.\n" +
+                        "If you think it should have a very high priority,\n" +
+                        "feel free to open an issue on Github (or comment on existing one).\n\n" +
+                        "Thanks for your patience.", "Feature not implemented",
+                JOptionPane.INFORMATION_MESSAGE));
     }
 
     /**

@@ -19,7 +19,6 @@ import java.beans.XMLDecoder;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -74,22 +73,22 @@ public class HistoryFrame extends JFrame {
         filterBar.setOpaque(true);
         filterBar.setLayout(new GridLayout(1,5));
         final JButton sortByNameButton = new JButton("Name");
-        sortByNameButton.setEnabled(false);
+        sortByNameButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
         filterBar.add(sortByNameButton);
         final JButton sortByDateButton = new JButton("Date");
-        sortByDateButton.setEnabled(false);
+        sortByDateButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
         filterBar.add(sortByDateButton);
         final JButton sortBySizeButton = new JButton("Size");
-        sortBySizeButton.setEnabled(false);
+        sortBySizeButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
         filterBar.add(sortBySizeButton);
         final JButton showImageButton = new JButton("Image");
-        showImageButton.setEnabled(false);
+        showImageButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
         filterBar.add(showImageButton);
         final JButton showVideoButton = new JButton("Video");
-        showVideoButton.setEnabled(false);
+        showVideoButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
         filterBar.add(showVideoButton);
         final JButton showBothButton = new JButton("Both");
-        showBothButton.setEnabled(false);
+        showBothButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
         filterBar.add(showBothButton);
 
         c = new GridBagConstraints();
@@ -185,6 +184,7 @@ public class HistoryFrame extends JFrame {
 
     private void onExport(Capture capture) {
         // TODO should copy the shared URL back to the clipboard, except for Clipboard that should re-execute an "export"
+        UI.featureNotImplementedDialog(this);
     }
 
 
@@ -215,14 +215,16 @@ public class HistoryFrame extends JFrame {
         // Find all other metadata files sharing the same ID
         final File[] metadataFiles = Ginj.getHistoryFolder().listFiles((dir, name) -> name.startsWith(captureToDelete.getId()) && name.endsWith(Misc.METADATA_EXTENSION) && !name.startsWith(captureToDelete.getBaseFilename()));
         List<String> siblingCaptureNames = new ArrayList<>();
-        for (File metadataFile : metadataFiles) {
-            try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(metadataFile)))) {
-                Capture siblingCapture = (Capture) xmlDecoder.readObject();
-                siblingCaptureNames.add(siblingCapture.getName());
+        try {
+            for (File metadataFile : metadataFiles) {
+                try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(metadataFile)))) {
+                    Capture siblingCapture = (Capture) xmlDecoder.readObject();
+                    siblingCaptureNames.add(siblingCapture.getName());
+                }
             }
-            catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
+        }
+        catch (Exception e) {
+            UI.alertException(this, "Error", "Error determining captures sharing the same file", e);
         }
         return siblingCaptureNames;
     }
@@ -326,7 +328,6 @@ public class HistoryFrame extends JFrame {
             editButton.addActionListener(e -> onEdit(capture));
 
             exportButton = new JButton(exportIcon);
-            exportButton.setEnabled(false);
             exportButton.addActionListener(e -> onExport(capture));
 
             deleteButton = new JButton(deleteIcon);

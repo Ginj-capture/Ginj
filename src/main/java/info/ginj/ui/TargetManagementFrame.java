@@ -360,7 +360,7 @@ public class TargetManagementFrame extends JFrame {
 
         @Override
         protected String getHelpText() {
-            return "To be able to upload captures to Google Photos, you must aauthorize " + Ginj.getAppName() + " to access your account.\n" + Ginj.getAppName() + " requests access to:\n" +
+            return "To be able to upload captures to Google Photos, you must authorize " + Ginj.getAppName() + " to access your account.\n" + Ginj.getAppName() + " requests access to:\n" +
                     "- read your profile to retrieve your name and e-mail\n" +
                     "- create and share an album\n" +
                     "- upload captures to that album.\n" +

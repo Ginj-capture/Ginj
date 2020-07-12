@@ -73,12 +73,24 @@ public class HistoryFrame extends JFrame {
         JPanel filterBar = new JPanel();
         filterBar.setOpaque(true);
         filterBar.setLayout(new GridLayout(1,5));
-        filterBar.add(new JButton("Name"));
-        filterBar.add(new JButton("Date"));
-        filterBar.add(new JButton("Size"));
-        filterBar.add(new JButton("Image"));
-        filterBar.add(new JButton("Video"));
-        filterBar.add(new JButton("Both"));
+        final JButton sortByNameButton = new JButton("Name");
+        sortByNameButton.setEnabled(false);
+        filterBar.add(sortByNameButton);
+        final JButton sortByDateButton = new JButton("Date");
+        sortByDateButton.setEnabled(false);
+        filterBar.add(sortByDateButton);
+        final JButton sortBySizeButton = new JButton("Size");
+        sortBySizeButton.setEnabled(false);
+        filterBar.add(sortBySizeButton);
+        final JButton showImageButton = new JButton("Image");
+        showImageButton.setEnabled(false);
+        filterBar.add(showImageButton);
+        final JButton showVideoButton = new JButton("Video");
+        showVideoButton.setEnabled(false);
+        filterBar.add(showVideoButton);
+        final JButton showBothButton = new JButton("Both");
+        showBothButton.setEnabled(false);
+        filterBar.add(showBothButton);
 
         c = new GridBagConstraints();
         c.gridx = 0;
@@ -314,6 +326,7 @@ public class HistoryFrame extends JFrame {
             editButton.addActionListener(e -> onEdit(capture));
 
             exportButton = new JButton(exportIcon);
+            exportButton.setEnabled(false);
             exportButton.addActionListener(e -> onExport(capture));
 
             deleteButton = new JButton(deleteIcon);

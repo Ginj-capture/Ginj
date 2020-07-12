@@ -1,5 +1,7 @@
 package info.ginj.model;
 
+
+// TODO we should probably have subclasses of ExportSettings per Exporter. Having Google Photos related info here is ugly
 import info.ginj.export.online.google.GooglePhotosExporter;
 
 import java.util.HashSet;

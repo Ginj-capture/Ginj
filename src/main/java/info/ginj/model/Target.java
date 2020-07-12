@@ -2,19 +2,15 @@ package info.ginj.model;
 
 import info.ginj.export.Exporter;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * One Target is a specific instance that can be linked to an export button
  * It is linked to an exporter on creation
  */
 public class Target {
-    private Exporter exporter;
-    private Account account;
     private String displayName;
-    // TODO options should be a GinjExporterSettings object (or subclass thereof)
-    private Map<String,String> options = new HashMap<>();
+    private Exporter exporter;
+    private ExportSettings settings;
+    private Account account;
 
     /**
      * A target should always have at least an ID and an Exporter, but this no-arg constructor is used for deserialization
@@ -27,22 +23,6 @@ public class Target {
         this.account = account;
     }
 
-    public Exporter getExporter() {
-        return exporter;
-    }
-
-    public void setExporter(Exporter exporter) {
-        this.exporter = exporter;
-    }
-
-    public Account getAccount() {
-        return account;
-    }
-
-    public void setAccount(Account account) {
-        this.account = account;
-    }
-
     public String getDisplayName() {
         return displayName;
     }
@@ -51,15 +31,28 @@ public class Target {
         this.displayName = displayName;
     }
 
-
-    // TODO migrate those options to specific TargetOptions objects ?
-
-    public Map<String, String> getOptions() {
-        return options;
+    public Exporter getExporter() {
+        return exporter;
     }
 
-    public void setOptions(Map<String, String> options) {
-        this.options = options;
+    public void setExporter(Exporter exporter) {
+        this.exporter = exporter;
+    }
+
+    public ExportSettings getSettings() {
+        return settings;
+    }
+
+    public void setSettings(ExportSettings settings) {
+        this.settings = settings;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
     }
 
     @Override

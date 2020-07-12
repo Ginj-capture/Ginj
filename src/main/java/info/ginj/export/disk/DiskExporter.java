@@ -4,7 +4,6 @@ import info.ginj.Ginj;
 import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Target;
-import info.ginj.model.TargetPrefs;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
 
@@ -70,14 +69,14 @@ public class DiskExporter extends Exporter {
     public boolean prepare(Capture capture, Target target) {
         logProgress("Determining target file", PROGRESS_SAVE_CALC_DESTINATION);
         // Determine where to save the file
-        boolean askForLocation = Misc.isTrue(target.getOptions().get(TargetPrefs.ALWAYS_ASK_DIR_KEY));
+        boolean askForLocation = target.getSettings().getMustAlwaysAskLocation();
         String saveDirName;
         if (askForLocation) {
             // If a default location is set and valid, use it
-            saveDirName = target.getOptions().get(TargetPrefs.DEST_LOCATION_KEY);
+            saveDirName = target.getSettings().getDestLocation();
             if (saveDirName == null || saveDirName.isBlank() || !new File(saveDirName).exists()) {
                 // Otherwise default to "last saved", if defined and valid
-                saveDirName = target.getOptions().get(TargetPrefs.LAST_CUSTOM_DEST_LOCATION_KEY);
+                saveDirName = target.getSettings().getLastCustomDestLocation();
                 if (saveDirName == null || saveDirName.isBlank() || !new File(saveDirName).exists()) {
                     // Otherwise default to the current dir
                     saveDirName = new File("").getAbsolutePath();
@@ -86,7 +85,7 @@ public class DiskExporter extends Exporter {
         }
         else {
             // If a save location is set and valid, use it
-            saveDirName = target.getOptions().get(TargetPrefs.DEST_LOCATION_KEY);
+            saveDirName = target.getSettings().getDestLocation();
             if (saveDirName == null || saveDirName.isBlank() || !new File(saveDirName).exists()) {
                 // Otherwise default to the current dir, and prompt
                 saveDirName = new File("").getAbsolutePath();
@@ -164,14 +163,14 @@ public class DiskExporter extends Exporter {
             return;
         }
 
-        if (Misc.isTrue(target.getOptions().get(TargetPrefs.ALWAYS_ASK_DIR_KEY))) {
+        if (target.getSettings().getMustAlwaysAskLocation()) {
             // Remember selected path
-            target.getOptions().put(TargetPrefs.LAST_CUSTOM_DEST_LOCATION_KEY, destinationFile.getParent());
+            target.getSettings().setLastCustomDestLocation(destinationFile.getParent());
             Ginj.getTargetPrefs().save();
         }
 
         String message = "Export completed successfully.";
-        if (Misc.isTrue(target.getOptions().get(TargetPrefs.MUST_COPY_PATH_KEY))) {
+        if (target.getSettings().getMustCopyPath()) {
             copyTextToClipboard(destinationFile.getAbsolutePath());
             message += "\nPath was copied to clipboard";
         }

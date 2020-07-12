@@ -8,7 +8,10 @@ import info.ginj.export.online.AbstractOAuth2Exporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
-import info.ginj.model.*;
+import info.ginj.model.Account;
+import info.ginj.model.Capture;
+import info.ginj.model.Profile;
+import info.ginj.model.Target;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -125,7 +128,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             String message = "Upload successful.";
 
             if (captureUrl != null) {
-                if (Misc.isTrue(target.getOptions().get(TargetPrefs.MUST_COPY_PATH_KEY))) {
+                if (target.getSettings().getMustCopyPath()) {
                     copyTextToClipboard(captureUrl);
                     message += "\nA link to your capture was copied to the clipboard";
                 }
@@ -231,7 +234,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         // Step 1: Upload the file
         final FileMetadata fileMetadata = uploadFile(client, target, capture);
 
-        if (Misc.isTrue(target.getOptions().get(TargetPrefs.MUST_SHARE_KEY))) {
+        if (target.getSettings().getMustShare()) {
             // Step 2: Share it
             SharedLinkMetadata sharedLinkMetadata = shareFile(client, target, fileMetadata);
 

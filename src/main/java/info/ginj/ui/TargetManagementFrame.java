@@ -11,6 +11,7 @@ import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.google.GooglePhotosExporter;
 import info.ginj.model.Account;
+import info.ginj.model.ExportSettings;
 import info.ginj.model.Target;
 import info.ginj.model.TargetPrefs;
 import info.ginj.ui.layout.ButtonLayout;
@@ -435,9 +436,9 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                         "Username:", UI.getWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, account.getName(), false, true),
                         "Email:", UI.getWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, account.getEmail(), false, true),
                         "Display as:", UI.getWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, exporter.getDefaultShareText() + " (" + account.getEmail() + ")", true, true),
-                        "Create one album:", UI.getWizardList(TargetPrefs.ALBUM_GRANULARITY_KEY, GooglePhotosExporter.Granularity.values(), 0, true, true),
-                        "Share album:", UI.getWizardCheckBox(TargetPrefs.MUST_SHARE_KEY, true, true, true),
-                        "Copy link to clipboard:", UI.getWizardCheckBox(TargetPrefs.MUST_COPY_PATH_KEY, true, true, true)
+                        "Create one album:", UI.getWizardList(ExportSettings.ALBUM_GRANULARITY_KEY, GooglePhotosExporter.Granularity.values(), 0, true, true),
+                        "Share album:", UI.getWizardCheckBox(ExportSettings.MUST_SHARE_KEY, true, true, true),
+                        "Copy link to clipboard:", UI.getWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, true, true, true)
                 );
 
                 intermediatePanel.add(fieldsPanel);
@@ -464,8 +465,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                         "Username:", UI.getWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, account.getName(), false, true),
                         "Email:", UI.getWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, account.getEmail(), false, true),
                         "Display as:", UI.getWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, exporter.getDefaultShareText() + " (" + account.getEmail() + ")", true, true),
-                        "Share capture:", UI.getWizardCheckBox(TargetPrefs.MUST_SHARE_KEY, true, true, true),
-                        "Copy link to clipboard:", UI.getWizardCheckBox(TargetPrefs.MUST_COPY_PATH_KEY, true, true, true)
+                        "Share capture:", UI.getWizardCheckBox(ExportSettings.MUST_SHARE_KEY, true, true, true),
+                        "Copy link to clipboard:", UI.getWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, true, true, true)
                 );
 
                 intermediatePanel.add(fieldsPanel);
@@ -515,7 +516,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             if (exporter != null) {
                 defaultName = exporter.getDefaultShareText();
             }
-            String defaultSaveDir = (String) getWizardData(TargetPrefs.DEST_LOCATION_KEY);
+            String defaultSaveDir = (String) getWizardData(ExportSettings.DEST_LOCATION_KEY);
             if (defaultSaveDir == null) {
                 // Return the Desktop for Windows, or home dir otherwise, like the FileChooser does.
                 defaultSaveDir = FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath();
@@ -524,10 +525,10 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
             JPanel fieldsPanel = UI.getFieldPanel(
                     "Display as:", UI.getWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, defaultName, true, true),
-                    "Save to:", UI.getWizardTextField(TargetPrefs.DEST_LOCATION_KEY, defaultSaveDir, true, true),
-                    "Always ask:", UI.getWizardCheckBox(TargetPrefs.ALWAYS_ASK_DIR_KEY, false, true, true),
-                    "Remember last dir:", UI.getWizardCheckBox(TargetPrefs.REMEMBER_DIR_KEY, true, true, true),
-                    "Copy path to clipboard:", UI.getWizardCheckBox(TargetPrefs.MUST_COPY_PATH_KEY, true, true, true)
+                    "Save to:", UI.getWizardTextField(ExportSettings.DEST_LOCATION_KEY, defaultSaveDir, true, true),
+                    "Always ask:", UI.getWizardCheckBox(ExportSettings.MUST_ALWAYS_ASK_LOCATION_KEY, false, true, true),
+                    "Remember last dir:", UI.getWizardCheckBox(ExportSettings.MUST_REMEMBER_LAST_LOCATION_KEY, true, true, true),
+                    "Copy path to clipboard:", UI.getWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, true, true, true)
             );
 
 
@@ -556,16 +557,24 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                     target.setAccount((Account) map.get(TargetPrefs.ACCOUNT_KEY));
                     target.setDisplayName((String) map.get(TargetPrefs.DISPLAY_NAME_KEY));
 
-                    // Simplest way for the rest
+                    // Collect non-generic keys in a "settings" map
+                    List<Object> genericKeys = Arrays.asList(TargetPrefs.GENERIC_KEYS);
+                    Map<String,Object> settingsMap = new HashMap<>();
                     for (Object key : map.keySet()) {
                         Object value = map.get(key);
-                        if (value != null
-                                && !TargetPrefs.EXPORTER_KEY.equals(key)
-                                && !TargetPrefs.ACCOUNT_KEY.equals(key)
-                                && !TargetPrefs.DISPLAY_NAME_KEY.equals(key)
-                        ) {
-                            target.getOptions().put((String)key, value.toString());
+                        if (value != null && !genericKeys.contains(key)) {
+                            settingsMap.put((String)key, value);
                         }
+                    }
+                    // Inject those "settings" from map into a Settings object
+                    final ExportSettings settings = new ExportSettings();
+                    settings.moveFromMap(settingsMap);
+                    // And remember it
+                    target.setSettings(settings);
+
+                    // Safeguard
+                    if (!settingsMap.isEmpty()) {
+                        System.err.println("Unhandled settings in map: " + settingsMap);
                     }
 
                     final TargetPrefs targetPrefs = Ginj.getTargetPrefs();

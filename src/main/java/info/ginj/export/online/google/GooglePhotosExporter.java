@@ -12,8 +12,6 @@ import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 import info.ginj.model.Capture;
 import info.ginj.model.Target;
-import info.ginj.model.TargetPrefs;
-import info.ginj.util.Misc;
 import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -121,7 +119,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             final String albumUrl = uploadCapture(capture, target);
             String message = "Upload successful.";
             if (albumUrl != null) {
-                if (Misc.isTrue(target.getOptions().get(TargetPrefs.MUST_COPY_PATH_KEY))) {
+                if (target.getSettings().getMustCopyPath()) {
                     copyTextToClipboard(albumUrl);
                     message += "\nA link to the album containing your capture was copied to the clipboard";
                 }
@@ -176,7 +174,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         String mediaId = createMediaItem(client, target, capture, album.getId(), uploadToken);
         // Unfortunately, mediaId seems to be useless as we can only share the album...
 
-        if (Misc.isTrue(target.getOptions().get(TargetPrefs.MUST_SHARE_KEY))) {
+        if (target.getSettings().getMustShare()) {
             return album.getShareInfo().getShareableUrl();
         }
         else {
@@ -198,8 +196,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     private Album getOrCreateAlbum(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, CommunicationException {
         // Determine target album accorging to "granularity" preference:
         // Single album / One per day / One per Ginj session / One per capture name / one per capture id
-        Granularity granularity = Granularity.valueOf(target.getOptions().get(TargetPrefs.ALBUM_GRANULARITY_KEY));
-        String albumName = switch (granularity) {
+        String albumName = switch (target.getSettings().getAlbumGranularity()) {
             case APP -> Ginj.getAppName() + " uploads";
             case DAY -> Ginj.getAppName() + " uploads of " + DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN).format(LocalDateTime.now());
             case SESSION -> Ginj.getAppName() + " session of " + Ginj.getSession();

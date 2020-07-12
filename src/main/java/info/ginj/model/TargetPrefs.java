@@ -18,14 +18,8 @@ public class TargetPrefs {
     public static final String ACCOUNT_USERNAME_KEY = "account.username";
     public static final String ACCOUNT_EMAIL_KEY = "account.email";
     public static final String DISPLAY_NAME_KEY = "display_name";
-    public static final String ALBUM_GRANULARITY_KEY = "album_granularity";
-    public static final String MUST_SHARE_KEY = "must_share";
-    public static final String MUST_COPY_PATH_KEY = "must_copy_path";
-    public static final String DEST_LOCATION_KEY = "save_location";
-    public static final String LAST_CUSTOM_DEST_LOCATION_KEY = "last_custom_save_location";
-    public static final String ALWAYS_ASK_DIR_KEY = "always_ask_dir";
-    public static final String REMEMBER_DIR_KEY = "remember_dir";
 
+    public static final String[] GENERIC_KEYS = new String[] {EXPORTER_KEY, ACCOUNT_KEY, ACCOUNT_USERNAME_KEY, ACCOUNT_EMAIL_KEY, DISPLAY_NAME_KEY};
 
     List<Target> targetList = new ArrayList<>();
 
@@ -43,19 +37,32 @@ public class TargetPrefs {
     private static TargetPrefs getDefaultTargetPrefs() {
         TargetPrefs targetPrefs = new TargetPrefs();
 
+        // Default disk target
+
         Target diskTarget = new Target();
+
         final DiskExporter diskExporter = new DiskExporter();
         diskTarget.setExporter(diskExporter);
+
+        final ExportSettings settings = new ExportSettings();
+        settings.setMustAlwaysAskLocation(true);
+        settings.setMustRememberLastLocation(true);
+        settings.setMustCopyPath(true);
+        diskTarget.setSettings(settings);
+
         diskTarget.setDisplayName(diskExporter.getDefaultShareText());
-        diskTarget.getOptions().put(TargetPrefs.ALWAYS_ASK_DIR_KEY, "true");
-        diskTarget.getOptions().put(TargetPrefs.REMEMBER_DIR_KEY, "true");
-        diskTarget.getOptions().put(TargetPrefs.MUST_COPY_PATH_KEY, "true");
+
         targetPrefs.getTargetList().add(diskTarget);
+
+
+        // Default clipboard target
 
         Target clipboardTarget = new Target();
         final ClipboardExporter clipboardExporter = new ClipboardExporter();
         clipboardTarget.setExporter(clipboardExporter);
+
         clipboardTarget.setDisplayName(clipboardExporter.getDefaultShareText());
+
         targetPrefs.getTargetList().add(clipboardTarget);
 
         return targetPrefs;

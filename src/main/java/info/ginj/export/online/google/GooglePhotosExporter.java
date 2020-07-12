@@ -244,14 +244,16 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     private Album getAlbumByName(CloseableHttpClient client, Target target, String albumName) throws AuthorizationException, CommunicationException {
         AlbumList albumList = null;
         do {
-            albumList = getNextAlbumPage(client, target, (albumList == null) ? null : albumList.getNextPageToken());
-            for (Album candidate : albumList.albums) {
-                if (albumName.equals(candidate.title)) {
-                    return candidate;
+            albumList = getNextAlbumPage(client, target, (albumList == null) ? null : albumList.nextPageToken);
+            if (albumList.albums != null) {
+                for (Album candidate : albumList.albums) {
+                    if (albumName.equals(candidate.title)) {
+                        return candidate;
+                    }
                 }
             }
         }
-        while (albumList.getNextPageToken() != null);
+        while (albumList.nextPageToken != null);
 
         // Not found
         return null;

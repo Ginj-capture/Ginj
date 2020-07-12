@@ -81,4 +81,4 @@ Many thanks:
 
 Please review [Ginj's privacy policy](https://github.com/Ginj-capture/Ginj/blob/master/).
 In short, Ginj does not spy on you, but the auto-update process connects back to Ginj's website to check for availability of a new version. 
-If you configure sharing via third party services, their privacy policiy applied of course.
+If you configure sharing via third party services, their privacy policy applies of course.

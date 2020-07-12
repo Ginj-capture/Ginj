@@ -76,3 +76,9 @@ The user interface uses:
 Many thanks: 
 - to [ej-technologies](https://www.ej-technologies.com/) for providing free licences of [Install4J, the best multi-platform installer builder](https://www.ej-technologies.com/products/install4j/overview.html) for non-profit open source projects.
 - to [Techsmith](https://www.techsmith.com/) for having proposed and supported Jing for so long. Check out their product line.
+
+#### Privacy.
+
+Please review [Ginj's privacy policy](https://github.com/Ginj-capture/Ginj/blob/master/).
+In short, Ginj does not spy on you, but the auto-update process connects back to Ginj's website to check for availability of a new version. 
+If you configure sharing via third party services, their privacy policiy applied of course.

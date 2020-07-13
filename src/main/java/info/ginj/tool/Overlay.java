@@ -20,7 +20,8 @@ public abstract class Overlay extends JPanel {
     public static final int SHADOW_OFFSET = 3;
 
     // Caching
-    private BufferedImage shadowImage;
+    private Rectangle shadowBoundsCache;
+    private BufferedImage shadowImageCache;
     private BufferedImage handleImg;
 
     // State
@@ -29,7 +30,6 @@ public abstract class Overlay extends JPanel {
 
     // Actual fields to persist and restore
     private Color color;
-    private Rectangle shadowBounds;
 
 
     ////////////////////////////////
@@ -68,7 +68,7 @@ public abstract class Overlay extends JPanel {
         this.editInProgress = editInProgress;
         // purge shadow image so that it is redrawn when editing is finished
         if (editInProgress) {
-            shadowImage = null;
+            clearShadow();
         }
     }
 
@@ -86,9 +86,10 @@ public abstract class Overlay extends JPanel {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHints(ANTI_ALIASING_ON);
 
-        // Draw shadow;
+        // Draw shadow
         if (!isEditInProgress() && mustDrawShadow()) {
-            final BufferedImage shadowImage = getShadowImage(); // also recomputes shadowBounds if needed
+            final Rectangle shadowBounds = getShadowBounds();
+            final BufferedImage shadowImage = getShadowImage();
             g2d.drawImage(shadowImage, shadowBounds.x, shadowBounds.y, this);
         }
 
@@ -144,63 +145,67 @@ public abstract class Overlay extends JPanel {
         if (isSelected() && getHandleIndexAt(point) != NO_INDEX) return true;
 
         // Then see if we're in the bounding rectangle of the shadow
+        final Rectangle shadowBounds = getShadowBounds();
         if (!shadowBounds.contains(point)) return false;
 
         // And Return true if the pixel at (x,y) is not transparent (incl shadow)
-        final BufferedImage shadowImage = getShadowImage(); // also recomputes shadowBounds if needed
+        final BufferedImage shadowImage = getShadowImage();
         final int rgb = shadowImage.getRGB(point.x - shadowBounds.x, point.y - shadowBounds.y);
         return ((rgb & 0xFF000000) != 0);
     }
 
     @java.beans.Transient
     private synchronized BufferedImage getShadowImage() {
-        if (shadowImage == null) {
+        if (shadowImageCache == null) {
             // Only redraw the area in the real overlay bounds (by scanning handles) + shadow margin
-            shadowBounds = computeShadowBounds();
+            shadowBoundsCache = getShadowBounds();
             BufferedImageOp op = new GaussianFilter(SHADOW_BLUR_RADIUS);
-            BufferedImage maskImage = new BufferedImage(shadowBounds.width, shadowBounds.height, BufferedImage.TYPE_INT_ARGB);
+            BufferedImage maskImage = new BufferedImage(shadowBoundsCache.width, shadowBoundsCache.height, BufferedImage.TYPE_INT_ARGB);
             final Graphics2D maskImageG2D = maskImage.createGraphics();
-            drawComponent(maskImageG2D, SHADOW_OFFSET - shadowBounds.x, SHADOW_OFFSET - shadowBounds.y);
+            drawComponent(maskImageG2D, SHADOW_OFFSET - shadowBoundsCache.x, SHADOW_OFFSET - shadowBoundsCache.y);
             maskImageG2D.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN, 0.7f));
             maskImageG2D.setColor(Color.BLACK);
-            maskImageG2D.fillRect(0, 0, shadowBounds.width, shadowBounds.height);
+            maskImageG2D.fillRect(0, 0, shadowBoundsCache.width, shadowBoundsCache.height);
             maskImageG2D.dispose();
-            shadowImage = op.filter(maskImage, null);
+            shadowImageCache = op.filter(maskImage, null);
         }
-        return shadowImage;
+        return shadowImageCache;
     }
 
-    private Rectangle computeShadowBounds() {
-        Rectangle realBounds = null;
-        for (Point handle : getHandles()) {
-            if (realBounds == null) {
-                realBounds = new Rectangle(handle, new Dimension(0,0));
+    @java.beans.Transient
+    private Rectangle getShadowBounds() {
+        if (shadowBoundsCache == null) {
+            // Recompute shadow bounds based on all handles
+            for (Point handle : getHandles()) {
+                if (shadowBoundsCache == null) {
+                    shadowBoundsCache = new Rectangle(handle, new Dimension(0, 0));
+                }
+                else {
+                    // Adjust horizontally
+                    if (handle.x < shadowBoundsCache.x) {
+                        shadowBoundsCache.width = shadowBoundsCache.width + (shadowBoundsCache.x - handle.x);
+                        shadowBoundsCache.x = handle.x;
+                    }
+                    else if (handle.x > shadowBoundsCache.x + shadowBoundsCache.width) {
+                        shadowBoundsCache.width = handle.x - shadowBoundsCache.x;
+                    }
+                    // Adjust vertically
+                    if (handle.y < shadowBoundsCache.y) {
+                        shadowBoundsCache.height = shadowBoundsCache.height + (shadowBoundsCache.y - handle.y);
+                        shadowBoundsCache.y = handle.y;
+                    }
+                    else if (handle.y > shadowBoundsCache.y + shadowBoundsCache.height) {
+                        shadowBoundsCache.height = handle.y - shadowBoundsCache.y;
+                    }
+                }
             }
-            else {
-                // Adjust horizontally
-                if (handle.x < realBounds.x) {
-                    realBounds.width = realBounds.width + (realBounds.x - handle.x);
-                    realBounds.x = handle.x;
-                }
-                else if (handle.x > realBounds.x + realBounds.width) {
-                    realBounds.width = handle.x - realBounds.x;
-                }
-                // Adjust vertically
-                if (handle.y < realBounds.y) {
-                    realBounds.height = realBounds.height + (realBounds.y - handle.y);
-                    realBounds.y = handle.y;
-                }
-                else if (handle.y > realBounds.y + realBounds.height) {
-                    realBounds.height = handle.y - realBounds.y;
-                }
-            }
+            //noinspection ConstantConditions all overlays have handles
+            shadowBoundsCache.x = shadowBoundsCache.x + SHADOW_OFFSET - SHADOW_BLUR_RADIUS / 2;
+            shadowBoundsCache.y = shadowBoundsCache.y + SHADOW_OFFSET - SHADOW_BLUR_RADIUS / 2;
+            shadowBoundsCache.width += SHADOW_BLUR_RADIUS;
+            shadowBoundsCache.height += SHADOW_BLUR_RADIUS;
         }
-        //noinspection ConstantConditions all overlays have handles
-        realBounds.x = realBounds.x + SHADOW_OFFSET - SHADOW_BLUR_RADIUS/2;
-        realBounds.y = realBounds.y + SHADOW_OFFSET - SHADOW_BLUR_RADIUS/2;
-        realBounds.width += SHADOW_BLUR_RADIUS;
-        realBounds.height += SHADOW_BLUR_RADIUS;
-        return realBounds;
+        return shadowBoundsCache;
     }
 
 
@@ -233,11 +238,19 @@ public abstract class Overlay extends JPanel {
         if (handleIndex != NO_INDEX) {
             // This is a move of one handle
             setHandlePosition(handleIndex, newPosition);
-            shadowImage = null;
+            clearShadow();
         }
         else {
             System.err.print("moveHandle with a handleIndex = NO_INDEX");
         }
+    }
+
+    /**
+     * Clears the shadow image and bounds
+     */
+    private void clearShadow() {
+        shadowBoundsCache = null;
+        shadowImageCache = null;
     }
 
 
@@ -252,7 +265,7 @@ public abstract class Overlay extends JPanel {
         for (int i = 0; i < handles.length; i++) {
             setHandlePosition(i, new Point(handles[i].x + deltaX, handles[i].y + deltaY));
         }
-        shadowImage = null;
+        clearShadow();
     }
 
 

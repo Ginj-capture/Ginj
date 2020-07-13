@@ -285,18 +285,24 @@ public class UI {
     // TODO fix styling and unify the two cases (w and w/o close)
     public static JPanel getTitleBar(String title, ActionListener closeListener) {
         JPanel titleBar = new JPanel();
-        titleBar.setBackground(Color.YELLOW);
+// TODO reenable:
+//titleBar.setName("TitleBarPanel"); // to be addressed in synth.xml
         if (closeListener != null) {
-            titleBar.setLayout(new BorderLayout());
-            titleBar.setBackground(Color.YELLOW);
-            titleBar.add(new JLabel(title, SwingConstants.CENTER), BorderLayout.CENTER);
+// TODO disable:
+titleBar.setLayout(new BorderLayout());
+            final JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+// TODO reenable:
+//titleLabel.setName("TitleBarLabel"); // to be addressed in synth.xml
+            titleBar.add(titleLabel, BorderLayout.CENTER);
             JButton closeButton = new JButton("X");
             closeButton.addActionListener(closeListener);
             titleBar.add(closeButton, BorderLayout.EAST);
         }
         else {
-            JLabel testLabel = new JLabel("Title");
-            titleBar.add(testLabel);
+            JLabel titleLabel = new JLabel(title);
+// TODO reenable:
+//titleLabel.setName("TitleBarLabel"); // to be addressed in synth.xml
+            titleBar.add(titleLabel);
         }
         return titleBar;
     }

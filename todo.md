@@ -27,6 +27,7 @@
  - Typing in a Text Overlay should make the overlay grow wider
  - Add Google Drive exporter
  - Add Youtube exporter
+ - Add FTP exporter :-)
  - Implement tray icon
  - Implement global shortcut
  - Implement Windows detection using JNA

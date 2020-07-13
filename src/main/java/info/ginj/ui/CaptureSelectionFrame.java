@@ -79,7 +79,6 @@ public class CaptureSelectionFrame extends JFrame {
         // Prepare button bar
         actionPanel = new JPanel(); // To add a margin around buttonBar
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
-        actionPanel.setName("GinjPanel"); // To be used as a selector in synth.xml
         JPanel buttonBar = new GinjLowerButtonBar();
 
         imageButton = new GinjLowerButton("Capture image", UI.createIcon(getClass().getResource("/img/icon/image.png"), 16, 16, UI.ICON_ENABLED_COLOR));

@@ -221,7 +221,6 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         // Prepare horizontal button bar
         actionPanel = new JPanel();
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
-        actionPanel.setName("GinjPanel"); // To be used as a selector in synth.xml
         actionPanel.add(createExportButtonBar());
 
         c = new GridBagConstraints();

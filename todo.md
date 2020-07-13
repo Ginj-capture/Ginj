@@ -5,6 +5,7 @@
  - ~~Implement arrow overlay~~
  - ~~Implement rectangular overlays~~
  - ~~Implement Text overlay~~
+ - Implement font size, style and color selection for text overlay
  - ~~Implement overlay resize and move~~
  - ~~Double-clicking one an overlay brings it to front ENHANCEMENT~~
  - ~~Draw pretty overlay handles~~
@@ -12,11 +13,12 @@
  - ~~Add key shortcuts (e.g. DEL to remove overlay, CTRL-Z for undo and CTRL-Y / CTRL-SHIFT-Z for redo)~~
  - ~~Implement "exports"~~
  - ~~Implement disk export~~
- - ~~Implement "share" export~~
+ - ~~Implement Dropbox export~~
+ - ~~Implement Google Photos export~~
  - ~~Exports should be made in a separate Dialog (with progress + and notification when done), with return to the main window in case of error~~
  - ~~Upon export completion, the notification window should allow "auto hide" checkbox + Close button~~
  - ~~Implement preferences~~
- - ~~Implement history~~
+ - ~~Implement history with **editable** items~~
  - ~~Implement edit from history window~~
  - Finalize history window
  - Persist StarWindow position, and position ExportProgressFrame and ExportCompletionFrame right next to it

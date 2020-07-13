@@ -1,4 +1,4 @@
-## Ginj
+![Ginj logo](www/logo.png "Ginj logo")
 
 #### What is Ginj?
 
@@ -15,18 +15,24 @@ Ginj might remind you of a free tool called [Jing](http://web.archive.org/web/20
 - A few new features could be added, but I really want to stick to the simple UI I love. 
 - Oh, and Ginj is written in Java.
 
+#### What does it look like?
+
+![Ginj show off](www/showoff.png "Ginj show-off")
+
+Looks familiar ?
+
 #### Why Ginj?
 
 - Because I was a very satisfied user of Jing and I was sad to see it go. Call me old-fashioned... 
 - Because no other tool on the market satisfied me.
-- Because I was looking for a challenge during the Covid-19 lockdown. That probably wasn't a good idea :-).
+- Because I was looking for a challenge during the Covid-19 lockdown. Maybe that went a little bit overboard :-).
 
 #### Yeah, but why the name Ginj?
 - Because as I said, **G**inj **I**s **N**ot **J**ing.
 
 #### What is the status of Ginj? 
 
-Ginj is still under heavy work. The goal is to cover the features of the original Jing, but many features are still missing. 
+Ginj is still under heavy work. The goal is to cover the features of the original Jing, and maybe bring minimal enhancements, but many of them are still missing. A partial TO-DO list can be found [here](todo.md).
 
 However, basic still image capture, annotation and sharing works quite well already.
 
@@ -45,7 +51,7 @@ But if you test it on other platforms, feel free to [open an issue](https://gith
 
 #### How can I get support?
 
-You can't.
+You can't :-)
 
 If you think you have found a bug, feel free to [open an issue](https://github.com/Ginj-capture/Ginj/issues), but honestly I don't intend this project to ever be bug-free or feature-complete because I know I won't have time to support it in a professional way.
 
@@ -55,10 +61,11 @@ In the meantime, it's just there and it's free... Enjoy :-)
 
 #### Credits. 
 
-The app makes use of the following libraries:
+The app makes use of the following libraries or source code:
 - HttpComponents, Copyright © 2005–2020 The Apache Software Foundation.
-- GSon, Copyright 2008 Google Inc.
-- SLF4j, Copyright (c) 2004-2017 QOS.ch
+- GSon, Copyright © 2008 Google Inc.
+- SLF4j, Copyright © 2004-2017 QOS.ch
+- Parts of the open source [EaSynth_Look_And_Feel_Bundle.zip](http://www.easynth.com/freewares/EaSynthLookAndFeel.html)
 - Wizard by Timothy Boudreau of Netbeans, originally hosted at https://wizard.dev.java.net , v1.1 saved by Lonzak and available at https://github.com/Lonzak/Wizard-API
 
 The source code contains classes or snippets from:
@@ -66,8 +73,7 @@ The source code contains classes or snippets from:
 - [JHLabs image filters](http://jhlabs.com/ip/filters/index.html) by Jerry Huxtable
 - Discussions at [StackOverflow](https://stackoverflow.com/) and [CodeRanch](https://coderanch.com/) - hats off to MadProgrammer, camickr, and others.
 
-The user interface uses:
-- Parts of the open source [EaSynth_Look_And_Feel_Bundle.zip](http://www.easynth.com/freewares/EaSynthLookAndFeel.html) 
+The user interface uses: 
 - Many icons from [FeatherIcons](https://feathericons.com/)
 - Undo icon by Denis Klyuchnikov from [The Noun Project](https://thenounproject.com/)
 - Laptop icon from [Icons8](https://icons8.com/)

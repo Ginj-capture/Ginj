@@ -121,7 +121,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         c.gridwidth = 2;
         c.gridheight = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
-        contentPane.add(UI.getTitleBar("Capture editing" /* to force non-zero height */, null), c);
+        contentPane.add(UI.getTitleBar(" " /* to force non-zero height */, null), c);
 
         // Prepare overlay toolbar
         JPanel toolBar = new JPanel();

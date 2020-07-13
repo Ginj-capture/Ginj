@@ -1,40 +1,5 @@
 package info.ginj;
 
-/*
-TODO Features :
- - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp 640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
- - Implement Windows detection using JNA
- - Implement video using ffmpeg & Jaffree
- - Implement generic preference editor
- - Finalize history window
- - Should undo/redo change selection inside the Action methods (e.g change color, resize) ? - or completely deselect component after operation
- - Upon export completion, the notification window should allow "auto fade when mouse not over" checkbox + Close button
- - Persist StarWindow position
- - Typing in a Text Overlay should make the overlay grow wider
- - Add Google Drive exporter
- - Add Youtube exporter
-
-TODO UI:
- - Paint title bar
- - Finalize Look and feel (File chooser (save as), Tables)
- - Fix scrollbar corner + thumb icon + colors + gap
- - Upscale sun and sun-rays so that runtime downscale provides an anti-aliasing, or better yet draw it by code (gradients etc)
- - Build 3 main buttons at runtime based on circle + icons (downscale provides an anti-aliasing)
-
-TODO Cleanup:
- - Remove EASynth resource dir
- - Remove useless EASynth classes, if any
- - Remove useless icons ?
-
-TODO Options ENHANCEMENT:
- - Improve color chooser UI
- - Add optional "Speech Balloon" overlay
- - Add optional "Line" overlay (with CTRL to constrain)
- - Shift should constrain handle move horizontally/vertically, Ctrl should resize symmetrically
- - Add overlays on video
-
-*/
-
 import info.ginj.model.Prefs;
 import info.ginj.model.TargetPrefs;
 import info.ginj.ui.StarWindow;

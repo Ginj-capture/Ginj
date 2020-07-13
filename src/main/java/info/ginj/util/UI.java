@@ -5,6 +5,7 @@ import info.ginj.ui.layout.SpringLayoutUtilities;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
@@ -12,7 +13,9 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.awt.color.ColorSpace;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
@@ -285,25 +288,30 @@ public class UI {
     // TODO fix styling and unify the two cases (w and w/o close)
     public static JPanel getTitleBar(String title, ActionListener closeListener) {
         JPanel titleBar = new JPanel();
-// TODO reenable:
-//titleBar.setName("TitleBarPanel"); // to be addressed in synth.xml
+        titleBar.setName("TitleBarPanel"); // to be addressed in synth.xml
+        titleBar.setLayout(new BorderLayout());
+        final JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+        titleLabel.setName("TitleBarLabel"); // transparent bg, to be addressed in synth.xml
+        titleBar.add(titleLabel, BorderLayout.CENTER);
         if (closeListener != null) {
-// TODO disable:
-titleBar.setLayout(new BorderLayout());
-            final JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
-// TODO reenable:
-//titleLabel.setName("TitleBarLabel"); // to be addressed in synth.xml
-            titleBar.add(titleLabel, BorderLayout.CENTER);
-            JButton closeButton = new JButton("X");
-            closeButton.addActionListener(closeListener);
-            titleBar.add(closeButton, BorderLayout.EAST);
+            //JButton closeButton = new JButton(createIcon(UI.class.getResource("/img/icon/close_button.png"), 18));
+            //closeButton.setName("TitleBarCloseButton"); // to be addressed in synth.xml
+            //closeButton.addActionListener(closeListener);
+            JLabel closeButtonLabel = new JLabel(createIcon(UI.class.getResource("/img/icon/close_button.png"), 18));
+            closeButtonLabel.setName("TitleBarLabel"); // transparent bg, to be addressed in synth.xml
+            closeButtonLabel.setBorder(new EmptyBorder(3, 0, 3, 6));
+            closeButtonLabel.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    closeListener.actionPerformed(new ActionEvent(closeButtonLabel, ActionEvent.ACTION_PERFORMED, ""));
+                }
+            });
+            titleBar.add(closeButtonLabel, BorderLayout.EAST);
         }
-        else {
-            JLabel titleLabel = new JLabel(title);
-// TODO reenable:
-//titleLabel.setName("TitleBarLabel"); // to be addressed in synth.xml
-            titleBar.add(titleLabel);
-        }
+//        else {
+//            JLabel titleLabel = new JLabel(title);
+//            titleLabel.setName("TitleBarLabel"); // to be addressed in synth.xml
+//            titleBar.add(titleLabel);
+//        }
         return titleBar;
     }
 

@@ -822,16 +822,6 @@
     </style>
     <bind style="GinjLabelStyle" type="name" key="GinjLabel" />
 
-    <!-- The style for title bar label. -->
-    <style id="TitleBarLabelStyle">
-        <opaque value="false"/>
-        <font name="Dialog" size="14" style="BOLD"/>
-        <state value="ENABLED">
-            <color type="FOREGROUND" value="#000000"/>
-        </state>
-    </style>
-    <bind style="TitleBarLabelStyle" type="name" key="TitleBarLabel" />
-
     <!-- The style for yellow label on dark rectangle. -->
     <style id="GinjBorderedLabelStyle">
         <insets top="3" left="3" bottom="3" right="3"/>
@@ -857,6 +847,21 @@
         </state>
     </style>
     <bind style="backingStyle" type="region" key=".*"/>
+
+
+    <!-- The style for title bar label. -->
+    <!-- Yeah, it's defined below the duplicate default ".*" style. -->
+    <!-- This one MUST be transparent, but it only works if it comes AFTER the default style that instructs it to be opaque. Go figure -->
+    <!-- One day, I will understand SynthLayout ... maybe -->
+    <style id="TitleBarLabelStyle">
+        <opaque value="false"/>
+        <insets top="3" left="3" bottom="3" right="3"/>
+        <font name="Lucida" size="13" style="BOLD"/>
+        <state value="ENABLED">
+            <color type="FOREGROUND" value="#000000"/>
+        </state>
+    </style>
+    <bind style="TitleBarLabelStyle" type="name" key="TitleBarLabel" />
 
 
     <!-- After code debugging the style for text field component. -->

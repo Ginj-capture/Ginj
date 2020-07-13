@@ -165,8 +165,8 @@ public class ExportFrame extends JFrame implements ExportMonitor {
 
         closeExportWindow();
 
-        // TODO Should be the notification window with auto close
-        JOptionPane.showMessageDialog(this, state, "Export complete", JOptionPane.INFORMATION_MESSAGE);
+        // Open the "capture completion" notification window with auto-hide
+        new CaptureCompletionFrame(capture).setVisible(true);
     }
 
     @Override

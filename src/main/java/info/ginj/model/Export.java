@@ -4,15 +4,15 @@ import java.io.Serializable;
 
 public class Export implements Serializable {
     String exporterName;
-    String path;
+    String location;
     String mediaId;
 
     public Export() {
     }
 
-    public Export(String exporterName, String mediaId, String path) {
+    public Export(String exporterName, String mediaId, String location) {
         this.exporterName = exporterName;
-        this.path = path;
+        this.location = location;
         this.mediaId = mediaId;
     }
 
@@ -25,16 +25,16 @@ public class Export implements Serializable {
     }
 
     /**
-     * Path can be null (clipboard), a file path (for saved files), or a URL (for shared files)
+     * Location can be null (clipboard), a file path (for saved files), or a URL (for shared files)
      *
      * @return
      */
-    public String getPath() {
-        return path;
+    public String getLocation() {
+        return location;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public String getMediaId() {
@@ -49,7 +49,7 @@ public class Export implements Serializable {
     public String toString() {
         return "Export{" +
                 "exporterName='" + exporterName + '\'' +
-                ", path='" + path + '\'' +
+                ", path='" + location + '\'' +
                 ", mediaId='" + mediaId + '\'' +
                 '}';
     }

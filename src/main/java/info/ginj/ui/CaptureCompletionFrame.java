@@ -1,0 +1,192 @@
+package info.ginj.ui;
+
+import info.ginj.Ginj;
+import info.ginj.export.clipboard.ClipboardExporter;
+import info.ginj.model.Capture;
+import info.ginj.model.Export;
+import info.ginj.model.Prefs;
+import info.ginj.ui.component.GinjLabel;
+import info.ginj.util.UI;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+/**
+ * This window appears when an export is complete, and optionally auto-closes
+ */
+public class CaptureCompletionFrame extends JFrame {
+
+    private final JCheckBox autoHideCheckbox;
+
+    public CaptureCompletionFrame(Capture capture) {
+        super();
+
+        // For Alt+Tab behaviour
+        this.setTitle(Ginj.getAppName() + " export complete");
+        setIconImage(StarWindow.getAppIcon());
+
+        // No window title bar or border.
+        // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
+        setUndecorated(true);
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new GridBagLayout());
+
+        // Add main label
+        final List<Export> exports = capture.getExports();
+        final Export export = exports.get(exports.size() - 1); // last export
+        JLabel stateLabel = new GinjLabel(export.getExporterName() + " export complete");
+
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 2;
+        c.anchor = GridBagConstraints.CENTER;
+        c.insets = new Insets(16, 16, 8, 16);
+        mainPanel.add(stateLabel, c);
+
+        // Add message label
+        String message;
+        if (ClipboardExporter.NAME.equals(export.getExporterName())) {
+            message = "Your capture was copied to the clipboard and is ready to be pasted";
+        }
+        else {
+            if (export.getLocation() != null && export.getLocation().length() > 0) {
+                message = "Your capture is available at the following location:\n" + export.getLocation();
+            }
+            else {
+                message = "Your capture is now available";
+            }
+        }
+        JLabel messageLabel = new GinjLabel(message);
+
+        c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 1;
+        c.gridwidth = 2;
+        c.anchor = GridBagConstraints.CENTER;
+        c.insets = new Insets(8, 16, 8, 16);
+        mainPanel.add(messageLabel, c);
+
+        // Add joke label
+        JLabel jokelabel = new JLabel("Ginj will not be replaced - it's is here to stay :-).");
+
+        c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 2;
+        c.gridwidth = 2;
+        c.anchor = GridBagConstraints.WEST;
+        c.insets = new Insets(8, 16, 8, 16);
+        mainPanel.add(jokelabel, c);
+
+        autoHideCheckbox = new JCheckBox();
+        final boolean autoHide = Prefs.isTrue(Prefs.Key.EXPORT_COMPLETE_AUTOHIDE_KEY);
+        autoHideCheckbox.setSelected(autoHide);
+        if (autoHide) {
+            startTimer();
+        }
+        autoHideCheckbox.addActionListener(e -> onAutoHideChange());
+        updateCheckboxText();
+        c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 3;
+        c.gridwidth = 1;
+        c.anchor = GridBagConstraints.WEST;
+        c.insets = new Insets(8, 16, 16, 16);
+        mainPanel.add(autoHideCheckbox, c);
+
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> onClose());
+        c = new GridBagConstraints();
+        c.gridx = 1;
+        c.gridy = 3;
+        c.gridwidth = 1;
+        c.anchor = GridBagConstraints.EAST;
+        c.insets = new Insets(8, 16, 16, 16);
+        mainPanel.add(closeButton, c);
+
+        // Add default "draggable window" behaviour
+        UI.addDraggableWindowMouseBehaviour(this, mainPanel);
+
+        getContentPane().add(mainPanel);
+
+        addMouseBehaviour(mainPanel);
+
+        pack();
+//        setSize(280,70);
+
+        // Center window
+        // TODO should pop up next to the star icon
+        setLocationRelativeTo(null);
+    }
+
+    private void onClose() {
+        stopTimer();
+        dispose();
+    }
+
+    java.util.Timer timer = null;
+    int timeRemainingBeforeHide = 5;
+
+    private void onAutoHideChange() {
+        Prefs.set(Prefs.Key.EXPORT_COMPLETE_AUTOHIDE_KEY, String.valueOf(autoHideCheckbox.isSelected()));
+        updateCheckboxText();
+    }
+
+    private void updateCheckboxText() {
+        if (autoHideCheckbox.isSelected()) {
+            autoHideCheckbox.setText("Auto-hide in " + timeRemainingBeforeHide + "...");
+        }
+        else {
+            autoHideCheckbox.setText("Auto-hide          ");
+        }
+    }
+
+    private void addMouseBehaviour(JComponent component) {
+        component.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                stopTimer();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                // Check if it is a real exit, not just hovering over button or checkbox
+                if(!component.contains(e.getPoint())) {
+                    // Real exit
+                    if (autoHideCheckbox.isSelected()) {
+                        startTimer();
+                    }
+                }
+            }
+
+        });
+    }
+
+    private void startTimer() {
+        timer = new Timer(true);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                timeRemainingBeforeHide--;
+                updateCheckboxText();
+                if (timeRemainingBeforeHide <= 0) {
+                    onClose();
+                }
+            }
+        }, 950, 1000);
+    }
+
+    private void stopTimer() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
+}

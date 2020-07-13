@@ -48,7 +48,7 @@ public class Prefs {
 
         CAPTURE_HISTORY_PATH("capture.history.path", "The folder where all capture history is stored" , true),
         USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS("use.small.buttons.for.online.target", "If set, small buttons like are shown for online targets, like for save and copy", true),
-        ;
+        EXPORT_COMPLETE_AUTOHIDE_KEY("export.complete.autohide", "If set, the window displayed upon export completion will fade away and close when not hovered", true);
 
         private final String keyString;
         private final String help;

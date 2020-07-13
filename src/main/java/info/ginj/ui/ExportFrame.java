@@ -204,6 +204,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
     }
 
 
+    // TODO Should probably be in a separate thread
     private boolean saveToHistory(Capture capture) {
         File historyFolder = Ginj.getHistoryFolder();
         if (!historyFolder.exists()) {

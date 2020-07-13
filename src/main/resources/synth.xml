@@ -89,6 +89,14 @@
     </style>
     <bind style="PanelStyle" type="region" key="Panel"/>
 
+    <!-- The style for panel component. -->
+    <style id="TitleBarPanelStyle">
+        <state>
+            <imagePainter method="panelBorder" path="/img/laf/titlebar_panel.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+        </state>
+    </style>
+    <bind style="TitleBarPanelStyle" type="name" key="TitleBarPanel"/>
+
     <style id="GinjBorderedPanelStyle">
         <state>
             <imagePainter method="panelBorder" path="/img/laf/bordered_panel.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
@@ -813,6 +821,16 @@
         </state>
     </style>
     <bind style="GinjLabelStyle" type="name" key="GinjLabel" />
+
+    <!-- The style for title bar label. -->
+    <style id="TitleBarLabelStyle">
+        <opaque value="false"/>
+        <font name="Dialog" size="14" style="BOLD"/>
+        <state value="ENABLED">
+            <color type="FOREGROUND" value="#000000"/>
+        </state>
+    </style>
+    <bind style="TitleBarLabelStyle" type="name" key="TitleBarLabel" />
 
     <!-- The style for yellow label on dark rectangle. -->
     <style id="GinjBorderedLabelStyle">

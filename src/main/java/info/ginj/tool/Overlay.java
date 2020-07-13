@@ -154,23 +154,19 @@ public abstract class Overlay extends JPanel {
 
     @java.beans.Transient
     private synchronized BufferedImage getShadowImage() {
-//        System.out.println("Start     " + System.currentTimeMillis());
         if (shadowImage == null) {
             // Only redraw the area in the real overlay bounds (by scanning handles) + shadow margin
             shadowBounds = computeShadowBounds();
             BufferedImageOp op = new GaussianFilter(SHADOW_BLUR_RADIUS);
             BufferedImage maskImage = new BufferedImage(shadowBounds.width, shadowBounds.height, BufferedImage.TYPE_INT_ARGB);
             final Graphics2D maskImageG2D = maskImage.createGraphics();
-//            System.out.println("Init done " + System.currentTimeMillis());
             drawComponent(maskImageG2D, SHADOW_OFFSET - shadowBounds.x, SHADOW_OFFSET - shadowBounds.y);
             maskImageG2D.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_IN, 0.7f));
             maskImageG2D.setColor(Color.BLACK);
             maskImageG2D.fillRect(0, 0, shadowBounds.width, shadowBounds.height);
             maskImageG2D.dispose();
-//            System.out.println("Draw done " + System.currentTimeMillis());
             shadowImage = op.filter(maskImage, null);
         }
-//        System.out.println("Return    " + System.currentTimeMillis());
         return shadowImage;
     }
 

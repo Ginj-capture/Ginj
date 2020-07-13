@@ -64,7 +64,7 @@ The app makes use of the following libraries:
 The source code contains classes or snippets from:
 - [The Java Tutorial](https://docs.oracle.com/javase/tutorial/), Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
 - [JHLabs image filters](http://jhlabs.com/ip/filters/index.html) by Jerry Huxtable
-- Discussions at [StackOverflow](https://stackoverflow.com/) and [CodeRanch](https://coderanch.com/)
+- Discussions at [StackOverflow](https://stackoverflow.com/) and [CodeRanch](https://coderanch.com/) - hats off to MadProgrammer, camickr, and others.
 
 The user interface uses:
 - Parts of the open source [EaSynth_Look_And_Feel_Bundle.zip](http://www.easynth.com/freewares/EaSynthLookAndFeel.html) 

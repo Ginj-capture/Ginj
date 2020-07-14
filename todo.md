@@ -21,7 +21,8 @@
  - ~~Implement history with **editable** items~~
  - ~~Implement edit from history window~~
  - Finalize history window
- - Persist StarWindow position, and position ExportProgressFrame and ExportCompletionFrame right next to it
+ - ~~Persist StarWindow position~~
+ - Position ExportProgressFrame and ExportCompletionFrame next to Star Window
  - Implement video using ffmpeg & Jaffree
  - Implement generic preference editor
  - Typing in a Text Overlay should make the overlay grow wider

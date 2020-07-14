@@ -1,6 +1,7 @@
 package info.ginj.ui;
 
 import info.ginj.Ginj;
+import info.ginj.model.Prefs;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
 
 import javax.imageio.ImageIO;
@@ -20,6 +21,8 @@ import java.util.Set;
  * UI transparency based on sample code by MadProgrammer at https://stackoverflow.com/questions/26205164/java-custom-shaped-frame-using-image
  */
 public class StarWindow extends JWindow {
+
+    public enum Border { NORTH, EAST, SOUTH, WEST}
 
     public static final int WINDOW_WIDTH_PIXELS = 150;
     public static final int WINDOW_HEIGHT_PIXELS = 150;
@@ -100,7 +103,7 @@ public class StarWindow extends JWindow {
 
         // Prepare to show Window
         pack();
-        positionWindowOnStartup();
+        setLocation(getLocationOnStartup());
         setAlwaysOnTop(true);
     }
 
@@ -325,16 +328,39 @@ public class StarWindow extends JWindow {
         }
     }
 
-    private void positionWindowOnStartup() {
-        // Load prefs and retrieve previous X/Y
-        int retrievedX = (int) (screenSize.getWidth() / 2);
-        int retrievedY = 0;
+    private Point getLocationOnStartup() {
+        // Default to center of top border
+        int targetX = (int) (screenSize.getWidth() / 2);
+        int targetY = 0;
+        try {
+            // Try to load prefs and retrieve previous X/Y
+            Border border = Border.valueOf(Prefs.get(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER));
+            int distanceFromCorner = Integer.parseInt(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER));
+            switch (border) {
+                case NORTH -> {
+                    targetX = Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS);
+                    targetY = 0;
+                }
+                case SOUTH -> {
+                    targetX = Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS);
+                    targetY = screenSize.height;
+                }
+                case EAST -> {
+                    targetX = screenSize.width;
+                    targetY = Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
+                }
+                case WEST -> {
+                    targetX = 0;
+                    targetY = Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
+                }
+            }
+        }
+        catch (NullPointerException | IllegalArgumentException e) {
+            // No (or unrecognized) position. keep default
+        }
+        computeButtonPositions(targetX, targetY);
 
-        int x = retrievedX - getWidth() / 2;
-        int y = retrievedY - getHeight() / 2;
-        setLocation(x, y);
-
-        computeButtonPositions(retrievedX, retrievedY);
+        return new Point(targetX - getWidth() / 2, targetY - getHeight() / 2);
     }
 
     private Point getClosestPointOnScreenBorder() {
@@ -345,40 +371,55 @@ public class StarWindow extends JWindow {
         // Closest to left or right ?
         int distanceX;
         int targetX;
+        Border borderX;
         if (centerX < screenSize.width - centerX) {
             distanceX = centerX;
             targetX = 0;
+            borderX = Border.WEST;
         }
         else {
             distanceX = screenSize.width - centerX;
             targetX = screenSize.width;
+            borderX = Border.EAST;
         }
 
         // Closest to top or bottom ?
         int distanceY;
         int targetY;
+        Border borderY;
         if (centerY < screenSize.height - centerY) {
             distanceY = centerY;
             targetY = 0;
+            borderY = Border.NORTH;
         }
         else {
             distanceY = screenSize.height - centerY;
             targetY = screenSize.height;
+            borderY = Border.SOUTH;
         }
 
         // Now closest to a vertical or horizontal border
+        Border border;
+        int distanceFromCorner;
         if (distanceX < distanceY) {
             // Closest to vertical border
             // Keep Y unchanged unless too close to corner
             targetY = Math.min(Math.max(centerY, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
+            border = borderX;
+            distanceFromCorner = targetY;
         }
         else {
             // Closest to horizontal border
             // Keep X unchanged unless too close to corner
             targetX = Math.min(Math.max(centerX, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS);
+            border = borderY;
+            distanceFromCorner = targetX;
         }
         computeButtonPositions(targetX, targetY);
 
+        Prefs.set(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER, border.name());
+        Prefs.set(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER, String.valueOf(distanceFromCorner));
+        Prefs.save();
         return new Point(targetX - getWidth() / 2, targetY - getHeight() / 2);
     }
 

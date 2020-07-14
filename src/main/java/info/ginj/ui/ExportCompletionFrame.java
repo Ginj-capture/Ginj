@@ -19,11 +19,11 @@ import java.util.TimerTask;
 /**
  * This window appears when an export is complete, and optionally auto-closes
  */
-public class CaptureCompletionFrame extends JFrame {
+public class ExportCompletionFrame extends JFrame {
 
     private final JCheckBox autoHideCheckbox;
 
-    public CaptureCompletionFrame(Capture capture) {
+    public ExportCompletionFrame(Capture capture) {
         super();
 
         // For Alt+Tab behaviour

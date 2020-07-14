@@ -166,7 +166,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         closeExportWindow();
 
         // Open the "capture completion" notification window with auto-hide
-        new CaptureCompletionFrame(capture).setVisible(true);
+        new ExportCompletionFrame(capture).setVisible(true);
     }
 
     @Override

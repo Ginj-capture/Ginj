@@ -336,7 +336,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
         // Let's take a 1-minute security margin
         Calendar inOneMinute = Calendar.getInstance();
         inOneMinute.add(Calendar.MINUTE, 1);
-        if (inOneMinute.after(accessExpiry)) {
+        if (inOneMinute.getTime().after(accessExpiry)) {
             // Token is expired (or will be in 1 minute). Ask a new one
             accessToken = refreshAccessToken(account);
         }

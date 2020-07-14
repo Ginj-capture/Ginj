@@ -58,8 +58,8 @@ And if you miss a feature, there's even less chance I will have time to look int
 
 In the meantime, it's just there and it's free... Enjoy :-)
 
-#### Note a
-If you want to share captures via Dropbox or Google Images, you will get lots of warnings about that during the authorization process. Please don't be scared, this app is not yet validated by Dropbox nor Google so 
+#### Note about app validation
+If you want to share captures via Dropbox or Google Photos, you will get lots of warnings about that during the authorization process. Please don't be scared, this app is not yet validated by Dropbox nor Google so 
 this is perfectly normal. 
 
 I intend to apply for validation, but in the meantime, you ~~can trust me~~ should never trust anyone, so please check the source code and verify Ginj does nothing bad. 

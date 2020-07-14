@@ -60,8 +60,9 @@ And if you miss a feature, there's even less chance I will have time to look int
 In the meantime, it's just there and it's free... Enjoy :-)
 
 #### Note about app validation
-If you want to share captures via Dropbox or Google Photos, you will get lots of warnings about that during the authorization process. Please don't be scared, this app is not yet validated by Dropbox nor Google so 
-this is perfectly normal. 
+If you want to share captures via Dropbox or Google Photos, you will get lots of warnings about the dangers of using a non-validated application during the authorization process. 
+
+Please don't be scared, this app is indeed not (yet) validated by Dropbox nor Google so this is perfectly normal. 
 
 I intend to apply for validation, but in the meantime, you ~~can trust me~~ should never trust anyone, so please check the source code and verify Ginj does nothing bad. 
 
@@ -70,18 +71,19 @@ I intend to apply for validation, but in the meantime, you ~~can trust me~~ shou
 Great. Head over to the [latest release page](https://github.com/Ginj-capture/Ginj/releases/latest), pick the installer for the platform of your choice (Linux and Mac were never tested) and run it. It contains a full Java VM so it's around 50Mb unfortunately.
 
 Note 1: there's no splash screen yet, so look for the circle at the center top of your desktop.
-Note 2: if you already have OpenJDK 14 installed and configured by default though, you can just download the executable .jar which is less than 3Mb and includes all Ginj code and libraries.
+
+Note 2: if you already have OpenJDK 14 installed and configured by default, you may alternately just download and use the executable .jar which is less than 3Mb and includes all Ginj code and libraries.
 
 #### Credits. 
 
-The app makes use of the following libraries or source code:
+The app makes use of the following libraries:
 - HttpComponents, Copyright © 2005–2020 The Apache Software Foundation.
 - GSon, Copyright © 2008 Google Inc.
 - SLF4j, Copyright © 2004-2017 QOS.ch
-- Parts of the open source [EaSynth_Look_And_Feel_Bundle.zip](http://www.easynth.com/freewares/EaSynthLookAndFeel.html)
-- Wizard by Timothy Boudreau of Netbeans, originally hosted at https://wizard.dev.java.net , v1.1 saved by Lonzak and available at https://github.com/Lonzak/Wizard-API
+- Wizard by Timothy Boudreau of Netbeans, originally hosted at https://wizard.dev.java.net , v1.1 saved by Lonzak and available at https://github.com/Lonzak/Wizard-API (in source version as it's pre-Maven).
 
 The source code contains classes or snippets from:
+- The open source [EaSynth_Look_And_Feel_Bundle.zip](http://www.easynth.com/freewares/EaSynthLookAndFeel.html)
 - [The Java Tutorial](https://docs.oracle.com/javase/tutorial/), Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
 - [JHLabs image filters](http://jhlabs.com/ip/filters/index.html) by Jerry Huxtable
 - Discussions at [StackOverflow](https://stackoverflow.com/) and [CodeRanch](https://coderanch.com/) - hats off to MadProgrammer, camickr, and others.
@@ -92,9 +94,9 @@ The user interface uses:
 - Laptop icon from [Icons8](https://icons8.com/)
 - FTP icon by Pixel perfect from [flaticon](http://www.flaticon.com)
 
-Many thanks: 
-- to [ej-technologies](https://www.ej-technologies.com/) for providing free licences of [Install4J, the best multi-platform installer builder](https://www.ej-technologies.com/products/install4j/overview.html) for non-profit open source projects.
-- to [Techsmith](https://www.techsmith.com/) for having proposed and supported Jing for so long. Check out their product line.
+Many thanks to: 
+- [ej-technologies](https://www.ej-technologies.com/) for providing free licences of [Install4J, the best multi-platform installer builder](https://www.ej-technologies.com/products/install4j/overview.html) for non-profit open source projects.
+- [Techsmith](https://www.techsmith.com/) for having proposed and supported Jing for so long. Check out their product line.
 
 #### Privacy.
 

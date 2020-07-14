@@ -30,7 +30,8 @@
  - Add FTP exporter :-)
  - Implement tray icon
  - Implement global shortcut
- - Implement Windows detection using JNA
+ - Implement load on startup
+ - Implement windows detection (using JNA?)
  - Close most frames with ESC (ex: History)
  - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp 640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
  - ? Should undo/redo change selection inside the Action methods (e.g change color, resize) ? - or completely deselect component after operation

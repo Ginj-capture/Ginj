@@ -36,7 +36,6 @@ Ginj is still under heavy work. The goal is to cover the features of the origina
 
 However, basic still image capture, annotation and sharing works quite well already.
 
-
 #### Is it multi-platform?
 
 Ginj's core is pure Java, and Java is "write once, run anywhere", so yes, it runs on any platform... 
@@ -58,6 +57,19 @@ If you think you have found a bug, feel free to [open an issue](https://github.c
 And if you miss a feature, there's even less chance I will have time to look into it. But tell me anyway. 
 
 In the meantime, it's just there and it's free... Enjoy :-)
+
+#### Note a
+If you want to share captures via Dropbox or Google Images, you will get lots of warnings about that during the authorization process. Please don't be scared, this app is not yet validated by Dropbox nor Google so 
+this is perfectly normal. 
+
+I intend to apply for validation, but in the meantime, you ~~can trust me~~ should never trust anyone, so please check the source code and verify Ginj does nothing bad. 
+
+#### OK, I still want to try it.
+
+Great. Head over to the [latest release page](https://github.com/Ginj-capture/Ginj/releases/latest), pick the installer for the platform of your choice (Linux and Mac were never tested) and run it. It contains a full Java VM so it's around 50Mb unfortunately.
+
+Note 1: there's no splash screen yet, so look for the circle at the center top of your desktop.
+Note 2: if you already have OpenJDK 14 installed and configured by default though, you can just download the executable .jar which is less than 3Mb and includes all Ginj code and libraries.
 
 #### Credits. 
 

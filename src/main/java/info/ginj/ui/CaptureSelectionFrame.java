@@ -532,7 +532,7 @@ public class CaptureSelectionFrame extends JFrame {
         };
         Point bestPosition = null;
         for (Point candidatePosition : candidatePositions) {
-            System.out.print("Testing " + candidatePosition + "... ");
+//            System.out.print("Testing " + candidatePosition + "... ");
             // We have to apply the mega-window position offset to test this point in "window coordinates" against visibility in "device coordinates"
             final Rectangle candidateBounds = new Rectangle(capturedArea.x + candidatePosition.x, capturedArea.y + candidatePosition.y, barWidth, barHeight);
             if (capturedArea.contains(candidateBounds)) {
@@ -542,20 +542,20 @@ public class CaptureSelectionFrame extends JFrame {
                 for (Rectangle visibleArea : visibleAreas) {
                     if (visibleArea.contains(candidateBounds)) {
                         bestPosition = candidatePosition;
-                        System.out.println("On screen " + visibleArea + ": SELECTED !");
+//                        System.out.println("On screen " + visibleArea + ": SELECTED !");
                         break;
                     }
                     else {
-                        System.out.print("Out of screen " + visibleArea + "... ");
+//                        System.out.print("Out of screen " + visibleArea + "... ");
                     }
                 }
                 if (bestPosition != null) {
                     break;
                 }
-                System.out.println("Rejected.");
+//                System.out.println("Rejected.");
             }
             else {
-                System.out.println("Out of mega-rectangle: Rejected.");
+//                System.out.println("Out of mega-rectangle: Rejected.");
             }
         }
         if (bestPosition == null) {

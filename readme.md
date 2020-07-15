@@ -104,4 +104,4 @@ Please review [Ginj's privacy policy](https://github.com/Ginj-capture/Ginj/blob/
 In short, Ginj does not spy on you, but the auto-update process connects back to Ginj's website to check for availability of a new version. 
 If you configure sharing via third party services, their respective privacy policies apply of course.
 
-(*) Starting July 14, 2020 starting Jing just throws an error now saying "Jing's is not really sure what happened", then asking for Details gives "Jing Warning - The API returned an error when calling: "Screencast.User.GinInfo" this version of the Screencast API is no longer supported".
+(*) Starting July 14, 2020, Jing shows an error message on startup saying "Jing's not really sure what happened" then closes. Clicking 'Details' shows "Jing Warning - The API returned an error when calling: "Screencast.User.GinInfo" this version of the Screencast API is no longer supported".

@@ -1,6 +1,7 @@
 ### Partial and evolving, unordered, TODO list
 
 #### Features :
+ - Implement multi-screen capture
  - ~~Implement capture editing window~~
  - ~~Implement arrow overlay~~
  - ~~Implement rectangular overlays~~

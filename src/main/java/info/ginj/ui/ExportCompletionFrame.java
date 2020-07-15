@@ -118,11 +118,9 @@ public class ExportCompletionFrame extends JFrame {
         addMouseBehaviour(mainPanel);
 
         pack();
-//        setSize(280,70);
 
-        // Center window
-        // TODO should pop up next to the star icon
-        setLocationRelativeTo(null);
+        // Position window
+        StarWindow.positionFrameNextToStarWindow(this);
     }
 
     private void onClose() {

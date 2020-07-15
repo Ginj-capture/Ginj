@@ -22,10 +22,10 @@ import java.util.Set;
  */
 public class StarWindow extends JWindow {
 
-    public enum Border { NORTH, EAST, SOUTH, WEST}
+    public enum Border {TOP, LEFT, BOTTOM, RIGHT}
 
-    public static final int WINDOW_WIDTH_PIXELS = 150;
-    public static final int WINDOW_HEIGHT_PIXELS = 150;
+    public static final int STAR_WIDTH_PIXELS = 150;
+    public static final int STAR_HEIGHT_PIXELS = 150;
 
     public static final int SCREEN_CORNER_DEAD_ZONE_Y_PIXELS = 100;
     public static final int SCREEN_CORNER_DEAD_ZONE_X_PIXELS = 100;
@@ -57,19 +57,19 @@ public class StarWindow extends JWindow {
     public static final int SMALL = 2;
 
     // Precomputed constants
-    private static final int OFFSET_X_LARGE = WINDOW_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2;
-    private static final int OFFSET_X_MEDIUM = WINDOW_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2;
-    private static final int OFFSET_X_SMALL = WINDOW_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2;
-    private static final int OFFSET_Y_LARGE = WINDOW_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2;
-    private static final int OFFSET_Y_MEDIUM = WINDOW_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2;
-    private static final int OFFSET_Y_SMALL = WINDOW_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2;
+    private static final int OFFSET_X_LARGE = STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2;
+    private static final int OFFSET_X_MEDIUM = STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2;
+    private static final int OFFSET_X_SMALL = STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2;
+    private static final int OFFSET_Y_LARGE = STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2;
+    private static final int OFFSET_Y_MEDIUM = STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2;
+    private static final int OFFSET_Y_SMALL = STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2;
     private static final int SMALL_RADIUS_PIXELS_DIAG = (int) Math.round((SMALL_RADIUS_PIXELS * Math.sqrt(2)) / 2);
     private static final int MEDIUM_RADIUS_PIXELS_DIAG = (int) Math.round((MEDIUM_RADIUS_PIXELS * Math.sqrt(2)) / 2);
     private static final int LARGE_RADIUS_PIXELS_DIAG = (int) Math.round((LARGE_RADIUS_PIXELS * Math.sqrt(2)) / 2);
 
 
     // Caching
-    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    private final static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     private final Image[][] buttonImg = new Image[3][3]; // 3 buttons x 3 sizes
     Point[][] deltasByPosAndSize = new Point[3][3]; // 3 buttons x 3 sizes
     private Color defaultPaneBackground;
@@ -103,7 +103,7 @@ public class StarWindow extends JWindow {
 
         // Prepare to show Window
         pack();
-        setLocation(getLocationOnStartup());
+        setLocationOnStartup();
         setAlwaysOnTop(true);
     }
 
@@ -328,74 +328,64 @@ public class StarWindow extends JWindow {
         }
     }
 
-    private Point getLocationOnStartup() {
+    private void setLocationOnStartup() {
+        Point savedCenterLocation = getSavedCenterLocation();
+        computeButtonPositions(savedCenterLocation.x, savedCenterLocation.y);
+        setLocation(savedCenterLocation.x - getWidth() / 2, savedCenterLocation.y - getHeight() / 2);
+    }
+
+    public static Point getSavedCenterLocation() {
         // Default to center of top border
-        int targetX = (int) (screenSize.getWidth() / 2);
-        int targetY = 0;
+        Point savedCenterLocation = new Point((int) (screenSize.getWidth() / 2), 0);
         try {
             // Try to load prefs and retrieve previous X/Y
             Border border = Border.valueOf(Prefs.get(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER));
             int distanceFromCorner = Integer.parseInt(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER));
             switch (border) {
-                case NORTH -> {
-                    targetX = Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS);
-                    targetY = 0;
-                }
-                case SOUTH -> {
-                    targetX = Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS);
-                    targetY = screenSize.height;
-                }
-                case EAST -> {
-                    targetX = screenSize.width;
-                    targetY = Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
-                }
-                case WEST -> {
-                    targetX = 0;
-                    targetY = Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
-                }
+                case TOP -> savedCenterLocation = new Point(Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS), 0);
+                case BOTTOM -> savedCenterLocation = new Point(Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.height);
+                case LEFT -> savedCenterLocation = new Point(screenSize.width, Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS));
+                case RIGHT -> savedCenterLocation = new Point(0, Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS));
             }
         }
         catch (NullPointerException | IllegalArgumentException e) {
             // No (or unrecognized) position. keep default
         }
-        computeButtonPositions(targetX, targetY);
-
-        return new Point(targetX - getWidth() / 2, targetY - getHeight() / 2);
+        return savedCenterLocation;
     }
 
     private Point getClosestPointOnScreenBorder() {
         // Compute window center
-        int centerX = getLocation().x + getWidth() / 2;
-        int centerY = getLocation().y + getHeight() / 2;
+        Point center = new Point(getLocation().x + getWidth() / 2, getLocation().y + getHeight() / 2);
 
         // Closest to left or right ?
         int distanceX;
         int targetX;
         Border borderX;
-        if (centerX < screenSize.width - centerX) {
-            distanceX = centerX;
+        if (center.x < screenSize.width - center.x) {
+            distanceX = center.x;
             targetX = 0;
-            borderX = Border.WEST;
+            borderX = Border.RIGHT;
         }
         else {
-            distanceX = screenSize.width - centerX;
+            distanceX = screenSize.width - center.x;
             targetX = screenSize.width;
-            borderX = Border.EAST;
+            borderX = Border.LEFT;
         }
 
         // Closest to top or bottom ?
         int distanceY;
         int targetY;
         Border borderY;
-        if (centerY < screenSize.height - centerY) {
-            distanceY = centerY;
+        if (center.y < screenSize.height - center.y) {
+            distanceY = center.y;
             targetY = 0;
-            borderY = Border.NORTH;
+            borderY = Border.TOP;
         }
         else {
-            distanceY = screenSize.height - centerY;
+            distanceY = screenSize.height - center.y;
             targetY = screenSize.height;
-            borderY = Border.SOUTH;
+            borderY = Border.BOTTOM;
         }
 
         // Now closest to a vertical or horizontal border
@@ -404,14 +394,14 @@ public class StarWindow extends JWindow {
         if (distanceX < distanceY) {
             // Closest to vertical border
             // Keep Y unchanged unless too close to corner
-            targetY = Math.min(Math.max(centerY, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
+            targetY = Math.min(Math.max(center.y, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
             border = borderX;
             distanceFromCorner = targetY;
         }
         else {
             // Closest to horizontal border
             // Keep X unchanged unless too close to corner
-            targetX = Math.min(Math.max(centerX, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS);
+            targetX = Math.min(Math.max(center.x, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS);
             border = borderY;
             distanceFromCorner = targetX;
         }
@@ -473,6 +463,33 @@ public class StarWindow extends JWindow {
             deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
             deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
         }
+    }
+
+    // Util for other Windows
+
+    public static void positionFrameNextToStarWindow(JFrame frame) {
+        final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        final Point starLocation = getSavedCenterLocation();
+        Point location;
+        if (starLocation.y == 0) {
+            // Top
+            location = new Point(starLocation.x - (frame.getWidth()/2), STAR_HEIGHT_PIXELS/2);
+        }
+        else if (starLocation.x == 0) {
+            // Left
+            location = new Point(STAR_WIDTH_PIXELS/2, starLocation.y - (frame.getHeight()/2));
+        }
+        else if (starLocation.x == screenSize.width) {
+            // Right
+            location = new Point(screenSize.width - STAR_WIDTH_PIXELS/2 - frame.getWidth() , starLocation.y - (frame.getHeight()/2));
+        }
+        else {
+            // Bottom
+            location = new Point(starLocation.x - (frame.getWidth()/2), screenSize.height - STAR_HEIGHT_PIXELS/2 - frame.getHeight());
+        }
+
+        frame.setLocation(Math.min(Math.max(location.x, STAR_WIDTH_PIXELS /2), screenSize.width  - frame.getWidth()  - STAR_WIDTH_PIXELS /2),
+                          Math.min(Math.max(location.y, STAR_HEIGHT_PIXELS/2), screenSize.height - frame.getHeight() - STAR_HEIGHT_PIXELS/2));
     }
 
 

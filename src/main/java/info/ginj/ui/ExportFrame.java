@@ -110,11 +110,9 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         pack();
         setSize(280,70);
 
-        // Center window
-        // TODO should pop up next to the star icon
-        setLocationRelativeTo(null);
+        // Position window
+        StarWindow.positionFrameNextToStarWindow(this);
     }
-
 
     @Override
     public void log(String state, int progress, long currentSizeBytes, long totalSizeBytes) {

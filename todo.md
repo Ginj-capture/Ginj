@@ -1,7 +1,8 @@
 ### Partial and evolving, unordered, TODO list
 
 #### Features :
- - Implement multi-screen capture
+ - ~~Implement multi-screen capture~~
+ - Allow positioning the "star" widget on a secondary screen
  - ~~Implement capture editing window~~
  - ~~Implement arrow overlay~~
  - ~~Implement rectangular overlays~~

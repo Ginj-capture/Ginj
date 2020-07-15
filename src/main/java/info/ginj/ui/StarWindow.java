@@ -22,7 +22,12 @@ import java.util.Set;
  */
 public class StarWindow extends JWindow {
 
+    public static final Dimension SPLASH_SIZE = new Dimension(508, 292);
+
     public enum Border {TOP, LEFT, BOTTOM, RIGHT}
+
+    public static final int CIRCLE_WIDTH_PIXELS = 50;
+    public static final int CIRCLE_HEIGHT_PIXELS = 50;
 
     public static final int STAR_WIDTH_PIXELS = 150;
     public static final int STAR_HEIGHT_PIXELS = 150;
@@ -89,6 +94,8 @@ public class StarWindow extends JWindow {
 
     public StarWindow() {
         super();
+
+//        showSplashIntro();
 
         appIcon = new ImageIcon(getClass().getResource("/img/app-icon-64.png")).getImage();
 
@@ -473,23 +480,23 @@ public class StarWindow extends JWindow {
         Point location;
         if (starLocation.y == 0) {
             // Top
-            location = new Point(starLocation.x - (frame.getWidth()/2), STAR_HEIGHT_PIXELS/2);
+            location = new Point(starLocation.x - (frame.getWidth() / 2), STAR_HEIGHT_PIXELS / 2);
         }
         else if (starLocation.x == 0) {
             // Left
-            location = new Point(STAR_WIDTH_PIXELS/2, starLocation.y - (frame.getHeight()/2));
+            location = new Point(STAR_WIDTH_PIXELS / 2, starLocation.y - (frame.getHeight() / 2));
         }
         else if (starLocation.x == screenSize.width) {
             // Right
-            location = new Point(screenSize.width - STAR_WIDTH_PIXELS/2 - frame.getWidth() , starLocation.y - (frame.getHeight()/2));
+            location = new Point(screenSize.width - STAR_WIDTH_PIXELS / 2 - frame.getWidth(), starLocation.y - (frame.getHeight() / 2));
         }
         else {
             // Bottom
-            location = new Point(starLocation.x - (frame.getWidth()/2), screenSize.height - STAR_HEIGHT_PIXELS/2 - frame.getHeight());
+            location = new Point(starLocation.x - (frame.getWidth() / 2), screenSize.height - STAR_HEIGHT_PIXELS / 2 - frame.getHeight());
         }
 
-        frame.setLocation(Math.min(Math.max(location.x, STAR_WIDTH_PIXELS /2), screenSize.width  - frame.getWidth()  - STAR_WIDTH_PIXELS /2),
-                          Math.min(Math.max(location.y, STAR_HEIGHT_PIXELS/2), screenSize.height - frame.getHeight() - STAR_HEIGHT_PIXELS/2));
+        frame.setLocation(Math.min(Math.max(location.x, STAR_WIDTH_PIXELS / 2), screenSize.width - frame.getWidth() - STAR_WIDTH_PIXELS / 2),
+                Math.min(Math.max(location.y, STAR_HEIGHT_PIXELS / 2), screenSize.height - frame.getHeight() - STAR_HEIGHT_PIXELS / 2));
     }
 
 
@@ -540,4 +547,69 @@ public class StarWindow extends JWindow {
         }
     }
 
+//
+//    private void showSplashIntro() {
+//        final Point startCenter = new Point(screenSize.width / 2, screenSize.height / 2);
+//        final Point endCenter = getSavedCenterLocation();
+//        Point currentCenter = new Point();
+//        try {
+//            AnimationJWindow window = new AnimationJWindow();
+//            window.setBackground(new Color(0, 0, 0, 0));
+//            window.setSize(SPLASH_SIZE);
+//            window.setVisible(true);
+//
+//            final int[] progress = {0};
+////            javax.swing.Timer timer = new javax.swing.Timer(100, arg0 -> {
+////                // Linear progression
+////                currentCenter.x = ((100 - progress[0]) * startCenter.x + progress[0] * endCenter.x) / 100;
+////                currentCenter.y = ((100 - progress[0]) * startCenter.y + progress[0] * endCenter.y) / 100;
+////                window.setProgress(progress[0]);
+////                window.setLocation(currentCenter.x - (window.currentWidth / 2), currentCenter.y - (window.currentHeight / 2));
+////                window.repaint();
+////                if (progress[0] < 100) progress[0]++;
+////            });
+////            timer.start();
+//
+//            while (progress[0] < 100) {
+//                Thread.sleep(10);
+//            }
+//            //timer.stop();
+//        }
+//        catch (Exception e){
+//            e.printStackTrace();
+//            // In all cases, ignore exceptions and skip animation
+//        }
+//    }
+//
+//    private static class AnimationJWindow extends JWindow {
+//        private final BufferedImage image;
+//        private int progress;
+//        private int currentWidth;
+//        private int currentHeight;
+//
+//        public AnimationJWindow() throws IOException {
+//            image = ImageIO.read(getClass().getResource("/img/app-logo.png"));
+//        }
+//
+//        public void setProgress(int progress) {
+//            this.progress = progress;
+//        }
+//
+//        public int getCurrentWidth() {
+//            return currentWidth;
+//        }
+//
+//        public int getCurrentHeight() {
+//            return currentHeight;
+//        }
+//
+//        @Override
+//        public void paintComponents(Graphics g) {
+//            super.paintComponents(g);
+//            currentWidth = ((100 - progress) * image.getWidth() + progress * CIRCLE_WIDTH_PIXELS) / 100;
+//            currentHeight = ((100 - progress) * image.getHeight() + progress * CIRCLE_HEIGHT_PIXELS) / 100;
+//            // Always draw at (0,0)
+//            g.drawImage(image, 0, 0, currentWidth, currentHeight, null);
+//        }
+//    }
 }

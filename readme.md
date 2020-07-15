@@ -6,7 +6,7 @@ Ginj is an open source multi-platform screen capture and recording tool.
 
 Its unobtrusive user interface and no-nonsense "capture / annotate / share" workflow is hard to beat.
 
-Ginj might remind you of a free tool called [Jing](http://web.archive.org/web/20181002042822/https://www.techsmith.com/jing-tool.html), that [Techsmith discontinued](https://feedback.techsmith.com/techsmith/topics/techsmith-jing-2019-announcement) in July 2020. But although there are similarities in the way both tools behave, Ginj is not Jing.
+Ginj might remind you of a free tool called [Jing](http://web.archive.org/web/20181002042822/https://www.techsmith.com/jing-tool.html), that [Techsmith discontinued](https://feedback.techsmith.com/techsmith/topics/techsmith-jing-2019-announcement) in July 2020 (*). But although there are similarities in the way both tools behave, Ginj is not Jing.
 
 #### What does it look like?
 
@@ -103,3 +103,5 @@ Many thanks to:
 Please review [Ginj's privacy policy](https://github.com/Ginj-capture/Ginj/blob/master/privacy.md).
 In short, Ginj does not spy on you, but the auto-update process connects back to Ginj's website to check for availability of a new version. 
 If you configure sharing via third party services, their respective privacy policies apply of course.
+
+(*) Starting July 14, 2020 starting Jing just throws an error now saying "Jing's is not really sure what happened", then asking for Details gives "Jing Warning - The API returned an error when calling: "Screencast.User.GinInfo" this version of the Screencast API is no longer supported".

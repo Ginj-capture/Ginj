@@ -80,7 +80,7 @@ public class Ginj {
     public static File getTempDir() {
         if (tempDir == null) {
             // First invocation, check, clean or create temp dir
-            tempDir = new File(System.getProperty("java.io.tmpdir") + getAppName() + "_temp");
+            tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator + getAppName() + "_temp");
             if (tempDir.exists()) {
                 // Cleanup
                 for (File file : tempDir.listFiles()) {

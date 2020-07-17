@@ -17,7 +17,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This "Star" Window is the original widget displayed at the border of the screen to initiate a capture
+ * This "Star Window" is the original widget displayed at the border of the screen to initiate a capture
+ * Note: at first the full star was drawn no matter where it stood, half-visible, half-hidden out-of-screen,
+ * but when Windows notices a resolution change (or a taskbar show/hide), it moves all windows inwards so that they are 100% on screen.
+ * So now the "Star Window" is a full star while dragging, but becomes a half star once dropped against a screen border.
  * <p>
  * UI transparency based on sample code by MadProgrammer at https://stackoverflow.com/questions/26205164/java-custom-shaped-frame-using-image
  */
@@ -63,18 +66,13 @@ public class StarWindow extends JWindow {
     public static final int SMALL = 2;
 
     // Precomputed constants
-    private static final int OFFSET_X_LARGE = STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2;
-    private static final int OFFSET_X_MEDIUM = STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2;
-    private static final int OFFSET_X_SMALL = STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2;
-    private static final int OFFSET_Y_LARGE = STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2;
-    private static final int OFFSET_Y_MEDIUM = STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2;
-    private static final int OFFSET_Y_SMALL = STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2;
     private static final int SMALL_RADIUS_PIXELS_DIAG = (int) Math.round((SMALL_RADIUS_PIXELS * Math.sqrt(2)) / 2);
     private static final int MEDIUM_RADIUS_PIXELS_DIAG = (int) Math.round((MEDIUM_RADIUS_PIXELS * Math.sqrt(2)) / 2);
     private static final int LARGE_RADIUS_PIXELS_DIAG = (int) Math.round((LARGE_RADIUS_PIXELS * Math.sqrt(2)) / 2);
 
     // Caching
     private final Image[][] buttonImg = new Image[3][3]; // 3 buttons x 3 sizes
+    // This array contains the offset position between top left corner of the window and the top left corner of the button
     Point[][] deltasByPosAndSize = new Point[3][3]; // 3 buttons x 3 sizes
     private Color defaultPaneBackground;
 
@@ -189,18 +187,19 @@ public class StarWindow extends JWindow {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
-            if (isWindowDeployed) {
-                if (!isDragging) {
-                    switch (currentBorder) {
-                        case TOP -> g2d.clipRect(0, getHeight() / 2, getWidth(), getHeight() / 2);
-                        case BOTTOM -> g2d.clipRect(0, 0, getWidth(), getHeight() / 2);
-                        case LEFT -> g2d.clipRect(getWidth() / 2, 0, getWidth() / 2, getHeight());
-                        case RIGHT -> g2d.clipRect(0, 0, getWidth() / 2, getHeight());
-                    }
-                }
-                // Image with rays
+            if (isDragging) {
+                // Full image with rays
                 g2d.drawImage(starRaysImg, 0, 0, this);
-                if (!isDragging) {
+            }
+            else {
+                if (isWindowDeployed) {
+                    // Half image with rays
+                    switch (currentBorder) {
+                        case TOP -> g2d.drawImage(starRaysImg, 0, -STAR_HEIGHT_PIXELS / 2, this);
+                        case BOTTOM -> g2d.drawImage(starRaysImg, 0, 0, this);
+                        case LEFT -> g2d.drawImage(starRaysImg, -STAR_WIDTH_PIXELS / 2, 0, this);
+                        case RIGHT -> g2d.drawImage(starRaysImg, 0, 0, this);
+                    }
                     // Draw 3 action icons, with size and position depending on highlight state
                     for (int button = 0; button < 3; button++) {
                         if (highlightedButtonId == BTN_NONE) {
@@ -216,16 +215,15 @@ public class StarWindow extends JWindow {
                         }
                     }
                 }
-            }
-            else {
-                // Image without rays
-                switch (currentBorder) {
-                    case TOP -> g2d.clipRect(0, getHeight() / 2, getWidth(), getHeight() / 2);
-                    case BOTTOM -> g2d.clipRect(0, 0, getWidth(), getHeight() / 2);
-                    case LEFT -> g2d.clipRect(getWidth() / 2, 0, getWidth() / 2, getHeight());
-                    case RIGHT -> g2d.clipRect(0, 0, getWidth() / 2, getHeight());
+                else {
+                    // Half image without rays
+                    switch (currentBorder) {
+                        case TOP -> g2d.drawImage(starOnlyImg, 0, -STAR_HEIGHT_PIXELS / 2, this);
+                        case BOTTOM -> g2d.drawImage(starOnlyImg, 0, 0, this);
+                        case LEFT -> g2d.drawImage(starOnlyImg, -STAR_WIDTH_PIXELS / 2, 0, this);
+                        case RIGHT -> g2d.drawImage(starOnlyImg, 0, 0, this);
+                    }
                 }
-                g2d.drawImage(starOnlyImg, 0, 0, this);
             }
             g2d.dispose();
         }
@@ -250,23 +248,30 @@ public class StarWindow extends JWindow {
             public void mousePressed(MouseEvent e) {
                 // Get clicked point (relative to Window) and store it
                 mousePressedPoint = e.getPoint();
-                // If clicked happened on center of star
+                // If click happened on center of star
+                Point relativeStarCenter = switch (currentBorder) {
+                    case TOP -> new Point(STAR_WIDTH_PIXELS / 2, 0);
+                    case BOTTOM -> new Point(STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
+                    case LEFT -> new Point(0, STAR_HEIGHT_PIXELS / 2);
+                    case RIGHT -> new Point(STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
+                };
                 // That is if distance between click point and center is less than radius
-                if (Math.pow(StarWindow.this.getWidth() / 2.0 - mousePressedPoint.x, 2)
-                        + Math.pow(StarWindow.this.getHeight() / 2.0 - mousePressedPoint.y, 2)
-                        < Math.pow(STAR_ONLY_RADIUS, 2)) {
+                if (Math.pow(relativeStarCenter.x - mousePressedPoint.x, 2) + Math.pow(relativeStarCenter.y - mousePressedPoint.y, 2) < Math.pow(STAR_ONLY_RADIUS, 2)) {
                     // Start dragging
                     isDragging = true;
-                    StarWindow.this.repaint();
-                }
-            }
-
-            // Move window to border closest to center
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                if (isDragging) {
-                    StarWindow.this.setLocation(getClosestPointOnScreenBorder());
-                    isDragging = false;
+                    // Switch to full star
+                    setSize(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS);
+                    // And move the "drag point" accordingly
+                    switch (currentBorder) {
+                        case TOP -> {
+                            mousePressedPoint.y += STAR_HEIGHT_PIXELS / 2;
+                            setLocation(getLocation().x, getLocation().y - STAR_HEIGHT_PIXELS / 2);
+                        }
+                        case LEFT -> {
+                            mousePressedPoint.x += STAR_WIDTH_PIXELS / 2;
+                            setLocation(getLocation().x - STAR_WIDTH_PIXELS / 2, getLocation().y);
+                        }
+                    }
                     StarWindow.this.repaint();
                 }
             }
@@ -278,6 +283,17 @@ public class StarWindow extends JWindow {
                             StarWindow.this.getLocation().x + e.getX() - mousePressedPoint.x,
                             StarWindow.this.getLocation().y + e.getY() - mousePressedPoint.y
                     );
+                }
+            }
+
+            // Move window to border closest to center
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (isDragging) {
+                    final Point center = getClosestCenterOnScreenBorder();
+                    positionAndSizeHalfWindow(center);
+                    isDragging = false;
+                    StarWindow.this.repaint();
                 }
             }
 
@@ -328,6 +344,27 @@ public class StarWindow extends JWindow {
         StarWindow.this.addMouseMotionListener(mouseInputListener);
     }
 
+    private void positionAndSizeHalfWindow(Point center) {
+        switch (currentBorder) {
+            case TOP -> {
+                setSize(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS / 2);
+                StarWindow.this.setLocation(center.x - STAR_WIDTH_PIXELS / 2, center.y);
+            }
+            case BOTTOM -> {
+                setSize(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS / 2);
+                StarWindow.this.setLocation(center.x - STAR_WIDTH_PIXELS / 2, center.y - STAR_HEIGHT_PIXELS / 2);
+            }
+            case LEFT -> {
+                setSize(STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS);
+                StarWindow.this.setLocation(center.x, center.y - STAR_HEIGHT_PIXELS / 2);
+            }
+            case RIGHT -> {
+                setSize(STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS);
+                StarWindow.this.setLocation(center.x - STAR_WIDTH_PIXELS / 2, center.y - STAR_HEIGHT_PIXELS / 2);
+            }
+        }
+    }
+
     private void setDeployed(JComponent contentPane, boolean deployed) {
         isWindowDeployed = deployed;
         if (deployed) {
@@ -351,8 +388,8 @@ public class StarWindow extends JWindow {
 
     private void setLocationOnStartup() {
         Point savedCenterLocation = getSavedCenterLocation();
+        positionAndSizeHalfWindow(savedCenterLocation);
         computeButtonPositions();
-        setLocation(savedCenterLocation.x - getWidth() / 2, savedCenterLocation.y - getHeight() / 2);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -432,7 +469,7 @@ public class StarWindow extends JWindow {
         }
     }
 
-    private Point getClosestPointOnScreenBorder() {
+    private Point getClosestCenterOnScreenBorder() {
         // Compute current icon center
         Point center = new Point(getLocation().x + getWidth() / 2, getLocation().y + getHeight() / 2);
 
@@ -518,55 +555,55 @@ public class StarWindow extends JWindow {
         Prefs.set(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER, bestBorder.name());
         Prefs.set(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER, String.valueOf(distanceFromCorner));
         Prefs.save();
-        return new Point(targetX - getWidth() / 2, targetY - getHeight() / 2);
+        return new Point(targetX, targetY);
     }
 
     // This fills up the deltasByPosAndSize array each time the window is moved so that paintComponent() does not have to compute relative positions over and over again
     private void computeButtonPositions() {
         switch (currentBorder) {
             case TOP -> {
-                deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS);
-                deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS);
-                deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS);
-                deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][LARGE] = new Point(STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 - LARGE_RADIUS_PIXELS_DIAG, -LARGE_SIZE_PIXELS / 2 + LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][MEDIUM] = new Point(STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 - MEDIUM_RADIUS_PIXELS_DIAG, -MEDIUM_SIZE_PIXELS / 2 + MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][SMALL] = new Point(STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 - SMALL_RADIUS_PIXELS_DIAG, -SMALL_SIZE_PIXELS / 2 + SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[1][LARGE] = new Point(STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2, -LARGE_SIZE_PIXELS / 2 + LARGE_RADIUS_PIXELS);
+                deltasByPosAndSize[1][MEDIUM] = new Point(STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2, -MEDIUM_SIZE_PIXELS / 2 + MEDIUM_RADIUS_PIXELS);
+                deltasByPosAndSize[1][SMALL] = new Point(STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2, -SMALL_SIZE_PIXELS / 2 + SMALL_RADIUS_PIXELS);
+                deltasByPosAndSize[2][LARGE] = new Point(STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 + LARGE_RADIUS_PIXELS_DIAG, -LARGE_SIZE_PIXELS / 2 + LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][MEDIUM] = new Point(STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 + MEDIUM_RADIUS_PIXELS_DIAG, -MEDIUM_SIZE_PIXELS / 2 + MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][SMALL] = new Point(STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 + SMALL_RADIUS_PIXELS_DIAG, -SMALL_SIZE_PIXELS / 2 + SMALL_RADIUS_PIXELS_DIAG);
             }
             case BOTTOM -> {
-                deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS);
-                deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS);
-                deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS);
-                deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][LARGE] = new Point(STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 - LARGE_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 - LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][MEDIUM] = new Point(STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 - MEDIUM_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 - MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][SMALL] = new Point(STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 - SMALL_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 - SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[1][LARGE] = new Point(STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2, STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 - LARGE_RADIUS_PIXELS);
+                deltasByPosAndSize[1][MEDIUM] = new Point(STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2, STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 - MEDIUM_RADIUS_PIXELS);
+                deltasByPosAndSize[1][SMALL] = new Point(STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2, STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 - SMALL_RADIUS_PIXELS);
+                deltasByPosAndSize[2][LARGE] = new Point(STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 + LARGE_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 - LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][MEDIUM] = new Point(STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 + MEDIUM_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 - MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][SMALL] = new Point(STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 + SMALL_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 - SMALL_RADIUS_PIXELS_DIAG);
             }
             case LEFT -> {
-                deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS, OFFSET_Y_LARGE);
-                deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS, OFFSET_Y_MEDIUM);
-                deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS, OFFSET_Y_SMALL);
-                deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][LARGE] = new Point(-LARGE_SIZE_PIXELS / 2 + LARGE_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 - LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][MEDIUM] = new Point(-MEDIUM_SIZE_PIXELS / 2 + MEDIUM_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 - MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][SMALL] = new Point(-SMALL_SIZE_PIXELS / 2 + SMALL_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 - SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[1][LARGE] = new Point(-LARGE_SIZE_PIXELS / 2 + LARGE_RADIUS_PIXELS, STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2);
+                deltasByPosAndSize[1][MEDIUM] = new Point(-MEDIUM_SIZE_PIXELS / 2 + MEDIUM_RADIUS_PIXELS, STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2);
+                deltasByPosAndSize[1][SMALL] = new Point(-SMALL_SIZE_PIXELS / 2 + SMALL_RADIUS_PIXELS, STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2);
+                deltasByPosAndSize[2][LARGE] = new Point(-LARGE_SIZE_PIXELS / 2 + LARGE_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 + LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][MEDIUM] = new Point(-MEDIUM_SIZE_PIXELS / 2 + MEDIUM_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 + MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][SMALL] = new Point(-SMALL_SIZE_PIXELS / 2 + SMALL_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 + SMALL_RADIUS_PIXELS_DIAG);
             }
             case RIGHT -> {
-                deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS, OFFSET_Y_LARGE);
-                deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS, OFFSET_Y_MEDIUM);
-                deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS, OFFSET_Y_SMALL);
-                deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
-                deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][LARGE] = new Point(STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 - LARGE_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 - LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][MEDIUM] = new Point(STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 - MEDIUM_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 - MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][SMALL] = new Point(STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 - SMALL_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 - SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[1][LARGE] = new Point(STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 - LARGE_RADIUS_PIXELS, STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2);
+                deltasByPosAndSize[1][MEDIUM] = new Point(STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 - MEDIUM_RADIUS_PIXELS, STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2);
+                deltasByPosAndSize[1][SMALL] = new Point(STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 - SMALL_RADIUS_PIXELS, STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2);
+                deltasByPosAndSize[2][LARGE] = new Point(STAR_WIDTH_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 - LARGE_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - LARGE_SIZE_PIXELS / 2 + LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][MEDIUM] = new Point(STAR_WIDTH_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 - MEDIUM_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - MEDIUM_SIZE_PIXELS / 2 + MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][SMALL] = new Point(STAR_WIDTH_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 - SMALL_RADIUS_PIXELS_DIAG, STAR_HEIGHT_PIXELS / 2 - SMALL_SIZE_PIXELS / 2 + SMALL_RADIUS_PIXELS_DIAG);
             }
         }
     }

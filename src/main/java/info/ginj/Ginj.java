@@ -19,6 +19,7 @@ import java.util.concurrent.FutureTask;
 import static java.awt.GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSLUCENT;
 
 public class Ginj {
+    public static final String APP_VERSION = "0.3.4";
 
     public static final String LAF_XML = "/synth.xml";
 
@@ -125,7 +126,7 @@ public class Ginj {
 
 
     public static String getVersion() {
-        return "0.3.3";
+        return APP_VERSION;
     }
 
     public static String getSession() {

@@ -374,6 +374,9 @@ public class StarWindow extends JWindow {
             // This has the effect of capturing mouse events on the full rectangular Window once it is deployed,
             // which is necessary so that mouse doesn't "fall in the transparent holes" causing MouseExited events that
             // make the window "retract" to the handle-only view
+            // TODO: this does not work on Linux where such a low opacity is not supported, so square is visible
+            // TODO: replace transparency by a screenshot of the desktop below and printing it as an opaque background
+            //       before drawing the star icon
             contentPane.setOpaque(true);
             contentPane.setBackground(new Color(0, 0, 0, 1)); // 1/255 opacity
         }

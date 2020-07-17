@@ -3,6 +3,7 @@ package info.ginj.ui;
 import info.ginj.Ginj;
 import info.ginj.model.Prefs;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
+import info.ginj.util.UI;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -22,9 +23,9 @@ import java.util.Set;
  */
 public class StarWindow extends JWindow {
 
-    public static final Dimension SPLASH_SIZE = new Dimension(508, 292);
-
     public enum Border {TOP, LEFT, BOTTOM, RIGHT}
+
+    public static final Dimension SPLASH_SIZE = new Dimension(508, 292);
 
     public static final int CIRCLE_WIDTH_PIXELS = 50;
     public static final int CIRCLE_HEIGHT_PIXELS = 50;
@@ -72,9 +73,7 @@ public class StarWindow extends JWindow {
     private static final int MEDIUM_RADIUS_PIXELS_DIAG = (int) Math.round((MEDIUM_RADIUS_PIXELS * Math.sqrt(2)) / 2);
     private static final int LARGE_RADIUS_PIXELS_DIAG = (int) Math.round((LARGE_RADIUS_PIXELS * Math.sqrt(2)) / 2);
 
-
     // Caching
-    private final static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     private final Image[][] buttonImg = new Image[3][3]; // 3 buttons x 3 sizes
     Point[][] deltasByPosAndSize = new Point[3][3]; // 3 buttons x 3 sizes
     private Color defaultPaneBackground;
@@ -82,6 +81,7 @@ public class StarWindow extends JWindow {
     public static Image appIcon = null;
 
     // Current state
+    private Border currentBorder = Border.TOP;
     private boolean isWindowDeployed = false;
     private boolean isDragging = false;
     private int highlightedButtonId = BTN_NONE;
@@ -190,6 +190,14 @@ public class StarWindow extends JWindow {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
             if (isWindowDeployed) {
+                if (!isDragging) {
+                    switch (currentBorder) {
+                        case TOP -> g2d.clipRect(0, getHeight() / 2, getWidth(), getHeight() / 2);
+                        case BOTTOM -> g2d.clipRect(0, 0, getWidth(), getHeight() / 2);
+                        case LEFT -> g2d.clipRect(getWidth() / 2, 0, getWidth() / 2, getHeight());
+                        case RIGHT -> g2d.clipRect(0, 0, getWidth() / 2, getHeight());
+                    }
+                }
                 // Image with rays
                 g2d.drawImage(starRaysImg, 0, 0, this);
                 if (!isDragging) {
@@ -211,6 +219,12 @@ public class StarWindow extends JWindow {
             }
             else {
                 // Image without rays
+                switch (currentBorder) {
+                    case TOP -> g2d.clipRect(0, getHeight() / 2, getWidth(), getHeight() / 2);
+                    case BOTTOM -> g2d.clipRect(0, 0, getWidth(), getHeight() / 2);
+                    case LEFT -> g2d.clipRect(getWidth() / 2, 0, getWidth() / 2, getHeight());
+                    case RIGHT -> g2d.clipRect(0, 0, getWidth() / 2, getHeight());
+                }
                 g2d.drawImage(starOnlyImg, 0, 0, this);
             }
             g2d.dispose();
@@ -337,164 +351,237 @@ public class StarWindow extends JWindow {
 
     private void setLocationOnStartup() {
         Point savedCenterLocation = getSavedCenterLocation();
-        computeButtonPositions(savedCenterLocation.x, savedCenterLocation.y);
+        computeButtonPositions();
         setLocation(savedCenterLocation.x - getWidth() / 2, savedCenterLocation.y - getHeight() / 2);
     }
 
-    public static Point getSavedCenterLocation() {
-        // Default to center of top border
-        Point savedCenterLocation = new Point((int) (screenSize.getWidth() / 2), 0);
+    @SuppressWarnings("ConstantConditions")
+    public Point getSavedCenterLocation() {
+        // Default to center of top border of main display
+
+        // Load prefs and retrieve previous display
+        int displayNumber = 0;
         try {
-            // Try to load prefs and retrieve previous X/Y
+            displayNumber = Integer.parseInt(Prefs.get(Prefs.Key.STAR_WINDOW_DISPLAY_NUMBER));
+        }
+        catch (NumberFormatException e) {
+            // No (or unrecognized) display number. Keep default value
+        }
+        Rectangle screenRect = getDisplayBounds(displayNumber);
+        if (screenRect == null) {
+            screenRect = getDisplayBounds(0);
+        }
+
+        // Load prefs and retrieve previous position
+        Point centerLocation = null;
+
+        try {
             Border border = Border.valueOf(Prefs.get(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER));
             int distanceFromCorner = Integer.parseInt(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER));
             switch (border) {
-                case TOP -> savedCenterLocation = new Point(Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS), 0);
-                case BOTTOM -> savedCenterLocation = new Point(Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.height);
-                case LEFT -> savedCenterLocation = new Point(screenSize.width, Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS));
-                case RIGHT -> savedCenterLocation = new Point(0, Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS));
+                case TOP -> centerLocation = new Point(
+                        screenRect.x + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenRect.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS),
+                        screenRect.y
+                );
+                case BOTTOM -> centerLocation = new Point(
+                        screenRect.x + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenRect.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS),
+                        screenRect.y + screenRect.height - 1
+                );
+                case LEFT -> centerLocation = new Point(
+                        screenRect.x,
+                        screenRect.y + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenRect.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS)
+                );
+                case RIGHT -> centerLocation = new Point(
+                        screenRect.x + screenRect.width - 1,
+                        screenRect.y + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenRect.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS)
+                );
             }
+            currentBorder = border;
         }
         catch (NullPointerException | IllegalArgumentException e) {
-            // No (or unrecognized) position. keep default
+            // No (or unrecognized) position.
         }
-        return savedCenterLocation;
+        if (centerLocation == null || !screenRect.contains(centerLocation)) {
+            centerLocation = new Point(screenRect.x + (screenRect.width / 2), screenRect.y);
+            currentBorder = Border.TOP;
+        }
+        return centerLocation;
+    }
+
+    private Rectangle getDisplayBounds(int displayNumber) {
+        GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        int currentDisplay = 0;
+        for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
+            for (GraphicsConfiguration screenConfiguration : screenDevice.getConfigurations()) {
+                if (currentDisplay == displayNumber) {
+                    final Rectangle screenBounds = screenConfiguration.getBounds();
+                    // remove the "borders" (taskbars, menus):
+                    final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
+                    return new Rectangle(screenBounds.x + screenInsets.left, screenBounds.y + screenInsets.top, screenBounds.width - screenInsets.left - screenInsets.right, screenBounds.height - screenInsets.top - screenInsets.bottom);
+                }
+                currentDisplay++;
+            }
+        }
+        if (displayNumber == 0) {
+            UI.alertError(this, "Display error", "Cannot find bounds of main display!\nDefaulting to Toolkit diaplay.\nPlease report this message as an issue on Github.\nThanks");
+            return new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+        }
+        else {
+            // Requested display was not found
+            return null;
+        }
     }
 
     private Point getClosestPointOnScreenBorder() {
-        // Compute window center
+        // Compute current icon center
         Point center = new Point(getLocation().x + getWidth() / 2, getLocation().y + getHeight() / 2);
 
-        // Closest to left or right ?
-        int distanceX;
-        int targetX;
-        Border borderX;
-        if (center.x < screenSize.width - center.x) {
-            distanceX = center.x;
-            targetX = 0;
-            borderX = Border.RIGHT;
-        }
-        else {
-            distanceX = screenSize.width - center.x;
-            targetX = screenSize.width;
-            borderX = Border.LEFT;
+        Rectangle bestDisplay = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+        int bestDisplayNumber = 0;
+        Border bestBorder = Border.TOP;
+        int bestDistance = Integer.MAX_VALUE;
+
+        // Iterate on displays
+        int displayNumber = 0;
+        GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
+            for (GraphicsConfiguration screenConfiguration : screenDevice.getConfigurations()) {
+                Rectangle screenBounds = screenConfiguration.getBounds();
+                // remove the "borders" (taskbars, menus):
+                final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
+                Rectangle usableBounds = new Rectangle(screenBounds.x + screenInsets.left, screenBounds.y + screenInsets.top, screenBounds.width - screenInsets.left - screenInsets.right, screenBounds.height - screenInsets.top - screenInsets.bottom);
+                // Distance from top
+                int distance = Math.abs(usableBounds.y - center.y);
+                if (distance < bestDistance && center.x >= screenBounds.x && center.x < screenBounds.x + screenBounds.width) {
+                    bestDisplay = usableBounds;
+                    bestDisplayNumber = displayNumber;
+                    bestBorder = Border.TOP;
+                    bestDistance = distance;
+                }
+                // Distance from bottom
+                distance = Math.abs(usableBounds.y + usableBounds.height - 1 - center.y);
+                if (distance < bestDistance && center.x >= screenBounds.x && center.x < screenBounds.x + screenBounds.width) {
+                    bestDisplay = usableBounds;
+                    bestDisplayNumber = displayNumber;
+                    bestBorder = Border.BOTTOM;
+                    bestDistance = distance;
+                }
+                // Distance from left
+                distance = Math.abs(usableBounds.x - center.x);
+                if (distance < bestDistance && center.y >= screenBounds.y && center.y < screenBounds.y + screenBounds.height) {
+                    bestDisplay = usableBounds;
+                    bestDisplayNumber = displayNumber;
+                    bestBorder = Border.LEFT;
+                    bestDistance = distance;
+                }
+                // Distance from right
+                distance = Math.abs(usableBounds.x + usableBounds.width - 1 - center.x);
+                if (distance < bestDistance && center.y >= screenBounds.y && center.y < screenBounds.y + screenBounds.height) {
+                    bestDisplay = usableBounds;
+                    bestDisplayNumber = displayNumber;
+                    bestBorder = Border.RIGHT;
+                    bestDistance = distance;
+                }
+                displayNumber++;
+            }
         }
 
-        // Closest to top or bottom ?
-        int distanceY;
-        int targetY;
-        Border borderY;
-        if (center.y < screenSize.height - center.y) {
-            distanceY = center.y;
-            targetY = 0;
-            borderY = Border.TOP;
-        }
-        else {
-            distanceY = screenSize.height - center.y;
-            targetY = screenSize.height;
-            borderY = Border.BOTTOM;
+        int targetX, targetY, distanceFromCorner;
+        switch (bestBorder) {
+            case TOP -> {
+                targetX = bestDisplay.x + Math.min(Math.max(center.x - bestDisplay.x, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.width - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
+                targetY = bestDisplay.y;
+                distanceFromCorner = targetX - bestDisplay.x;
+            }
+            case BOTTOM -> {
+                targetX = bestDisplay.x + Math.min(Math.max(center.x - bestDisplay.x, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.width - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
+                targetY = bestDisplay.y + bestDisplay.height - 1;
+                distanceFromCorner = targetX - bestDisplay.x;
+            }
+            case LEFT -> {
+                targetX = bestDisplay.x;
+                targetY = bestDisplay.y + Math.min(Math.max(center.y - bestDisplay.y, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
+                distanceFromCorner = targetY - bestDisplay.y;
+            }
+            case RIGHT -> {
+                targetX = bestDisplay.x + bestDisplay.width - 1;
+                targetY = bestDisplay.y + Math.min(Math.max(center.y - bestDisplay.y, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
+                distanceFromCorner = targetY - bestDisplay.y;
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + bestBorder);
         }
 
-        // Now closest to a vertical or horizontal border
-        Border border;
-        int distanceFromCorner;
-        if (distanceX < distanceY) {
-            // Closest to vertical border
-            // Keep Y unchanged unless too close to corner
-            targetY = Math.min(Math.max(center.y, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenSize.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
-            border = borderX;
-            distanceFromCorner = targetY;
-        }
-        else {
-            // Closest to horizontal border
-            // Keep X unchanged unless too close to corner
-            targetX = Math.min(Math.max(center.x, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenSize.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS);
-            border = borderY;
-            distanceFromCorner = targetX;
-        }
-        computeButtonPositions(targetX, targetY);
+        currentBorder = bestBorder;
+        computeButtonPositions();
 
-        Prefs.set(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER, border.name());
+        Prefs.set(Prefs.Key.STAR_WINDOW_DISPLAY_NUMBER, String.valueOf(bestDisplayNumber));
+        Prefs.set(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER, bestBorder.name());
         Prefs.set(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER, String.valueOf(distanceFromCorner));
         Prefs.save();
         return new Point(targetX - getWidth() / 2, targetY - getHeight() / 2);
     }
 
-    // This fills up the deltasByPosAndSize array each time the window is move so that paintComponent() does not have to compute relative positions them over and over avain
-    private void computeButtonPositions(int x, int y) {
-        if (y == 0) {
-            // TOP
-            deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS);
-            deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS);
-            deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS);
-            deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
-        }
-        else if (y == screenSize.height) {
-            // BOTTOM
-            deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS);
-            deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS);
-            deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS);
-            deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
-        }
-        else if (x == 0) {
-            // LEFT
-            deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS, OFFSET_Y_LARGE);
-            deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS, OFFSET_Y_MEDIUM);
-            deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS, OFFSET_Y_SMALL);
-            deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
-        }
-        else {
-            // RIGHT
-            deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS, OFFSET_Y_LARGE);
-            deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS, OFFSET_Y_MEDIUM);
-            deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS, OFFSET_Y_SMALL);
-            deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
-            deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
+    // This fills up the deltasByPosAndSize array each time the window is moved so that paintComponent() does not have to compute relative positions over and over again
+    private void computeButtonPositions() {
+        switch (currentBorder) {
+            case TOP -> {
+                deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS);
+                deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS);
+                deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS);
+                deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
+            }
+            case BOTTOM -> {
+                deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS);
+                deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS);
+                deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS);
+                deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
+            }
+            case LEFT -> {
+                deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS, OFFSET_Y_LARGE);
+                deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS, OFFSET_Y_MEDIUM);
+                deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS, OFFSET_Y_SMALL);
+                deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE + LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL + SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
+            }
+            case RIGHT -> {
+                deltasByPosAndSize[0][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE - LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[0][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL - SMALL_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[1][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS, OFFSET_Y_LARGE);
+                deltasByPosAndSize[1][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS, OFFSET_Y_MEDIUM);
+                deltasByPosAndSize[1][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS, OFFSET_Y_SMALL);
+                deltasByPosAndSize[2][LARGE] = new Point(OFFSET_X_LARGE - LARGE_RADIUS_PIXELS_DIAG, OFFSET_Y_LARGE + LARGE_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][MEDIUM] = new Point(OFFSET_X_MEDIUM - MEDIUM_RADIUS_PIXELS_DIAG, OFFSET_Y_MEDIUM + MEDIUM_RADIUS_PIXELS_DIAG);
+                deltasByPosAndSize[2][SMALL] = new Point(OFFSET_X_SMALL - SMALL_RADIUS_PIXELS_DIAG, OFFSET_Y_SMALL + SMALL_RADIUS_PIXELS_DIAG);
+            }
         }
     }
 
     // Util for other Windows
 
-    public static void positionFrameNextToStarWindow(JFrame frame) {
+    public void positionFrameNextToStarIcon(JFrame frame) {
         final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         final Point starLocation = getSavedCenterLocation();
-        Point location;
-        if (starLocation.y == 0) {
-            // Top
-            location = new Point(starLocation.x - (frame.getWidth() / 2), STAR_HEIGHT_PIXELS / 2);
-        }
-        else if (starLocation.x == 0) {
-            // Left
-            location = new Point(STAR_WIDTH_PIXELS / 2, starLocation.y - (frame.getHeight() / 2));
-        }
-        else if (starLocation.x == screenSize.width) {
-            // Right
-            location = new Point(screenSize.width - STAR_WIDTH_PIXELS / 2 - frame.getWidth(), starLocation.y - (frame.getHeight() / 2));
-        }
-        else {
-            // Bottom
-            location = new Point(starLocation.x - (frame.getWidth() / 2), screenSize.height - STAR_HEIGHT_PIXELS / 2 - frame.getHeight());
-        }
-
+        Point location = switch (currentBorder) {
+            case TOP -> new Point(starLocation.x - (frame.getWidth() / 2), STAR_HEIGHT_PIXELS / 2);
+            case LEFT -> new Point(STAR_WIDTH_PIXELS / 2, starLocation.y - (frame.getHeight() / 2));
+            case RIGHT -> new Point(screenSize.width - STAR_WIDTH_PIXELS / 2 - frame.getWidth(), starLocation.y - (frame.getHeight() / 2));
+            case BOTTOM -> new Point(starLocation.x - (frame.getWidth() / 2), screenSize.height - STAR_HEIGHT_PIXELS / 2 - frame.getHeight());
+        };
         frame.setLocation(Math.min(Math.max(location.x, STAR_WIDTH_PIXELS / 2), screenSize.width - frame.getWidth() - STAR_WIDTH_PIXELS / 2),
                 Math.min(Math.max(location.y, STAR_HEIGHT_PIXELS / 2), screenSize.height - frame.getHeight() - STAR_HEIGHT_PIXELS / 2));
     }

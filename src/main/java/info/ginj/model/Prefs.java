@@ -21,7 +21,8 @@ public class Prefs {
         USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS("use.small.buttons.for.online.target", "If set, small buttons like are shown for online targets, like for save and copy", true),
         EXPORT_COMPLETE_AUTOHIDE_KEY("export.complete.autohide", "If set, the window displayed upon export completion will fade away and close when not hovered", true),
         STAR_WINDOW_POSTION_ON_BORDER("star.window.position.on.border", "This indicates the screen border that the 'Star' icon is resting on", true),
-        STAR_WINDOW_DISTANCE_FROM_CORNER("star.window.distance.from.corner", "This indicates the distance from the top or left edge of the screen to the 'Star' icon", true);
+        STAR_WINDOW_DISTANCE_FROM_CORNER("star.window.distance.from.corner", "This indicates the distance from the top or left edge of the screen to the 'Star' icon", true),
+        STAR_WINDOW_DISPLAY_NUMBER("star.window.display.number", "This is the number of the display the 'Star' icon should be displayed on (0=Main, 1=Secondary, ...)", true);
 
         private final String keyString;
         private final String help;

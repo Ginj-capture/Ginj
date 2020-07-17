@@ -2,7 +2,9 @@
 
 #### Features :
  - ~~Implement multi-screen capture~~
- - Allow positioning the "star" widget on a secondary screen
+ - ~~Allow positioning the "star" widget on a secondary display~~
+ - React to resolution changes and taskbar move/show/hide
+ - Open dialogs (capture editing, "more", "history", etc), on the display where the "star" widget is located
  - ~~Implement capture editing window~~
  - ~~Implement arrow overlay~~
  - ~~Implement rectangular overlays~~
@@ -25,6 +27,7 @@
  - Finalize history window
  - ~~Persist StarWindow position~~
  - ~~Position ExportFrame and ExportCompletionFrame next to Star Window~~
+ - Implement target editing
  - Implement video using ffmpeg & Jaffree
  - Implement generic preference editor
  - Typing in a Text Overlay should make the overlay grow wider
@@ -62,6 +65,7 @@
  - Remember previously used custom colors
  - Add optional "Speech Balloon" overlay
  - Add optional "Line" overlay (with CTRL to constrain)
+ - Add optional "Oval" overlay
  - Shift should constrain handle move horizontally/vertically, Ctrl should resize symmetrically
  - Add overlays on video
 

@@ -111,7 +111,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         setSize(280,70);
 
         // Position window
-        StarWindow.positionFrameNextToStarWindow(this);
+        Ginj.starWindow.positionFrameNextToStarIcon(this);
     }
 
     @Override

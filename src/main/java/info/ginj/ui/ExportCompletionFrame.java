@@ -120,7 +120,7 @@ public class ExportCompletionFrame extends JFrame {
         pack();
 
         // Position window
-        StarWindow.positionFrameNextToStarWindow(this);
+        Ginj.starWindow.positionFrameNextToStarIcon(this);
     }
 
     private void onClose() {

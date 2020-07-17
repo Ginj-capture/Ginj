@@ -11,7 +11,6 @@ import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -71,6 +70,9 @@ public class StarWindow extends JWindow {
     private static final int LARGE_RADIUS_PIXELS_DIAG = (int) Math.round((LARGE_RADIUS_PIXELS * Math.sqrt(2)) / 2);
 
     // Caching
+    private Image starOnlyImg;
+    private Image starRaysImg;
+    // Array of images for the buttons.
     private final Image[][] buttonImg = new Image[3][3]; // 3 buttons x 3 sizes
     // This array contains the offset position between top left corner of the window and the top left corner of the button
     Point[][] deltasByPosAndSize = new Point[3][3]; // 3 buttons x 3 sizes
@@ -142,29 +144,26 @@ public class StarWindow extends JWindow {
     }
 
     public class MainPane extends JPanel {
-        private BufferedImage starOnlyImg;
-        private BufferedImage starRaysImg;
-        // Array of images for the buttons.
 
         public MainPane() {
             try {
-                starOnlyImg = ImageIO.read(getClass().getResource("/img/star-only.png"));
-                starRaysImg = ImageIO.read(getClass().getResource("/img/star-rays.png"));
+                starOnlyImg = ImageIO.read(getClass().getResource("/img/star-only.png")).getScaledInstance(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS, Image.SCALE_SMOOTH);
+                starRaysImg = ImageIO.read(getClass().getResource("/img/star-rays.png")).getScaledInstance(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS, Image.SCALE_SMOOTH);
 
                 Image originalImg = ImageIO.read(getClass().getResource("/img/capture.png"));
-                buttonImg[BTN_CAPTURE][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_DEFAULT);
-                buttonImg[BTN_CAPTURE][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_DEFAULT);
-                buttonImg[BTN_CAPTURE][SMALL] = originalImg.getScaledInstance(SMALL_SIZE_PIXELS, SMALL_SIZE_PIXELS, Image.SCALE_DEFAULT);
+                buttonImg[BTN_CAPTURE][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_SMOOTH);
+                buttonImg[BTN_CAPTURE][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_SMOOTH);
+                buttonImg[BTN_CAPTURE][SMALL] = originalImg.getScaledInstance(SMALL_SIZE_PIXELS, SMALL_SIZE_PIXELS, Image.SCALE_SMOOTH);
 
                 originalImg = ImageIO.read(getClass().getResource("/img/history.png"));
-                buttonImg[BTN_HISTORY][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_DEFAULT);
-                buttonImg[BTN_HISTORY][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_DEFAULT);
-                buttonImg[BTN_HISTORY][SMALL] = originalImg.getScaledInstance(SMALL_SIZE_PIXELS, SMALL_SIZE_PIXELS, Image.SCALE_DEFAULT);
+                buttonImg[BTN_HISTORY][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_SMOOTH);
+                buttonImg[BTN_HISTORY][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_SMOOTH);
+                buttonImg[BTN_HISTORY][SMALL] = originalImg.getScaledInstance(SMALL_SIZE_PIXELS, SMALL_SIZE_PIXELS, Image.SCALE_SMOOTH);
 
                 originalImg = ImageIO.read(getClass().getResource("/img/more.png"));
-                buttonImg[BTN_MORE][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_DEFAULT);
-                buttonImg[BTN_MORE][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_DEFAULT);
-                buttonImg[BTN_MORE][SMALL] = originalImg.getScaledInstance(SMALL_SIZE_PIXELS, SMALL_SIZE_PIXELS, Image.SCALE_DEFAULT);
+                buttonImg[BTN_MORE][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_SMOOTH);
+                buttonImg[BTN_MORE][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_SMOOTH);
+                buttonImg[BTN_MORE][SMALL] = originalImg.getScaledInstance(SMALL_SIZE_PIXELS, SMALL_SIZE_PIXELS, Image.SCALE_SMOOTH);
 
             }
             catch (IOException e) {
@@ -180,7 +179,7 @@ public class StarWindow extends JWindow {
 
         @Override
         public Dimension getPreferredSize() {
-            return new Dimension(starOnlyImg.getWidth(), starOnlyImg.getHeight());
+            return new Dimension(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS);
         }
 
         @Override

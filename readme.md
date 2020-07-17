@@ -43,11 +43,11 @@ Ginj's core is pure Java, and Java is "write once, run anywhere", so yes, it run
 
 Just kidding.
 
-Ginj targets OpenJDK 14, so obviously Ginj won't ever run on a platform that does not support that JDK version. Moreover, I don't own a Mac, and I don't intend to test Ginj on a Linux VM until my to-do list becomes manageable.
+Ginj targets OpenJDK 14, so obviously Ginj won't ever run on a platform that does not support that JDK version. Moreover, I don't own a Mac, and I don't intend to test Ginj on a Linux VM until my to-do list becomes manageable. Early feedback on Ubuntu indicates that the Desktop widget has visual issues but that captures are OK and can be copied, saved and shared online, which I find amazing since it never was launched under Linux before release. 
 
-In other words, until now, Ginj has only been tested on Windows.
+In other words, until now, Ginj has almost exclusively been tested on Windows.
 
-But if you test it on other platforms, feel free to [open an issue](https://github.com/Ginj-capture/Ginj/issues) and tell me your experience. I will update this section accordingly. 
+If you test it on other platforms, feel free to [open an issue](https://github.com/Ginj-capture/Ginj/issues) and tell me your experience. I will update this section accordingly. 
 
 #### How can I get support?
 
@@ -59,7 +59,7 @@ And if you miss a feature, there's even less chance I will have time to look int
 
 In the meantime, it's just there and it's free... Enjoy :-)
 
-#### Note about app validation
+#### A note about app validation.
 If you want to share captures via Dropbox or Google Photos, you will get lots of warnings about the dangers of using a non-validated application during the authorization process. 
 
 Please don't be scared, this app is indeed not (yet) validated by Dropbox nor Google so this is perfectly normal. 
@@ -97,6 +97,10 @@ The user interface uses:
 Many thanks to: 
 - [ej-technologies](https://www.ej-technologies.com/) for providing free licences of [Install4J, the best multi-platform installer builder](https://www.ej-technologies.com/products/install4j/overview.html) for non-profit open source projects.
 - [Techsmith](https://www.techsmith.com/) for having proposed and supported Jing for so long. Check out their product line.
+
+#### License.
+
+Ginj is released under the [GPL-3 License](LICENSE).
 
 #### Privacy.
 

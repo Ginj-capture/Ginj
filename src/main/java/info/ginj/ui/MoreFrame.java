@@ -49,6 +49,10 @@ public class MoreFrame extends JFrame {
         configureTargetsButton.addActionListener(e -> onConfigureTargets());
         mainPanel.add(configureTargetsButton);
 
+        final JButton aboutButton = new JButton("About Ginj...");
+        aboutButton.addActionListener(e -> onAbout());
+        mainPanel.add(aboutButton);
+
         final JButton quitButton = new JButton("Quit " + Ginj.getAppName());
         quitButton.addActionListener(e -> onQuit());
         mainPanel.add(quitButton);
@@ -71,6 +75,10 @@ public class MoreFrame extends JFrame {
         }
         starWindow.getTargetManagementFrame().setVisible(true);
         starWindow.getTargetManagementFrame().requestFocus();
+    }
+
+    private void onAbout() {
+        JOptionPane.showMessageDialog(this, "This is " + Ginj.getAppName() + " version " + Ginj.getVersion() + "\nPlease checkout http://ginj.info for more information.", "Ajout Ginj", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void onQuit() {

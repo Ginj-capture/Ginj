@@ -25,6 +25,7 @@
  - ~~Implement history with **editable** items~~
  - ~~Implement edit from history window~~
  - Finalize history window
+ - Load history contents asynchronously
  - ~~Persist StarWindow position~~
  - ~~Position ExportFrame and ExportCompletionFrame next to Star Window~~
  - Implement target editing

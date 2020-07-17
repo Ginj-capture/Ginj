@@ -36,7 +36,7 @@ public class HistoryFrame extends JFrame {
     private final ImageIcon deleteIcon;
 
     private final StarWindow starWindow;
-    private HistoryItemPanel selectedItem;
+    private HistoryItemWidget selectedItem;
     private final JPanel historyList;
 
     public HistoryFrame(StarWindow starWindow) {
@@ -153,10 +153,10 @@ public class HistoryFrame extends JFrame {
             historyList.add(new JLabel("Error"));
         }
         else {
-            Arrays.sort(files); // Alphabetically by default
+            Arrays.sort(files, (o1, o2) -> (int) (o2.lastModified() - o1.lastModified())); // Sort most recent first
 
             for (File file : files) {
-                historyList.add(new HistoryItemPanel(this, file));
+                historyList.add(new HistoryItemWidget(this, file));
             }
         }
         historyList.validate();
@@ -233,11 +233,11 @@ public class HistoryFrame extends JFrame {
         return new File(Ginj.getHistoryFolder(), capture.getId() + (capture.isVideo() ? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION));
     }
 
-    public HistoryItemPanel getSelectedItem() {
+    public HistoryItemWidget getSelectedItem() {
         return selectedItem;
     }
 
-    public void setSelectedItem(HistoryItemPanel selectedItem) {
+    public void setSelectedItem(HistoryItemWidget selectedItem) {
         // Deselect previous one, if any
         if (this.selectedItem != null) {
             this.selectedItem.setSelected(false);
@@ -254,7 +254,7 @@ public class HistoryFrame extends JFrame {
     //////////////////////////////
     // Inner classes
 
-    private class HistoryItemPanel extends JPanel {
+    private class HistoryItemWidget extends JPanel {
         private Capture capture = null;
         private final JLabel nameLabel;
         private final JLabel sizeLabel;
@@ -267,7 +267,7 @@ public class HistoryFrame extends JFrame {
             return HISTORY_CELL_SIZE;
         }
 
-        public HistoryItemPanel(HistoryFrame historyFrame, File file) {
+        public HistoryItemWidget(HistoryFrame historyFrame, File file) {
             super();
             String xmlFilename = file.getAbsolutePath();
 
@@ -293,7 +293,7 @@ public class HistoryFrame extends JFrame {
                 nameLabel.addMouseListener(new MouseAdapter() {
                     // Trick to keep clickability while showing tooltip, taken from https://stackoverflow.com/a/14932443/13551878
                     public void mouseReleased(MouseEvent e) {
-                        HistoryItemPanel.this.dispatchEvent(SwingUtilities.convertMouseEvent(e.getComponent(), e, HistoryItemPanel.this));
+                        HistoryItemWidget.this.dispatchEvent(SwingUtilities.convertMouseEvent(e.getComponent(), e, HistoryItemWidget.this));
                     }
                 });
             }
@@ -351,7 +351,7 @@ public class HistoryFrame extends JFrame {
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseReleased(MouseEvent e) {
-                    historyFrame.setSelectedItem(HistoryItemPanel.this);
+                    historyFrame.setSelectedItem(HistoryItemWidget.this);
                 }
             });
         }

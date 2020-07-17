@@ -407,9 +407,9 @@ public class StarWindow extends JWindow {
         catch (NumberFormatException e) {
             // No (or unrecognized) display number. Keep default value
         }
-        Rectangle screenRect = getDisplayBounds(displayNumber);
-        if (screenRect == null) {
-            screenRect = getDisplayBounds(0);
+        currentDisplayBounds = getDisplayBounds(displayNumber);
+        if (currentDisplayBounds == null) {
+            currentDisplayBounds = getDisplayBounds(0);
         }
 
         // Load prefs and retrieve previous position
@@ -420,20 +420,20 @@ public class StarWindow extends JWindow {
             int distanceFromCorner = Integer.parseInt(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER));
             switch (border) {
                 case TOP -> centerLocation = new Point(
-                        screenRect.x + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenRect.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS),
-                        screenRect.y
+                        currentDisplayBounds.x + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), currentDisplayBounds.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS),
+                        currentDisplayBounds.y
                 );
                 case BOTTOM -> centerLocation = new Point(
-                        screenRect.x + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), screenRect.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS),
-                        screenRect.y + screenRect.height - 1
+                        currentDisplayBounds.x + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), currentDisplayBounds.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS),
+                        currentDisplayBounds.y + currentDisplayBounds.height - 1
                 );
                 case LEFT -> centerLocation = new Point(
-                        screenRect.x,
-                        screenRect.y + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenRect.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS)
+                        currentDisplayBounds.x,
+                        currentDisplayBounds.y + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), currentDisplayBounds.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS)
                 );
                 case RIGHT -> centerLocation = new Point(
-                        screenRect.x + screenRect.width - 1,
-                        screenRect.y + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), screenRect.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS)
+                        currentDisplayBounds.x + currentDisplayBounds.width - 1,
+                        currentDisplayBounds.y + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), currentDisplayBounds.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS)
                 );
             }
             currentBorder = border;
@@ -441,8 +441,8 @@ public class StarWindow extends JWindow {
         catch (NullPointerException | IllegalArgumentException e) {
             // No (or unrecognized) position.
         }
-        if (centerLocation == null || !screenRect.contains(centerLocation)) {
-            centerLocation = new Point(screenRect.x + (screenRect.width / 2), screenRect.y);
+        if (centerLocation == null || !currentDisplayBounds.contains(centerLocation)) {
+            centerLocation = new Point(currentDisplayBounds.x + (currentDisplayBounds.width / 2), currentDisplayBounds.y);
             currentBorder = Border.TOP;
         }
         return centerLocation;

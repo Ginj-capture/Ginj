@@ -4,7 +4,7 @@
  - ~~Implement multi-screen capture~~
  - ~~Allow positioning the "star" widget on a secondary display~~
  - React to resolution changes and taskbar move/show/hide
- - Open dialogs (capture editing, "more", "history", etc), on the display where the "star" widget is located
+ - ~~Open dialogs (capture editing, "more", "history", etc), on the display where the "star" widget is located~~
  - ~~Implement capture editing window~~
  - ~~Implement arrow overlay~~
  - ~~Implement rectangular overlays~~
@@ -53,8 +53,9 @@
  - Finalize look and feel of (File chooser (save as), Tables)
  - Add splash screen animation
  - Switch from "close" to "fade out effect" in export completion window
- - Upscale sun and sun-rays so that runtime downscale provides an anti-aliasing, or better yet draw it by code (gradients etc)
- - Build 3 main buttons at runtime based on a circle + icons (downscale provides an anti-aliasing)
+ - ~~Upscale sun and sun-rays so that runtime downscale provides an anti-aliasing 
+ - ~~Build 3 main buttons at runtime based on a circle + icons (downscale provides an anti-aliasing)~~
+ - or better yet draw them all by code (gradients etc) ?
 
 #### Cleanup:
  - Remove EASynth resource dir

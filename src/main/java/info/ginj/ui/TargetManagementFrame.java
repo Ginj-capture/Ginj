@@ -142,7 +142,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         pack();
 
         // Center window
-        setLocationRelativeTo(null);
+        starWindow.centerFrameOnStarIconDisplay(this);
     }
 
     private void loadTargets() {

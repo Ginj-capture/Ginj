@@ -62,7 +62,7 @@ public class MoreFrame extends JFrame {
         pack();
 
         // Center window
-        setLocationRelativeTo(null);
+        starWindow.centerFrameOnStarIconDisplay(this);
     }
 
     private void onConfigureTargets() {

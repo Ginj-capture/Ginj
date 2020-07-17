@@ -141,7 +141,7 @@ public class HistoryFrame extends JFrame {
         pack();
 
         // Center window
-        setLocationRelativeTo(null);
+        starWindow.centerFrameOnStarIconDisplay(this);
     }
 
     public void refreshHistoryList() {

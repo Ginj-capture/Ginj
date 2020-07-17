@@ -280,7 +280,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         setSize(size);
 
         // Center window
-        setLocationRelativeTo(null);
+        starWindow.centerFrameOnStarIconDisplay(this);
     }
 
     @Override

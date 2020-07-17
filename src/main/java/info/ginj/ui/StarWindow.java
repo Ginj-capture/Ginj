@@ -81,6 +81,7 @@ public class StarWindow extends JWindow {
     public static Image appIcon = null;
 
     // Current state
+    private Rectangle currentDisplayBounds;
     private Border currentBorder = Border.TOP;
     private boolean isWindowDeployed = false;
     private boolean isDragging = false;
@@ -550,6 +551,7 @@ public class StarWindow extends JWindow {
             default -> throw new IllegalStateException("Unexpected value: " + bestBorder);
         }
 
+        currentDisplayBounds = bestDisplay;
         currentBorder = bestBorder;
         computeButtonPositions();
 
@@ -613,16 +615,22 @@ public class StarWindow extends JWindow {
     // Util for other Windows
 
     public void positionFrameNextToStarIcon(JFrame frame) {
-        final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        final Point starLocation = getSavedCenterLocation();
+        final Point starCenter = getSavedCenterLocation();
+
         Point location = switch (currentBorder) {
-            case TOP -> new Point(starLocation.x - (frame.getWidth() / 2), STAR_HEIGHT_PIXELS / 2);
-            case LEFT -> new Point(STAR_WIDTH_PIXELS / 2, starLocation.y - (frame.getHeight() / 2));
-            case RIGHT -> new Point(screenSize.width - STAR_WIDTH_PIXELS / 2 - frame.getWidth(), starLocation.y - (frame.getHeight() / 2));
-            case BOTTOM -> new Point(starLocation.x - (frame.getWidth() / 2), screenSize.height - STAR_HEIGHT_PIXELS / 2 - frame.getHeight());
+            case TOP -> new Point(starCenter.x - (frame.getWidth() / 2), STAR_HEIGHT_PIXELS / 2);
+            case LEFT -> new Point(STAR_WIDTH_PIXELS / 2, starCenter.y - (frame.getHeight() / 2));
+            case RIGHT -> new Point(starCenter.x - STAR_WIDTH_PIXELS / 2 - frame.getWidth(), starCenter.y - (frame.getHeight() / 2));
+            case BOTTOM -> new Point(starCenter.x - (frame.getWidth() / 2), starCenter.y - STAR_HEIGHT_PIXELS / 2 - frame.getHeight());
         };
-        frame.setLocation(Math.min(Math.max(location.x, STAR_WIDTH_PIXELS / 2), screenSize.width - frame.getWidth() - STAR_WIDTH_PIXELS / 2),
-                Math.min(Math.max(location.y, STAR_HEIGHT_PIXELS / 2), screenSize.height - frame.getHeight() - STAR_HEIGHT_PIXELS / 2));
+        frame.setLocation(Math.min(Math.max(location.x, currentDisplayBounds.x), currentDisplayBounds.x + currentDisplayBounds.width - frame.getWidth()),
+                Math.min(Math.max(location.y, currentDisplayBounds.y), currentDisplayBounds.y + currentDisplayBounds.height - frame.getHeight()));
+    }
+
+
+    public void centerFrameOnStarIconDisplay(JFrame frame) {
+        frame.setLocation(currentDisplayBounds.x + (currentDisplayBounds.width - frame.getWidth())/2,
+                currentDisplayBounds.y + (currentDisplayBounds.height - frame.getHeight())/2);
     }
 
 

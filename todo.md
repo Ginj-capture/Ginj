@@ -24,13 +24,13 @@
  - ~~Implement preferences~~
  - ~~Implement history with **editable** items~~
  - ~~Implement edit from history window~~
- - Finalize history window
+ - Finalize history window (sort and filter)
  - Load history contents asynchronously
  - ~~Persist StarWindow position~~
  - ~~Position ExportFrame and ExportCompletionFrame next to Star Window~~
  - ~~Implement target editing~~
  - In export completion window, replace plain text with html for the shared link to be clickable
- - Improve about dialog (logo, clickable link to site, credits)
+ - Improve "About" dialog (logo, clickable link to site, credits)
  - Implement video using ffmpeg & Jaffree
  - Implement generic preference editor
  - Typing in a Text Overlay should make the overlay grow wider

@@ -47,7 +47,7 @@ public class ImageEditorPane extends JLayeredPane {
     }
 
     private void addMouseEditingBehaviour() {
-        MouseInputListener mouseListener = new DragInsensitiveMouseClickListener(new MouseInputAdapter() {
+        MouseInputListener mouseListener = new DragInsensitiveMouseClickListener(3, new MouseInputAdapter() {
             private int selectedHandleIndex;
             Point clicked;
             AbstractUndoableAction currentAction = null;

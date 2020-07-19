@@ -7,13 +7,12 @@ import java.awt.event.MouseEvent;
 /**
  * This Listener can be used when the UI must ignore "small" drag movements and consider them as clicks.
  * Usage: addMouseListener(new DragInsensitiveMouseClickListener(actualListener));
- * From https://stackoverflow.com/a/19003495/13551878
+ * Adapted from https://stackoverflow.com/a/19003495/13551878
  */
 public class DragInsensitiveMouseClickListener implements MouseInputListener {
 
-    protected static final int MAX_CLICK_DISTANCE = 15;
-
     private final MouseInputListener target;
+    private int maxMoveDistance = 15; // default
 
     public MouseEvent pressed;
 
@@ -24,6 +23,17 @@ public class DragInsensitiveMouseClickListener implements MouseInputListener {
     public DragInsensitiveMouseClickListener(MouseInputListener target) {
         this.target = target;
     }
+
+    /**
+     * Constructor
+     * @param maxMoveDistance the number of pixels that are still considered as a click and not as a drag
+     * @param target the actual MouseInputListener to send "filtered" events to. e.g. a MouseInputAdapter
+     */
+    public DragInsensitiveMouseClickListener(int maxMoveDistance, MouseInputListener target) {
+        this.target = target;
+        this.maxMoveDistance = maxMoveDistance;
+    }
+
 
     @Override
     public final void mousePressed(MouseEvent e) {
@@ -43,7 +53,7 @@ public class DragInsensitiveMouseClickListener implements MouseInputListener {
         target.mouseReleased(e);
 
         if (pressed != null) {
-            if (getDragDistance(e) < MAX_CLICK_DISTANCE) {
+            if (getDragDistance(e) < maxMoveDistance) {
                 MouseEvent clickEvent = new MouseEvent((Component) pressed.getSource(),
                         MouseEvent.MOUSE_CLICKED, e.getWhen(), pressed.getModifiersEx(),
                         pressed.getX(), pressed.getY(), pressed.getXOnScreen(), pressed.getYOnScreen(),
@@ -72,7 +82,7 @@ public class DragInsensitiveMouseClickListener implements MouseInputListener {
     @Override
     public void mouseDragged(MouseEvent e) {
         if (pressed != null) {
-            if (getDragDistance(e) < MAX_CLICK_DISTANCE)
+            if (getDragDistance(e) < maxMoveDistance)
                 return; //do not trigger drag yet (distance is in "click" perimeter
             pressed = null;
         }

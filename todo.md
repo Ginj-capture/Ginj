@@ -28,7 +28,7 @@
  - Load history contents asynchronously
  - ~~Persist StarWindow position~~
  - ~~Position ExportFrame and ExportCompletionFrame next to Star Window~~
- - Implement target editing
+ - ~~Implement target editing~~
  - In export completion window, replace plain text with html for the shared link to be clickable
  - Improve about dialog (logo, clickable link to site, credits)
  - Implement video using ffmpeg & Jaffree

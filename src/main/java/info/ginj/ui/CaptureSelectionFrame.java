@@ -157,11 +157,10 @@ public class CaptureSelectionFrame extends JFrame {
                 Rectangle2D areaToCapture = new Rectangle2D.Double(0,0,-1,-1);
                 GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
                 for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
-                    for (GraphicsConfiguration screenConfiguration : screenDevice.getConfigurations()) {
-                        //System.out.println(screenConfiguration.getBounds());
-                        visibleAreas.add(screenConfiguration.getBounds());
-                        Rectangle2D.union(areaToCapture, screenConfiguration.getBounds(), areaToCapture);
-                    }
+                    GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
+                    //System.out.println(screenConfiguration.getBounds());
+                    visibleAreas.add(screenConfiguration.getBounds());
+                    Rectangle2D.union(areaToCapture, screenConfiguration.getBounds(), areaToCapture);
                 }
                 capturedArea = areaToCapture.getBounds();
                 capturedScreenImg = robot.createScreenCapture(capturedArea);
@@ -545,18 +544,18 @@ public class CaptureSelectionFrame extends JFrame {
 //                        System.out.println("On screen " + visibleArea + ": SELECTED !");
                         break;
                     }
-                    else {
+//                    else {
 //                        System.out.print("Out of screen " + visibleArea + "... ");
-                    }
+//                    }
                 }
                 if (bestPosition != null) {
                     break;
                 }
 //                System.out.println("Rejected.");
             }
-            else {
+//            else {
 //                System.out.println("Out of mega-rectangle: Rejected.");
-            }
+//            }
         }
         if (bestPosition == null) {
             bestPosition = candidatePositions[candidatePositions.length - 1];

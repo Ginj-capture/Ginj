@@ -196,9 +196,8 @@ public class StarWindow extends JWindow {
                     // Half image with rays
                     switch (currentBorder) {
                         case TOP -> g2d.drawImage(starRaysImg, 0, -STAR_HEIGHT_PIXELS / 2, this);
-                        case BOTTOM -> g2d.drawImage(starRaysImg, 0, 0, this);
                         case LEFT -> g2d.drawImage(starRaysImg, -STAR_WIDTH_PIXELS / 2, 0, this);
-                        case RIGHT -> g2d.drawImage(starRaysImg, 0, 0, this);
+                        case BOTTOM, RIGHT -> g2d.drawImage(starRaysImg, 0, 0, this);
                     }
                     // Draw 3 action icons, with size and position depending on highlight state
                     for (int button = 0; button < 3; button++) {
@@ -219,9 +218,8 @@ public class StarWindow extends JWindow {
                     // Half image without rays
                     switch (currentBorder) {
                         case TOP -> g2d.drawImage(starOnlyImg, 0, -STAR_HEIGHT_PIXELS / 2, this);
-                        case BOTTOM -> g2d.drawImage(starOnlyImg, 0, 0, this);
                         case LEFT -> g2d.drawImage(starOnlyImg, -STAR_WIDTH_PIXELS / 2, 0, this);
-                        case RIGHT -> g2d.drawImage(starOnlyImg, 0, 0, this);
+                        case BOTTOM, RIGHT -> g2d.drawImage(starOnlyImg, 0, 0, this);
                     }
                 }
             }
@@ -251,9 +249,8 @@ public class StarWindow extends JWindow {
                 // If click happened on center of star
                 Point relativeStarCenter = switch (currentBorder) {
                     case TOP -> new Point(STAR_WIDTH_PIXELS / 2, 0);
-                    case BOTTOM -> new Point(STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
                     case LEFT -> new Point(0, STAR_HEIGHT_PIXELS / 2);
-                    case RIGHT -> new Point(STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
+                    case BOTTOM, RIGHT -> new Point(STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
                 };
                 // That is if distance between click point and center is less than radius
                 if (Math.pow(relativeStarCenter.x - mousePressedPoint.x, 2) + Math.pow(relativeStarCenter.y - mousePressedPoint.y, 2) < Math.pow(STAR_ONLY_RADIUS, 2)) {
@@ -395,7 +392,6 @@ public class StarWindow extends JWindow {
         computeButtonPositions();
     }
 
-    @SuppressWarnings("ConstantConditions")
     public Point getSavedCenterLocation() {
         // Default to center of top border of main display
 
@@ -452,15 +448,14 @@ public class StarWindow extends JWindow {
         GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
         int currentDisplay = 0;
         for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
-            for (GraphicsConfiguration screenConfiguration : screenDevice.getConfigurations()) {
-                if (currentDisplay == displayNumber) {
-                    final Rectangle screenBounds = screenConfiguration.getBounds();
-                    // remove the "borders" (taskbars, menus):
-                    final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
-                    return new Rectangle(screenBounds.x + screenInsets.left, screenBounds.y + screenInsets.top, screenBounds.width - screenInsets.left - screenInsets.right, screenBounds.height - screenInsets.top - screenInsets.bottom);
-                }
-                currentDisplay++;
+            GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
+            if (currentDisplay == displayNumber) {
+                final Rectangle screenBounds = screenConfiguration.getBounds();
+                // remove the "borders" (taskbars, menus):
+                final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
+                return new Rectangle(screenBounds.x + screenInsets.left, screenBounds.y + screenInsets.top, screenBounds.width - screenInsets.left - screenInsets.right, screenBounds.height - screenInsets.top - screenInsets.bottom);
             }
+            currentDisplay++;
         }
         if (displayNumber == 0) {
             UI.alertError(this, "Display error", "Cannot find bounds of main display!\nDefaulting to Toolkit diaplay.\nPlease report this message as an issue on Github.\nThanks");
@@ -485,45 +480,44 @@ public class StarWindow extends JWindow {
         int displayNumber = 0;
         GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
         for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
-            for (GraphicsConfiguration screenConfiguration : screenDevice.getConfigurations()) {
-                Rectangle screenBounds = screenConfiguration.getBounds();
-                // remove the "borders" (taskbars, menus):
-                final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
-                Rectangle usableBounds = new Rectangle(screenBounds.x + screenInsets.left, screenBounds.y + screenInsets.top, screenBounds.width - screenInsets.left - screenInsets.right, screenBounds.height - screenInsets.top - screenInsets.bottom);
-                // Distance from top
-                int distance = Math.abs(usableBounds.y - center.y);
-                if (distance < bestDistance && center.x >= screenBounds.x && center.x < screenBounds.x + screenBounds.width) {
-                    bestDisplay = usableBounds;
-                    bestDisplayNumber = displayNumber;
-                    bestBorder = Border.TOP;
-                    bestDistance = distance;
-                }
-                // Distance from bottom
-                distance = Math.abs(usableBounds.y + usableBounds.height - 1 - center.y);
-                if (distance < bestDistance && center.x >= screenBounds.x && center.x < screenBounds.x + screenBounds.width) {
-                    bestDisplay = usableBounds;
-                    bestDisplayNumber = displayNumber;
-                    bestBorder = Border.BOTTOM;
-                    bestDistance = distance;
-                }
-                // Distance from left
-                distance = Math.abs(usableBounds.x - center.x);
-                if (distance < bestDistance && center.y >= screenBounds.y && center.y < screenBounds.y + screenBounds.height) {
-                    bestDisplay = usableBounds;
-                    bestDisplayNumber = displayNumber;
-                    bestBorder = Border.LEFT;
-                    bestDistance = distance;
-                }
-                // Distance from right
-                distance = Math.abs(usableBounds.x + usableBounds.width - 1 - center.x);
-                if (distance < bestDistance && center.y >= screenBounds.y && center.y < screenBounds.y + screenBounds.height) {
-                    bestDisplay = usableBounds;
-                    bestDisplayNumber = displayNumber;
-                    bestBorder = Border.RIGHT;
-                    bestDistance = distance;
-                }
-                displayNumber++;
+            GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
+            Rectangle screenBounds = screenConfiguration.getBounds();
+            // remove the "borders" (taskbars, menus):
+            final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
+            Rectangle usableBounds = new Rectangle(screenBounds.x + screenInsets.left, screenBounds.y + screenInsets.top, screenBounds.width - screenInsets.left - screenInsets.right, screenBounds.height - screenInsets.top - screenInsets.bottom);
+            // Distance from top
+            int distance = Math.abs(usableBounds.y - center.y);
+            if (distance < bestDistance && center.x >= screenBounds.x && center.x < screenBounds.x + screenBounds.width) {
+                bestDisplay = usableBounds;
+                bestDisplayNumber = displayNumber;
+                bestBorder = Border.TOP;
+                bestDistance = distance;
             }
+            // Distance from bottom
+            distance = Math.abs(usableBounds.y + usableBounds.height - 1 - center.y);
+            if (distance < bestDistance && center.x >= screenBounds.x && center.x < screenBounds.x + screenBounds.width) {
+                bestDisplay = usableBounds;
+                bestDisplayNumber = displayNumber;
+                bestBorder = Border.BOTTOM;
+                bestDistance = distance;
+            }
+            // Distance from left
+            distance = Math.abs(usableBounds.x - center.x);
+            if (distance < bestDistance && center.y >= screenBounds.y && center.y < screenBounds.y + screenBounds.height) {
+                bestDisplay = usableBounds;
+                bestDisplayNumber = displayNumber;
+                bestBorder = Border.LEFT;
+                bestDistance = distance;
+            }
+            // Distance from right
+            distance = Math.abs(usableBounds.x + usableBounds.width - 1 - center.x);
+            if (distance < bestDistance && center.y >= screenBounds.y && center.y < screenBounds.y + screenBounds.height) {
+                bestDisplay = usableBounds;
+                bestDisplayNumber = displayNumber;
+                bestBorder = Border.RIGHT;
+                bestDistance = distance;
+            }
+            displayNumber++;
         }
 
         int targetX, targetY, distanceFromCorner;

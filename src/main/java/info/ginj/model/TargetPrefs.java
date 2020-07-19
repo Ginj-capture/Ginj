@@ -13,13 +13,15 @@ import java.util.List;
 public class TargetPrefs {
 
     // Suffixes (also used in Wizard)
+    public static final String TARGET_KEY = "target";
     public static final String EXPORTER_KEY = "exporter";
     public static final String ACCOUNT_KEY = "account";
     public static final String ACCOUNT_USERNAME_KEY = "account.username";
     public static final String ACCOUNT_EMAIL_KEY = "account.email";
     public static final String DISPLAY_NAME_KEY = "display_name";
 
-    public static final String[] GENERIC_KEYS = new String[] {EXPORTER_KEY, ACCOUNT_KEY, ACCOUNT_USERNAME_KEY, ACCOUNT_EMAIL_KEY, DISPLAY_NAME_KEY};
+    // Used to avoid persisting them in settings
+    public static final String[] GENERIC_KEYS = new String[] {TARGET_KEY, EXPORTER_KEY, ACCOUNT_KEY, ACCOUNT_USERNAME_KEY, ACCOUNT_EMAIL_KEY, DISPLAY_NAME_KEY};
 
     List<Target> targetList = new ArrayList<>();
 

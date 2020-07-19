@@ -21,6 +21,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Map;
 
 public class UI {
     public static final Color AREA_SELECTION_COLOR = new Color(251, 185, 1);
@@ -372,30 +373,100 @@ public class UI {
 
     // Wizard related utils
 
-    public static JTextField getWizardTextField(String name, String defaultText, boolean isEnabled, boolean isVisible) {
-        JTextField textField = new JTextField(defaultText, 30);
+    /**
+     * Create a new JTextField for use in a Wizard.
+     *
+     * @param name Will be used to initialize the field value from the map, and later by the wizard to put the field back in the map
+     * @param map If the field is present in this map, its value will be used as default value
+     * @param defaultText If the field is not present in the map, this will be the default value
+     * @param isEnabled if true, the field is enabled
+     * @param isVisible if true, the field is visible
+     * @return the created JTextField
+     */
+    public static JTextField createWizardTextField(String name, Map map, String defaultText, boolean isEnabled, boolean isVisible) {
+        String text = (String) map.get(name);
+        if (text == null) {
+            text = defaultText;
+        }
+        JTextField textField = new JTextField(text, 30);
         textField.setName(name);
         textField.setEnabled(isEnabled);
         textField.setVisible(isVisible);
         return textField;
     }
 
-    public static JCheckBox getWizardCheckBox(String name, boolean defaultSelected, boolean isEnabled, boolean isVisible) {
-        JCheckBox checkBox = new JCheckBox("", defaultSelected);
+    /**
+     * Create a new JCheckBox for use in a Wizard.
+     *
+     * @param name Will be used to initialize the field value from the map, and later by the wizard to put the field back in the map
+     * @param map If the field is present in this map, its value will be used as default value
+     * @param defaultSelected If the field is not present in the map, this will be the default value
+     * @param isEnabled if true, the field is enabled
+     * @param isVisible if true, the field is visible
+     * @return the created JCheckBox
+     */
+    public static JCheckBox createWizardCheckBox(String name, Map map, boolean defaultSelected, boolean isEnabled, boolean isVisible) {
+        Boolean selected = (Boolean) map.get(name);
+        if (selected == null) {
+            selected = defaultSelected;
+        }
+        JCheckBox checkBox = new JCheckBox("", selected);
         checkBox.setName(name);
         checkBox.setEnabled(isEnabled);
         checkBox.setVisible(isVisible);
         return checkBox;
     }
 
-    public static JList getWizardList(String name, Object[] values, int defaultIndex, boolean isEnabled, boolean isVisible) {
-        DefaultListModel model = new DefaultListModel();
-        for (Object value: values) {
+    /**
+     * Create a new JCheckBox for use in a Wizard.
+     * This version is for a "master-detail" presentation, where this "detail" box is only enabled if a "master" box is selected
+     *
+     * @param name Will be used to initialize the field value from the map, and later by the wizard to put the field back in the map
+     * @param map If the field is present in this map, its value will be used as default value
+     * @param defaultSelected If the field is not present in the map, this will be the default value
+     * @param masterCheckBox this field will be enabled only when the masterCheckbox will be enabled and selected (ticked)
+     * @param isVisible if true, the field is visible
+     * @return the created JCheckBox
+     */
+    public static JCheckBox createWizardCheckBox(String name, Map map, boolean defaultSelected, JCheckBox masterCheckBox, boolean isVisible) {
+        Boolean selected = (Boolean) map.get(name);
+        if (selected == null) {
+            selected = defaultSelected;
+        }
+        JCheckBox checkBox = new JCheckBox("", selected);
+        checkBox.setName(name);
+        checkBox.setEnabled(masterCheckBox.isSelected());
+        checkBox.setVisible(isVisible);
+        masterCheckBox.addActionListener(e -> checkBox.setEnabled(masterCheckBox.isSelected() && masterCheckBox.isEnabled()));
+        masterCheckBox.addPropertyChangeListener("enabled", e -> checkBox.setEnabled(masterCheckBox.isSelected() && masterCheckBox.isEnabled()));
+        return checkBox;
+    }
+
+    /**
+     * Create a new JList for use in a Wizard.
+     *
+     * @param name Will be used to initialize the selected value from the map, and later by the wizard to put the selected value back in the map
+     * @param values The different values to display in the list
+     * @param map If the field is present in this map, its value will be used as default selection
+     * @param defaultIndex If the field is not present in the map, this will be the default selected index
+     * @param isEnabled if true, the field is enabled
+     * @param isVisible if true, the field is visible
+     * @return the created JList
+     */
+    public static <T> JList<T> createWizardList(String name, T[] values, Map map, int defaultIndex, boolean isEnabled, boolean isVisible) {
+        final Object object = map.get(name);
+        DefaultListModel<T> model = new DefaultListModel<>();
+        for (T value: values) {
             model.addElement(value);
         }
-        JList list = new JList(model);
+        JList<T> list = new JList<>(model);
         list.setName(name);
-        list.setSelectedIndex(defaultIndex);
+        if (object != null) {
+            list.setSelectedValue(object, true);
+        }
+        else {
+            list.setSelectedIndex(defaultIndex);
+        }
         list.setEnabled(isEnabled);
         list.setVisible(isVisible);
         return list;

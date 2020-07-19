@@ -88,7 +88,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         final JButton editTargetButton = new JButton("Edit");
         editTargetButton.setEnabled(false);
-        editTargetButton.addActionListener(e -> onEditTarget());
+        editTargetButton.addActionListener(e -> onEditTarget(targetList.getSelectedIndex()));
         buttonPanel.add(editTargetButton);
 
         final JButton deleteTargetButton = new JButton("Delete");
@@ -119,7 +119,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                 moveTargetDownButton.setEnabled(false);
             }
             else {
-//                editTargetButton.setEnabled(true);
+                editTargetButton.setEnabled(true);
                 deleteTargetButton.setEnabled(true);
                 moveTargetUpButton.setEnabled(targetList.getSelectedIndex() > 0);
                 moveTargetDownButton.setEnabled(targetList.getSelectedIndex() < targetListModel.size() - 1);
@@ -157,12 +157,38 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         TargetTypeBrancher brancher = new TargetTypeBrancher();
         Wizard wizard = brancher.createWizard();
 
-        // Map map = (Map) WizardDisplayer.showWizard(wizard);
-        WizardDisplayer.showWizard(wizard);
+        /* Map map = (Map)*/ WizardDisplayer.showWizard(wizard);
     }
 
-    private void onEditTarget() {
-        // TODO.
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void onEditTarget(int selectedIndex) {
+        final Target selectedTarget = targetListModel.getElementAt(selectedIndex);
+
+        Wizard wizard = switch(selectedTarget.getExporter().getExporterName()) {
+            case ClipboardExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new ClipboardConfigurationPage()}, new TextResultProducer());
+            case DiskExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new DiskConfigurationPage()}, new TextResultProducer());
+            case GooglePhotosExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new GooglePhotosConfigurationPage()}, new GooglePhotosAccountResultProducer());
+            case DropboxExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new DropboxConfigurationPage()}, new OAuthAccountResultProducer());
+            default -> throw new IllegalStateException("Unknown exporter: " + selectedTarget.getExporter().getExporterName());
+        };
+
+        final Map initialMap = new HashMap();
+        initialMap.put(TargetPrefs.DISPLAY_NAME_KEY, selectedTarget.getDisplayName());
+        initialMap.put(TargetPrefs.EXPORTER_KEY, selectedTarget.getExporter());
+        final Account account = selectedTarget.getAccount();
+        if (account != null) {
+            initialMap.put(TargetPrefs.ACCOUNT_KEY, account);
+        }
+        final ExportSettings settings = selectedTarget.getSettings();
+        if (settings != null) {
+            settings.copyToMap(initialMap);
+        }
+
+        // Remember that we are in edit mode, not creation mode
+        initialMap.put(TargetPrefs.TARGET_KEY, selectedTarget);
+
+        WizardDisplayer.showWizard(wizard, null, null, initialMap);
+
     }
 
     private void onDeleteTarget(int selectedIndex) {
@@ -217,9 +243,14 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         super.dispose();
     }
 
+
     /////////////////////////////
     // Wizard flow inner classes
+    /////////////////////////////
 
+
+    //////////////////////////
+    // WizardBranchController
 
     public static class TargetTypeBrancher extends WizardBranchController {
 
@@ -251,6 +282,10 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         }
     }
 
+
+    //////////////////////////
+    // WizardPage
+
     private static class ServiceSelectionPage extends WizardPage {
 
         public ServiceSelectionPage() {
@@ -262,7 +297,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             super.renderingPage();
 
             //noinspection rawtypes
-            JList exporterJList = UI.getWizardList(TargetPrefs.EXPORTER_KEY, Exporter.getList().toArray(), -1, true, true);
+            JList exporterJList = UI.createWizardList(TargetPrefs.EXPORTER_KEY, Exporter.getList().toArray(), getWizardDataMap(), -1, true, true);
 
             JPanel intermediatePanel = new JPanel();
             intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
@@ -432,13 +467,20 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
 
             if (exporter != null && account != null) {
+
+                String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
+                if (displayName == null) {
+                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";;
+                }
+
+                final JCheckBox shareAlbumCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);
                 JPanel fieldsPanel = UI.getFieldPanel(
-                        "Username:", UI.getWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, account.getName(), false, true),
-                        "Email:", UI.getWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, account.getEmail(), false, true),
-                        "Display as:", UI.getWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, exporter.getDefaultShareText() + " (" + account.getEmail() + ")", true, true),
-                        "Create one album:", UI.getWizardList(ExportSettings.ALBUM_GRANULARITY_KEY, GooglePhotosExporter.Granularity.values(), 0, true, true),
-                        "Share album:", UI.getWizardCheckBox(ExportSettings.MUST_SHARE_KEY, true, true, true),
-                        "Copy link to clipboard:", UI.getWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, true, true, true)
+                        "Username:", UI.createWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, getWizardDataMap(), account.getName(), false, true),
+                        "Email:", UI.createWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, getWizardDataMap(), account.getEmail(), false, true),
+                        "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
+                        "Create one album:", UI.createWizardList(ExportSettings.ALBUM_GRANULARITY_KEY, GooglePhotosExporter.Granularity.values(), getWizardDataMap(), 0, true, true),
+                        "Share album:", shareAlbumCheckbox,
+                        "Copy link to clipboard:", UI.createWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, getWizardDataMap(), true, shareAlbumCheckbox, true)
                 );
 
                 intermediatePanel.add(fieldsPanel);
@@ -461,12 +503,18 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
 
             if (exporter != null && account != null) {
+                String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
+                if (displayName == null) {
+                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";;
+                }
+
+                final JCheckBox shareCaptureCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);
                 JPanel fieldsPanel = UI.getFieldPanel(
-                        "Username:", UI.getWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, account.getName(), false, true),
-                        "Email:", UI.getWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, account.getEmail(), false, true),
-                        "Display as:", UI.getWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, exporter.getDefaultShareText() + " (" + account.getEmail() + ")", true, true),
-                        "Share capture:", UI.getWizardCheckBox(ExportSettings.MUST_SHARE_KEY, true, true, true),
-                        "Copy link to clipboard:", UI.getWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, true, true, true)
+                        "Username:", UI.createWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, getWizardDataMap(), account.getName(), false, true),
+                        "Email:", UI.createWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, getWizardDataMap(), account.getEmail(), false, true),
+                        "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
+                        "Share capture:", shareCaptureCheckbox,
+                        "Copy link to clipboard:", UI.createWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, getWizardDataMap(), true, shareCaptureCheckbox, true)
                 );
 
                 intermediatePanel.add(fieldsPanel);
@@ -482,15 +530,19 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         @Override
         protected void renderingPage() {
-            String defaultName = "";
-
-            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
-            if (exporter != null) {
-                defaultName = exporter.getDefaultShareText();
+            String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
+            if (displayName == null) {
+                final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
+                if (exporter != null) {
+                    displayName = exporter.getDefaultShareText();
+                }
+                else {
+                    displayName = "";
+                }
             }
 
             JPanel fieldsPanel = UI.getFieldPanel(
-                    "Display as:", UI.getWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, defaultName, true, true)
+                    "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true)
             );
 
 
@@ -510,12 +562,17 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         @Override
         protected void renderingPage() {
-            String defaultName = "";
-
-            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
-            if (exporter != null) {
-                defaultName = exporter.getDefaultShareText();
+            String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
+            if (displayName == null) {
+                final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
+                if (exporter != null) {
+                    displayName = exporter.getDefaultShareText();
+                }
+                else {
+                    displayName = "";
+                }
             }
+
             String defaultSaveDir = (String) getWizardData(ExportSettings.DEST_LOCATION_KEY);
             if (defaultSaveDir == null) {
                 // Return the Desktop for Windows, or home dir otherwise, like the FileChooser does.
@@ -523,12 +580,13 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             }
 
 
+            final JCheckBox alwaysAskCheckBox = UI.createWizardCheckBox(ExportSettings.MUST_ALWAYS_ASK_LOCATION_KEY, getWizardDataMap(), false, true, true);
             JPanel fieldsPanel = UI.getFieldPanel(
-                    "Display as:", UI.getWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, defaultName, true, true),
-                    "Save to:", UI.getWizardTextField(ExportSettings.DEST_LOCATION_KEY, defaultSaveDir, true, true),
-                    "Always ask:", UI.getWizardCheckBox(ExportSettings.MUST_ALWAYS_ASK_LOCATION_KEY, false, true, true),
-                    "Remember last dir:", UI.getWizardCheckBox(ExportSettings.MUST_REMEMBER_LAST_LOCATION_KEY, true, true, true),
-                    "Copy path to clipboard:", UI.getWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, true, true, true)
+                    "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
+                    "Save to:", UI.createWizardTextField(ExportSettings.DEST_LOCATION_KEY, getWizardDataMap(), defaultSaveDir, true, true),
+                    "Always ask save location:", alwaysAskCheckBox,
+                    "Remember last location:", UI.createWizardCheckBox(ExportSettings.MUST_REMEMBER_LAST_LOCATION_KEY, getWizardDataMap(), true, alwaysAskCheckBox, true),
+                    "Copy path to clipboard:", UI.createWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, getWizardDataMap(), true, true, true)
             );
 
 
@@ -539,6 +597,10 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             add(intermediatePanel);
         }
     }
+
+
+    //////////////////////////
+    // WizardResultProducers
 
     @SuppressWarnings("rawtypes")
     public static class TextResultProducer implements WizardPage.WizardResultProducer {
@@ -552,7 +614,11 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                 final Exporter exporter = (Exporter) map.get(TargetPrefs.EXPORTER_KEY);
                 if (exporter != null) {
                     // Persist
-                    Target target = new Target();
+                    Target target = (Target) map.get(TargetPrefs.TARGET_KEY); // Filled if we are in edit mode
+                    if (target == null) {
+                        // We are in creation mode
+                        target = new Target();
+                    }
                     target.setExporter(exporter);
                     target.setAccount((Account) map.get(TargetPrefs.ACCOUNT_KEY));
                     target.setDisplayName((String) map.get(TargetPrefs.DISPLAY_NAME_KEY));
@@ -578,7 +644,10 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                     }
 
                     final TargetPrefs targetPrefs = Ginj.getTargetPrefs();
-                    targetPrefs.getTargetList().add(target);
+                    if (map.get(TargetPrefs.TARGET_KEY) == null) {
+                        // We're in creation mode, add it (in Edit mode, it's already there, we just need to save it
+                        targetPrefs.getTargetList().add(target);
+                    }
                     targetPrefs.save();
                     starWindow.notifyTargetListChange();
 

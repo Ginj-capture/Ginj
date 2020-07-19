@@ -308,11 +308,6 @@ public class UI {
             }));
             titleBar.add(closeButtonLabel, BorderLayout.EAST);
         }
-//        else {
-//            JLabel titleLabel = new JLabel(title);
-//            titleLabel.setName("TitleBarLabel"); // to be addressed in synth.xml
-//            titleBar.add(titleLabel);
-//        }
         return titleBar;
     }
 

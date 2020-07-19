@@ -446,17 +446,17 @@ public class StarWindow extends JWindow {
 
     private Rectangle getDisplayBounds(int displayNumber) {
         GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        int currentDisplay = 0;
-        for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
-            GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
+        final GraphicsDevice[] screenDevices = graphicsEnvironment.getScreenDevices();
+        for (int currentDisplay = 0; currentDisplay < screenDevices.length; currentDisplay++) {
+            GraphicsConfiguration screenConfiguration = screenDevices[currentDisplay].getDefaultConfiguration();
             if (currentDisplay == displayNumber) {
                 final Rectangle screenBounds = screenConfiguration.getBounds();
                 // remove the "borders" (taskbars, menus):
                 final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
                 return new Rectangle(screenBounds.x + screenInsets.left, screenBounds.y + screenInsets.top, screenBounds.width - screenInsets.left - screenInsets.right, screenBounds.height - screenInsets.top - screenInsets.bottom);
             }
-            currentDisplay++;
         }
+        // No match was found
         if (displayNumber == 0) {
             UI.alertError(this, "Display error", "Cannot find bounds of main display!\nDefaulting to Toolkit diaplay.\nPlease report this message as an issue on Github.\nThanks");
             return new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
@@ -477,10 +477,10 @@ public class StarWindow extends JWindow {
         int bestDistance = Integer.MAX_VALUE;
 
         // Iterate on displays
-        int displayNumber = 0;
         GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
-            GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
+        final GraphicsDevice[] screenDevices = graphicsEnvironment.getScreenDevices();
+        for (int displayNumber = 0; displayNumber < screenDevices.length; displayNumber++) {
+            GraphicsConfiguration screenConfiguration = screenDevices[displayNumber].getDefaultConfiguration();
             Rectangle screenBounds = screenConfiguration.getBounds();
             // remove the "borders" (taskbars, menus):
             final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
@@ -517,7 +517,6 @@ public class StarWindow extends JWindow {
                 bestBorder = Border.RIGHT;
                 bestDistance = distance;
             }
-            displayNumber++;
         }
 
         int targetX, targetY, distanceFromCorner;

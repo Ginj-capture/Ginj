@@ -350,8 +350,11 @@ public class HistoryFrame extends JFrame {
 
             addMouseListener(new MouseAdapter() {
                 @Override
-                public void mouseReleased(MouseEvent e) {
+                public void mouseClicked(MouseEvent e) {
                     historyFrame.setSelectedItem(HistoryItemWidget.this);
+                    if (e.getClickCount() == 2) {
+                        onEdit(HistoryItemWidget.this.capture);
+                    }
                 }
             });
         }

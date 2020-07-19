@@ -2,6 +2,7 @@ package info.ginj.util;
 
 import info.ginj.Ginj;
 import info.ginj.ui.layout.SpringLayoutUtilities;
+import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -15,7 +16,6 @@ import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
@@ -301,11 +301,11 @@ public class UI {
             JLabel closeButtonLabel = new JLabel(createIcon(UI.class.getResource("/img/icon/close_button.png"), 18));
             closeButtonLabel.setName("TitleBarLabel"); // transparent bg, to be addressed in synth.xml
             closeButtonLabel.setBorder(new EmptyBorder(3, 0, 3, 6));
-            closeButtonLabel.addMouseListener(new MouseAdapter() {
+            closeButtonLabel.addMouseListener(new DragInsensitiveMouseClickListener(new MouseInputAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     closeListener.actionPerformed(new ActionEvent(closeButtonLabel, ActionEvent.ACTION_PERFORMED, ""));
                 }
-            });
+            }));
             titleBar.add(closeButtonLabel, BorderLayout.EAST);
         }
 //        else {

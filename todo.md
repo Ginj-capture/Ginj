@@ -29,13 +29,15 @@
  - ~~Persist StarWindow position~~
  - ~~Position ExportFrame and ExportCompletionFrame next to Star Window~~
  - Implement target editing
+ - In export completion window, replace plain text with html for the shared link to be clickable
+ - Improve about dialog (logo, clickable link to site, credits)
  - Implement video using ffmpeg & Jaffree
  - Implement generic preference editor
  - Typing in a Text Overlay should make the overlay grow wider
  - Add Google Drive exporter
  - Add Youtube exporter
  - Add FTP exporter :-)
- - Implement tray icon
+ - Implement tray icon and menu
  - Implement global shortcut
  - Implement load on startup
  - Implement windows detection (using JNA?)

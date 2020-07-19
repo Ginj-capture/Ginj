@@ -183,7 +183,7 @@
             <property key="CheckBox.icon" type="idref" value="Checkbox_Pressed"/>
         </state>
         <state value="DISABLED and SELECTED">
-            <imageIcon id="Checkbox_Disabled_Selected" path="/img/laf/checkbox_disabled_selected.png"/>
+            <imageIcon id="Checkbox_Disabled_Selected" path="/img/laf/checkbox_disabled.png"/>
             <property key="CheckBox.icon" type="idref" value="Checkbox_Disabled_Selected"/>
         </state>
     </style>

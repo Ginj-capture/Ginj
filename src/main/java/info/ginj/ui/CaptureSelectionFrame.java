@@ -80,8 +80,6 @@ public class CaptureSelectionFrame extends JFrame {
     public CaptureSelectionFrame(StarWindow starWindow) {
         super();
         this.starWindow = starWindow;
-// Simulate a half screen to be able to debug in parallel of "full screen" capture window on top
-//screenSize.setSize(screenSize.width/2, screenSize.height);
 
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
@@ -163,6 +161,12 @@ public class CaptureSelectionFrame extends JFrame {
                     Rectangle2D.union(areaToCapture, screenConfiguration.getBounds(), areaToCapture);
                 }
                 capturedArea = areaToCapture.getBounds();
+
+// Simulate small screen to be able to debug in parallel of "full screen" capture window on top
+//capturedArea = new Rectangle(0,0,800,600);
+//visibleAreas.clear();
+//visibleAreas.add(capturedArea);
+
                 capturedScreenImg = robot.createScreenCapture(capturedArea);
             }
             catch (AWTException e) {

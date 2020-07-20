@@ -17,7 +17,6 @@
 -->
 <synth>
     <object id="EaSynthGraphicsUtils" class="com.easynth.designer.laf.utils.EaSynthGraphicsUtils"/>
-    <object id="EaSynthPainter" class="com.easynth.designer.laf.painter.EaSynthPainter"/>
     <object id="GinjSynthPainter" class="info.ginj.ui.laf.GinjSynthPainter"/>
 
     <object id="Window_Background_Color" class="java.awt.Color"><int>37</int><int>38</int><int>40</int><int>255</int></object>
@@ -581,63 +580,111 @@
     <bind style="ProgressBarStyle" type="region" key="ProgressBar" />
 
 
+    <!-- The style for arrow buttons. -->
+    <!-- Used in scroll bar component (and combo boxes ?) -->
+    <style id="GinjArrow Button">
+        <property key="GinjArrowButton.size" type="integer" value="14"/>
+        <painter idref="GinjSynthPainter" method="arrowButtonForeground" direction="north"/>
+        <painter idref="GinjSynthPainter" method="arrowButtonForeground" direction="west"/>
+        <painter idref="GinjSynthPainter" method="arrowButtonForeground" direction="south"/>
+        <painter idref="GinjSynthPainter" method="arrowButtonForeground" direction="east"/>
+        <state value="ENABLED">
+            <imageIcon id="GinjArrow_Up_Enabled" path="/img/laf/arrow_up_normal.png"/>
+            <property key="EaSynth.arrow.up.enabled" type="idref" value="GinjArrow_Up_Enabled"/>
+            <imageIcon id="GinjArrow_Left_Enabled" path="/img/laf/arrow_left_normal.png"/>
+            <property key="EaSynth.arrow.left.enabled" type="idref" value="GinjArrow_Left_Enabled"/>
+            <imageIcon id="GinjArrow_Down_Enabled" path="/img/laf/arrow_down_normal.png"/>
+            <property key="EaSynth.arrow.down.enabled" type="idref" value="GinjArrow_Down_Enabled"/>
+            <imageIcon id="GinjArrow_Right_Enabled" path="/img/laf/arrow_right_normal.png"/>
+            <property key="EaSynth.arrow.right.enabled" type="idref" value="GinjArrow_Right_Enabled"/>
+        </state>
+        <state value="MOUSE_OVER">
+            <imageIcon id="GinjArrow_Up_MouseOver" path="/img/laf/arrow_up_over.png"/>
+            <property key="EaSynth.arrow.up.mouseover" type="idref" value="GinjArrow_Up_MouseOver"/>
+            <imageIcon id="GinjArrow_Left_MouseOver" path="/img/laf/arrow_left_over.png"/>
+            <property key="EaSynth.arrow.left.mouseover" type="idref" value="GinjArrow_Left_MouseOver"/>
+            <imageIcon id="GinjArrow_Down_MouseOver" path="/img/laf/arrow_down_over.png"/>
+            <property key="EaSynth.arrow.down.mouseover" type="idref" value="GinjArrow_Down_MouseOver"/>
+            <imageIcon id="GinjArrow_Right_MouseOver" path="/img/laf/arrow_right_over.png"/>
+            <property key="EaSynth.arrow.right.mouseover" type="idref" value="GinjArrow_Right_MouseOver"/>
+        </state>
+        <state value="PRESSED">
+            <!-- reusing the same images -->
+            <property key="EaSynth.arrow.up.pressed" type="idref" value="GinjArrow_Up_MouseOver"/>
+            <property key="EaSynth.arrow.left.pressed" type="idref" value="GinjArrow_Left_MouseOver"/>
+            <property key="EaSynth.arrow.down.pressed" type="idref" value="GinjArrow_Down_MouseOver"/>
+            <property key="EaSynth.arrow.right.pressed" type="idref" value="GinjArrow_Right_MouseOver"/>
+        </state>
+    </style>
+    <bind style="GinjArrow Button" type="region" key="ArrowButton" />
+
     <!-- The style for scroll bar component. -->
-    <style id="Scroll Bar">
-        <property key="ScrollBar.minimumThumbSize" type="dimension" value="18 18"/>
+    <style id="ScrollBarStyle">
+        <property key="ScrollBar.minimumThumbSize" type="dimension" value="15 15"/>
+
         <object id="ScrollBar_Bg_Color" class="java.awt.Color">
             <int>241</int><int>233</int><int>217</int><int>255</int>
         </object>
         <defaultsProperty key="EaSynth.scrollbar.bgcolor" type="idref" value="ScrollBar_Bg_Color"/>
+
         <object id="ScrollBar_Border_Color" class="java.awt.Color">
-            <int>190</int><int>180</int><int>160</int><int>255</int>
+            <int>32</int><int>32</int><int>32</int><int>255</int>
         </object>
         <defaultsProperty key="EaSynth.scrollbar.bordercolor" type="idref" value="ScrollBar_Border_Color"/>
+
         <painter idref="GinjSynthPainter" method="scrollBarBackground"/>
         <painter idref="GinjSynthPainter" method="scrollBarBorder"/>
-        <property key="ScrollBar.thumbHeight" type="integer" value="18"/>
+        <property key="ScrollBar.thumbHeight" type="integer" value="15"/>
     </style>
-    <bind style="Scroll Bar" type="region" key="ScrollBar" />
+    <bind style="ScrollBarStyle" type="region" key="ScrollBar" />
 
     <!-- The style for the track of scroll bar. -->
-    <style id="Scroll Bar Track">
+    <style id="ScrollBarTrackStyle">
         <object id="ScrollBar_Track_SideColor" class="java.awt.Color">
-            <int>237</int><int>221</int><int>204</int><int>255</int>
+            <int>48</int>
+            <int>48</int>
+            <int>48</int>
+            <int>255</int>
         </object>
         <defaultsProperty key="EaSynth.scrollbar.track.sidecolor" type="idref" value="ScrollBar_Track_SideColor"/>
+
         <object id="ScrollBar_Track_CenterColor" class="java.awt.Color">
-            <int>225</int><int>209</int><int>192</int><int>255</int>
+            <int>48</int>
+            <int>48</int>
+            <int>48</int>
+            <int>255</int>
         </object>
         <defaultsProperty key="EaSynth.scrollbar.track.centercolor" type="idref" value="ScrollBar_Track_CenterColor"/>
+
         <object id="ScrollBar_Track_BorderColor" class="java.awt.Color">
-            <int>255</int><int>255</int><int>228</int><int>255</int>
+            <int>32</int>
+            <int>32</int>
+            <int>32</int>
+            <int>255</int>
         </object>
         <defaultsProperty key="EaSynth.scrollbar.track.bordercolor" type="idref" value="ScrollBar_Track_BorderColor"/>
+
         <painter idref="GinjSynthPainter" method="scrollBarTrackBackground"/>
         <painter idref="GinjSynthPainter" method="scrollBarTrackBorder"/>
     </style>
-    <bind style="Scroll Bar Track" type="region" key="ScrollBarTrack" />
+    <bind style="ScrollBarTrackStyle" type="region" key="ScrollBarTrack" />
 
-    <!-- The style for the thumb of the scroll bar. -->
-    <style id="Scroll Bar Thumb">
-        <object id="ScrollBar_Thumb_SideColor" class="java.awt.Color">
-            <int>200</int><int>170</int><int>140</int><int>255</int>
+    <!-- Had to use a custom 9-tile painter to take care of image rotation accorgding to vertical/horizontal scrollbar -->
+    <style id="ScrollBarThumbStyle">
+        <object id="GinjScrollBar_Thumb_Bg_Insets" class="java.awt.Insets">
+            <int>2</int><int>2</int><int>2</int><int>2</int>
         </object>
-        <defaultsProperty key="EaSynth.scrollbar.thumb.sidecolor" type="idref" value="ScrollBar_Thumb_SideColor"/>
-        <object id="ScrollBar_Thumb_CenterColor" class="java.awt.Color">
-            <int>255</int><int>245</int><int>220</int><int>255</int>
-        </object>
-        <defaultsProperty key="EaSynth.scrollbar.thumb.centercolor" type="idref" value="ScrollBar_Thumb_CenterColor"/>
-        <object id="ScrollBar_Thumb_BorderColor" class="java.awt.Color">
-            <int>180</int><int>160</int><int>130</int><int>255</int>
-        </object>
-        <defaultsProperty key="EaSynth.scrollbar.thumb.borderthick" type="integer" value="5"/>
-        <defaultsProperty key="EaSynth.scrollbar.thumb.bordercolor" type="idref" value="ScrollBar_Thumb_BorderColor"/>
-        <imageIcon id="ScrollBar_Thumb_Image" path="/img/scroll_bar_thumb.png"/>
-        <property key="EaSynth.scrollbar.thumb.image" type="idref" value="ScrollBar_Thumb_Image"/>
+        <property key="Ginj.scrollbar.thumb.bg.insets" type="idref" value="GinjScrollBar_Thumb_Bg_Insets"/>
+
+        <!-- Define the image for vertical scrollbar. Will be rotated 90° for horizontal scrollbars -->
+        <imageIcon id="GinjScrollBar_Thumb_Background" path="/img/laf/scrollbar_thumb_vertical_bg.png"/>
+        <property key="Ginj.scrollbar.thumb.horizontal.background" type="idref" value="GinjScrollBar_Thumb_Background"/>
+
         <painter idref="GinjSynthPainter" method="scrollBarThumbBackground"/>
-        <painter idref="GinjSynthPainter" method="scrollBarThumbBorder"/>
     </style>
-    <bind style="Scroll Bar Thumb" type="region" key="ScrollBarThumb" />
+    <bind style="ScrollBarThumbStyle" type="region" key="ScrollBarThumb" />
+
+
 
     <!-- The style for scroll pane component. -->
     <style id="Scroll Pane">
@@ -1249,126 +1296,6 @@
     <!--    </style>-->
     <!--    <bind style="titleStyle" type="name" key=".*TitleBar"/>-->
 
-
-
-    <!-- The style for arrow buttons. -->
-    <style id="GinjArrow Button">
-        <property key="GinjArrowButton.size" type="integer" value="14"/>
-        <painter idref="GinjSynthPainter" method="arrowButtonForeground" direction="north"/>
-        <painter idref="GinjSynthPainter" method="arrowButtonForeground" direction="west"/>
-        <painter idref="GinjSynthPainter" method="arrowButtonForeground" direction="south"/>
-        <painter idref="GinjSynthPainter" method="arrowButtonForeground" direction="east"/>
-        <state value="ENABLED">
-            <imageIcon id="GinjArrow_Up_Enabled" path="/img/laf/arrow_up_normal.png"/>
-            <property key="EaSynth.arrow.up.enabled" type="idref" value="GinjArrow_Up_Enabled"/>
-            <imageIcon id="GinjArrow_Left_Enabled" path="/img/laf/arrow_left_normal.png"/>
-            <property key="EaSynth.arrow.left.enabled" type="idref" value="GinjArrow_Left_Enabled"/>
-            <imageIcon id="GinjArrow_Down_Enabled" path="/img/laf/arrow_down_normal.png"/>
-            <property key="EaSynth.arrow.down.enabled" type="idref" value="GinjArrow_Down_Enabled"/>
-            <imageIcon id="GinjArrow_Right_Enabled" path="/img/laf/arrow_right_normal.png"/>
-            <property key="EaSynth.arrow.right.enabled" type="idref" value="GinjArrow_Right_Enabled"/>
-        </state>
-        <state value="MOUSE_OVER">
-            <imageIcon id="GinjArrow_Up_MouseOver" path="/img/laf/arrow_up_over.png"/>
-            <property key="EaSynth.arrow.up.mouseover" type="idref" value="GinjArrow_Up_MouseOver"/>
-            <imageIcon id="GinjArrow_Left_MouseOver" path="/img/laf/arrow_left_over.png"/>
-            <property key="EaSynth.arrow.left.mouseover" type="idref" value="GinjArrow_Left_MouseOver"/>
-            <imageIcon id="GinjArrow_Down_MouseOver" path="/img/laf/arrow_down_over.png"/>
-            <property key="EaSynth.arrow.down.mouseover" type="idref" value="GinjArrow_Down_MouseOver"/>
-            <imageIcon id="GinjArrow_Right_MouseOver" path="/img/laf/arrow_right_over.png"/>
-            <property key="EaSynth.arrow.right.mouseover" type="idref" value="GinjArrow_Right_MouseOver"/>
-        </state>
-        <state value="PRESSED">
-            <!-- reusing the same images -->
-            <property key="EaSynth.arrow.up.pressed" type="idref" value="GinjArrow_Up_MouseOver"/>
-            <property key="EaSynth.arrow.left.pressed" type="idref" value="GinjArrow_Left_MouseOver"/>
-            <property key="EaSynth.arrow.down.pressed" type="idref" value="GinjArrow_Down_MouseOver"/>
-            <property key="EaSynth.arrow.right.pressed" type="idref" value="GinjArrow_Right_MouseOver"/>
-        </state>
-    </style>
-    <bind style="GinjArrow Button" type="region" key="XArrowButton" />
-
-    <!--    &lt;!&ndash; The style for scroll bar component. &ndash;&gt;-->
-    <!--    <style id="GinjScroll Bar">-->
-    <!--        <property key="ScrollBar.minimumThumbSize" type="dimension" value="18 18"/>-->
-    <!--        <object id="GinjScrollBar_Bg_Color" class="java.awt.Color">-->
-    <!--            <int>241</int>-->
-    <!--            <int>233</int>-->
-    <!--            <int>217</int>-->
-    <!--            <int>255</int>-->
-    <!--        </object>-->
-    <!--        <defaultsProperty key="EaSynth.scrollbar.bgcolor" type="idref" value="GinjScrollBar_Bg_Color"/>-->
-    <!--        <object id="GinjScrollBar_Border_Color" class="java.awt.Color">-->
-    <!--            <int>190</int>-->
-    <!--            <int>180</int>-->
-    <!--            <int>160</int>-->
-    <!--            <int>255</int>-->
-    <!--        </object>-->
-    <!--        <defaultsProperty key="EaSynth.scrollbar.bordercolor" type="idref" value="GinjScrollBar_Border_Color"/>-->
-    <!--        <painter idref="GinjSynthPainter" method="scrollBarBackground"/>-->
-    <!--        <painter idref="GinjSynthPainter" method="scrollBarBorder"/>-->
-    <!--        <property key="ScrollBar.thumbHeight" type="integer" value="18"/>-->
-    <!--    </style>-->
-    <!--    <bind style="GinjScroll Bar" type="region" key="XScrollBar" />-->
-
-    <!--    &lt;!&ndash; The style for the track of scroll bar. &ndash;&gt;-->
-    <!--    <style id="GinjScroll Bar Track">-->
-    <!--        <object id="GinjScrollBar_Track_SideColor" class="java.awt.Color">-->
-    <!--            <int>48</int>-->
-    <!--            <int>48</int>-->
-    <!--            <int>48</int>-->
-    <!--            <int>255</int>-->
-    <!--        </object>-->
-    <!--        <defaultsProperty key="EaSynth.scrollbar.track.sidecolor" type="idref" value="GinjScrollBar_Track_SideColor"/>-->
-    <!--        <object id="GinjScrollBar_Track_CenterColor" class="java.awt.Color">-->
-    <!--            <int>48</int>-->
-    <!--            <int>48</int>-->
-    <!--            <int>48</int>-->
-    <!--            <int>255</int>-->
-    <!--        </object>-->
-    <!--        <defaultsProperty key="EaSynth.scrollbar.track.centercolor" type="idref" value="GinjScrollBar_Track_CenterColor"/>-->
-    <!--        <object id="GinjScrollBar_Track_BorderColor" class="java.awt.Color">-->
-    <!--            <int>32</int>-->
-    <!--            <int>32</int>-->
-    <!--            <int>32</int>-->
-    <!--            <int>255</int>-->
-    <!--        </object>-->
-    <!--        <defaultsProperty key="EaSynth.scrollbar.track.bordercolor" type="idref" value="GinjScrollBar_Track_BorderColor"/>-->
-    <!--        <painter idref="GinjSynthPainter" method="scrollBarTrackBackground"/>-->
-    <!--        <painter idref="GinjSynthPainter" method="scrollBarTrackBorder"/>-->
-    <!--    </style>-->
-    <!--    <bind style="GinjScroll Bar Track" type="region" key="XScrollBarTrack" />-->
-
-    <!--    &lt;!&ndash; The style for the thumb of the scroll bar. &ndash;&gt;-->
-    <!--    <style id="GinjScroll Bar Thumb">-->
-    <!--        <object id="GinjScrollBar_Thumb_SideColor" class="java.awt.Color">-->
-    <!--            <int>147</int>-->
-    <!--            <int>107</int>-->
-    <!--            <int>2</int>-->
-    <!--            <int>255</int>-->
-    <!--        </object>-->
-    <!--        <defaultsProperty key="EaSynth.scrollbar.thumb.sidecolor" type="idref" value="GinjScrollBar_Thumb_SideColor"/>-->
-    <!--        <object id="GinjScrollBar_Thumb_CenterColor" class="java.awt.Color">-->
-    <!--            <int>251</int>-->
-    <!--            <int>225</int>-->
-    <!--            <int>155</int>-->
-    <!--            <int>255</int>-->
-    <!--        </object>-->
-    <!--        <defaultsProperty key="EaSynth.scrollbar.thumb.centercolor" type="idref" value="GinjScrollBar_Thumb_CenterColor"/>-->
-    <!--        <object id="GinjScrollBar_Thumb_BorderColor" class="java.awt.Color">-->
-    <!--            <int>19</int>-->
-    <!--            <int>20</int>-->
-    <!--            <int>20</int>-->
-    <!--            <int>255</int>-->
-    <!--        </object>-->
-    <!--        <defaultsProperty key="EaSynth.scrollbar.thumb.borderthick" type="integer" value="1"/>-->
-    <!--        <defaultsProperty key="EaSynth.scrollbar.thumb.bordercolor" type="idref" value="GinjScrollBar_Thumb_BorderColor"/>-->
-    <!--        <imageIcon id="GinjScrollBar_Thumb_Image" path="/img/laf/scrollbar_thumb.png"/>-->
-    <!--        <property key="EaSynth.scrollbar.thumb.image" type="idref" value="GinjScrollBar_Thumb_Image"/>-->
-    <!--        <painter idref="GinjSynthPainter" method="scrollBarThumbBackground"/>-->
-    <!--        <painter idref="GinjSynthPainter" method="scrollBarThumbBorder"/>-->
-    <!--    </style>-->
-    <!--    <bind style="GinjScroll Bar Thumb" type="region" key="XScrollBarThumb" />-->
 
     <!-- The style for tool tip. -->
     <style id="ToolTipStyle">

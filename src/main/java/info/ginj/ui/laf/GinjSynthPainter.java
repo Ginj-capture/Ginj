@@ -1,17 +1,49 @@
 package info.ginj.ui.laf;
 
 import com.easynth.designer.laf.painter.EaSynthPainter;
+import sun.awt.AppContext;
+import sun.swing.plaf.synth.Paint9Painter;
 
 import javax.swing.*;
 import javax.swing.plaf.synth.SynthConstants;
 import javax.swing.plaf.synth.SynthContext;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.lang.ref.WeakReference;
 
 /**
  * Generally speaking, this is a pass through for EaSynthPainter.
  * Some methods can be overridden here though.
  */
 public class GinjSynthPainter extends EaSynthPainter {
+
+    // Copied from private javax.swing.plaf.synth.ImagePainter
+    private static final StringBuffer CACHE_KEY = new StringBuffer("GinjCacheKey");
+    private final Paint9Painter imageCache;
+    private static Paint9Painter getPaint9Painter() {
+        // A SynthPainter is created per <imagePainter>.  We want the
+        // cache to be shared by all, and we don't use a static because we
+        // don't want it to persist between look and feels.  For that reason
+        // we use a AppContext specific Paint9Painter.  It's backed via
+        // a WeakRef so that it can go away if the look and feel changes.
+        synchronized(CACHE_KEY) {
+            @SuppressWarnings("unchecked")
+            WeakReference<Paint9Painter> cacheRef =
+                    (WeakReference<Paint9Painter>) AppContext.getAppContext().
+                            get(CACHE_KEY);
+            Paint9Painter painter;
+            if (cacheRef == null || (painter = cacheRef.get()) == null) {
+                painter = new Paint9Painter(5);
+                cacheRef = new WeakReference<>(painter);
+                AppContext.getAppContext().put(CACHE_KEY, cacheRef);
+            }
+            return painter;
+        }
+    }
+
+    public GinjSynthPainter() {
+        this.imageCache = getPaint9Painter();
+    }
 
     /**
      * Paint the progress bar foreground, that consist of progress bar filling exactly the background (except insets) and the indication image.
@@ -47,7 +79,6 @@ public class GinjSynthPainter extends EaSynthPainter {
         int rectX;
         int rectY;
         int rectHeight;
-        int rectWidth;
         Insets bgInsets = (Insets)context.getStyle().get(context, "EaSynth.progressbar.bg.insets");
         if (bgInsets == null) {
             bgInsets = new Insets(0, 0, 0, 0);
@@ -56,7 +87,6 @@ public class GinjSynthPainter extends EaSynthPainter {
         rectX = bgInsets.left;
         rectY = bgInsets.top;
         rectHeight = size.height - bgInsets.top - bgInsets.bottom;
-        rectWidth = ((size.width - bgInsets.left - bgInsets.right) * w) / size.width;
 
         Color lineColor = uiDefaults.getColor("EaSynth.progressbar.line.color");
         if (lineColor == null) {
@@ -74,7 +104,6 @@ public class GinjSynthPainter extends EaSynthPainter {
                     g2.setColor(lineColor);
                     // draw the progress rectangle
                     g2.fillRect(rectX + imgWidth / 2, rectY, w, rectHeight);
-                    //g2.drawLine(x + imgWidth / 2, (y + h) / 2, x + w - imgWidth / 2, (y + h) / 2);
                 }
 
                 if (!isDisabled) {
@@ -115,5 +144,73 @@ public class GinjSynthPainter extends EaSynthPainter {
         }
     }
 
+    /**
+     * Paint the thumb background for scroll bar.
+     *
+     * @param context
+     * 		the SynthContext object for painting
+     * @param g
+     * 		the Graphics object to paint
+     * @param x
+     * 		the x position of the rectangle to paint
+     * @param y
+     * 		the y position of the rectangle to paint
+     * @param w
+     * 		the width of the rectangle to paint
+     * @param h
+     * 		the height of the rectangle to paint
+     * @param orientation
+     * 		the orientation of the scroll bar
+     */
+    public void paintScrollBarThumbBackground(final SynthContext context, final Graphics g,
+                                              final int x, final int y, final int w, final int h, final int orientation) {
+        final JScrollBar scrollBar = (JScrollBar)context.getComponent();
+        final boolean isVertical = scrollBar.getOrientation() == JScrollBar.VERTICAL;
+
+        final ImageIcon bgIcon = (ImageIcon) context.getStyle().getIcon(context, "Ginj.scrollbar.thumb.horizontal.background");
+        final Insets insets = (Insets) context.getStyle().get(context, "Ginj.scrollbar.thumb.bg.insets");
+
+        if (bgIcon != null) {
+            if (isVertical) {
+                imageCache.paint(context.getComponent(), g, x, y, w, h, bgIcon.getImage(), insets, insets, Paint9Painter.PaintType.PAINT9_STRETCH, Paint9Painter.PAINT_ALL);
+            }
+            else {
+                imageCache.paint(context.getComponent(), g, x, y, w, h, rotate90(toBufferedImage(bgIcon.getImage())), insets, insets, Paint9Painter.PaintType.PAINT9_STRETCH, Paint9Painter.PAINT_ALL);
+            }
+        }
+    }
+
+
+    /////////////////
+    // Utils
+
+    public BufferedImage rotate90(BufferedImage image) {
+        BufferedImage rotated = new BufferedImage(image.getHeight(), image.getWidth(), BufferedImage.TYPE_INT_RGB);
+        for (int x = 0; x < image.getWidth(); x++) {
+            for (int y = 0; y < image.getHeight(); y++) {
+                //noinspection SuspiciousNameCombination
+                rotated.setRGB(image.getHeight() - y - 1, x, image.getRGB(x, y));
+            }
+        }
+        return rotated;
+    }
+
+    // From https://stackoverflow.com/a/13605411/13551878
+    private static BufferedImage toBufferedImage(Image img) {
+        if (img instanceof BufferedImage) {
+            return (BufferedImage) img;
+        }
+
+        // Create a buffered image with transparency
+        BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+        // Draw the image on to the buffered image
+        Graphics2D bGr = bimage.createGraphics();
+        bGr.drawImage(img, 0, 0, null);
+        bGr.dispose();
+
+        // Return the buffered image
+        return bimage;
+    }
 
 }

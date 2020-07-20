@@ -52,7 +52,7 @@
  - ~~Paint title bar~~
  - ~~Radion buttons look and feel (used in Color chooser)~~
  - ~~Cursor look and feel (used in Color chooser)~~
- - Fix scrollbar look and feel corner + thumb icon + colors + gap
+ - ~~Fix scrollbar look and feel corner + thumb icon + colors + gap~~
  - Finalize look and feel of (File chooser (save as), Tables)
  - Add splash screen animation
  - Switch from "close" to "fade out effect" in export completion window

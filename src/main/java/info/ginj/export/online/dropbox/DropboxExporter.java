@@ -455,7 +455,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             }
         }
         catch (IOException | CommunicationException e) {
-            throw new CommunicationException("Error creatiing shared link", e);
+            throw new CommunicationException("Error creating shared link", e);
         }
     }
 

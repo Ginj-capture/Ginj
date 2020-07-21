@@ -1,8 +1,6 @@
 package info.ginj.ui.laf;
 
 import com.easynth.designer.laf.painter.EaSynthPainter;
-import sun.awt.AppContext;
-import sun.swing.plaf.synth.Paint9Painter;
 
 import javax.swing.*;
 import javax.swing.plaf.synth.SynthConstants;
@@ -10,6 +8,8 @@ import javax.swing.plaf.synth.SynthContext;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Generally speaking, this is a pass through for EaSynthPainter.
@@ -17,9 +17,10 @@ import java.lang.ref.WeakReference;
  */
 public class GinjSynthPainter extends EaSynthPainter {
 
-    // Copied from private javax.swing.plaf.synth.ImagePainter
+    // Copied and adapted from private javax.swing.plaf.synth.ImagePainter
     private static final StringBuffer CACHE_KEY = new StringBuffer("GinjCacheKey");
     private final Paint9Painter imageCache;
+    private static final Map<StringBuffer,WeakReference<Paint9Painter>> myAppContextMap = new HashMap<>();
     private static Paint9Painter getPaint9Painter() {
         // A SynthPainter is created per <imagePainter>.  We want the
         // cache to be shared by all, and we don't use a static because we
@@ -29,13 +30,13 @@ public class GinjSynthPainter extends EaSynthPainter {
         synchronized(CACHE_KEY) {
             @SuppressWarnings("unchecked")
             WeakReference<Paint9Painter> cacheRef =
-                    (WeakReference<Paint9Painter>) AppContext.getAppContext().
+                    (WeakReference<Paint9Painter>) myAppContextMap.
                             get(CACHE_KEY);
             Paint9Painter painter;
             if (cacheRef == null || (painter = cacheRef.get()) == null) {
                 painter = new Paint9Painter(5);
                 cacheRef = new WeakReference<>(painter);
-                AppContext.getAppContext().put(CACHE_KEY, cacheRef);
+                myAppContextMap.put(CACHE_KEY, cacheRef);
             }
             return painter;
         }

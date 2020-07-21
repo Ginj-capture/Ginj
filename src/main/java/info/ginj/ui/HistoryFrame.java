@@ -4,6 +4,8 @@ import info.ginj.Ginj;
 import info.ginj.model.Capture;
 import info.ginj.ui.component.GinjBorderedLabel;
 import info.ginj.ui.component.GinjLabel;
+import info.ginj.ui.component.HistoryButtonPanel;
+import info.ginj.ui.component.HistoryToggleButton;
 import info.ginj.ui.layout.WrapLayout;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
@@ -69,32 +71,57 @@ public class HistoryFrame extends JFrame {
         contentPane.add(titleBar, c);
 
         // Prepare filter bar
-        JPanel filterBar = new JPanel();
-        filterBar.setOpaque(true);
-        filterBar.setLayout(new GridLayout(1,5));
-        final JButton sortByNameButton = new JButton("Name");
-        sortByNameButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
-        filterBar.add(sortByNameButton);
-        final JButton sortByDateButton = new JButton("Date");
+        HistoryButtonPanel buttonBar = new HistoryButtonPanel();
+        buttonBar.setLayout(new BoxLayout(buttonBar, BoxLayout.LINE_AXIS));
+        // Force panel height
+        buttonBar.add(Box.createRigidArea(new Dimension(0, 27)));
+
+        ButtonGroup sortGroup = new ButtonGroup();
+
+        buttonBar.add(Box.createHorizontalStrut(18));
+        final HistoryToggleButton sortByDateButton = new HistoryToggleButton("Date");
         sortByDateButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
-        filterBar.add(sortByDateButton);
-        final JButton sortBySizeButton = new JButton("Size");
+        sortByDateButton.setSelected(true);
+        sortGroup.add(sortByDateButton);
+        buttonBar.add(sortByDateButton);
+        buttonBar.add(Box.createHorizontalStrut(8));
+        final HistoryToggleButton sortBySizeButton = new HistoryToggleButton("Size");
         sortBySizeButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
-        filterBar.add(sortBySizeButton);
-        final JButton showImageButton = new JButton("Image");
+        sortGroup.add(sortBySizeButton);
+        buttonBar.add(sortBySizeButton);
+        buttonBar.add(Box.createHorizontalStrut(8));
+        final HistoryToggleButton sortByNameButton = new HistoryToggleButton("Name");
+        sortByNameButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
+        sortGroup.add(sortByNameButton);
+        buttonBar.add(sortByNameButton);
+
+        buttonBar.add(Box.createHorizontalGlue());
+
+        ButtonGroup filterGroup = new ButtonGroup();
+
+        final HistoryToggleButton showImageButton = new HistoryToggleButton("Images");
         showImageButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
-        filterBar.add(showImageButton);
-        final JButton showVideoButton = new JButton("Video");
+        filterGroup.add(showImageButton);
+        buttonBar.add(showImageButton);
+        buttonBar.add(Box.createHorizontalStrut(8));
+        final HistoryToggleButton showVideoButton = new HistoryToggleButton("Videos");
         showVideoButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
-        filterBar.add(showVideoButton);
-        final JButton showBothButton = new JButton("Both");
+        filterGroup.add(showVideoButton);
+        buttonBar.add(showVideoButton);
+        buttonBar.add(Box.createHorizontalStrut(8));
+        final HistoryToggleButton showBothButton = new HistoryToggleButton("Both");
         showBothButton.addActionListener(e -> UI.featureNotImplementedDialog(HistoryFrame.this));
-        filterBar.add(showBothButton);
+        showBothButton.setSelected(true);
+        filterGroup.add(showBothButton);
+        buttonBar.add(showBothButton);
+
+        buttonBar.add(Box.createHorizontalStrut(18));
 
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 1;
-        contentPane.add(filterBar, c);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        contentPane.add(buttonBar, c);
 
         JComponent historyPanel;
         historyList = new JPanel(new WrapLayout(WrapLayout.LEFT));

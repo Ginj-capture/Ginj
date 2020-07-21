@@ -55,6 +55,7 @@
  - ~~Fix scrollbar look and feel corner + thumb icon + colors + gap~~
  - Finalize look and feel of (File chooser (save as), Tables)
  - Add splash screen animation
+ - Use a bordered panel for CaptureSelectionFrame buttons
  - Switch from "close" to "fade out effect" in export completion window
  - ~~Upscale sun and sun-rays so that runtime downscale provides an anti-aliasing~~ 
  - ~~Build 3 main buttons at runtime based on a circle + icons (downscale provides an anti-aliasing)~~

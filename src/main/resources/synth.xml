@@ -88,7 +88,7 @@
     </style>
     <bind style="PanelStyle" type="region" key="Panel"/>
 
-    <!-- The style for panel component. -->
+    <!-- The style for title bar panel component. -->
     <style id="TitleBarPanelStyle">
         <state>
             <imagePainter method="panelBorder" path="/img/laf/titlebar_panel.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
@@ -102,6 +102,14 @@
         </state>
     </style>
     <bind style="GinjBorderedPanelStyle" type="name" key="GinjBorderedPanel" />
+
+    <!-- The style for history button panel component. -->
+    <style id="HistoryButtonPanelStyle">
+        <state>
+            <imagePainter method="panelBorder" path="/img/laf/history_buttonpanel.png" sourceInsets="13 1 13 1" paintCenter="true" stretch="true" center="false"/>
+        </state>
+    </style>
+    <bind style="HistoryButtonPanelStyle" type="name" key="HistoryButtonPanel"/>
 
     <!-- The style for arrow buttons. -->
     <style id="Arrow Button">
@@ -1265,7 +1273,7 @@
     </style>
     <bind style="GinjMiniToolButtonStyle" type="name" key="GinjMiniToolButton"/>
 
-    <!-- The style for buttons in the color selection popup -->
+    <!-- The style for toggle buttons in the color selection popup -->
     <style id="GinjColorToggleButtonStyle">
         <!-- Space between button border and contents -->
         <insets top="4" left="4" bottom="4" right="4"/>
@@ -1275,7 +1283,7 @@
         </state>
         <state value="MOUSE_OVER">
             <!-- Note insets are wider so that part of the white center square shows up -->
-            <imagePainter method="toggleButtonBackground" path="/img/laf/colorbutton_bg_selected.png" sourceInsets="6 6 6 6" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="toggleButtonBackground" path="/img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="PRESSED">
             <imagePainter method="toggleButtonBackground" path="/img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
@@ -1285,6 +1293,30 @@
         </state>
     </style>
     <bind style="GinjColorToggleButtonStyle" type="name" key="GinjColorToggleButton"/>
+
+    <!-- The style for history sort and filter toggle buttons -->
+    <style id="HistoryToggleButtonStyle">
+        <!-- Space between button border and contents -->
+        <insets top="2" left="5" bottom="2" right="5"/>
+        <font name="Dialog" size="10" style="BOLD"/>
+        <state>
+            <color value="#FBB901" type="FOREGROUND"/>-->
+        </state>
+        <state value="ENABLED">
+            <!-- Note: sourceInsets are top, left, bottom, and right -->
+            <imagePainter method="toggleButtonBackground" path="/img/laf/history_togglebutton_bg.png" sourceInsets="6 6 6 6" paintCenter="true" stretch="true" center="false"/>
+        </state>
+        <state value="MOUSE_OVER">
+            <imagePainter method="toggleButtonBackground" path="/img/laf/history_togglebutton_bg_hover.png" sourceInsets="6 6 6 6" paintCenter="true" stretch="true" center="false"/>
+        </state>
+        <state value="PRESSED">
+            <imagePainter method="toggleButtonBackground" path="/img/laf/history_togglebutton_bg_pressed.png" sourceInsets="6 6 6 6" paintCenter="true" stretch="true" center="false"/>
+        </state>
+        <state value="SELECTED">
+            <imagePainter method="toggleButtonBackground" path="/img/laf/history_togglebutton_bg_selected.png" sourceInsets="6 6 6 6" paintCenter="true" stretch="true" center="false"/>
+        </state>
+    </style>
+    <bind style="HistoryToggleButtonStyle" type="name" key="HistoryToggleButton"/>
 
 
     <!-- TODO-->

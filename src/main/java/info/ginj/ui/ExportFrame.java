@@ -297,7 +297,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         }
 
         if (Ginj.starWindow.getHistoryFrame() != null) {
-            Ginj.starWindow.getHistoryFrame().refreshHistoryList();
+            Ginj.starWindow.getHistoryFrame().loadHistoryList();
         }
         return true;
     }

@@ -8,29 +8,29 @@ import java.awt.*;
 /**
  * Toggle buttons in the color selection popup
  */
-public class GinjColorToggleButton extends JToggleButton {
+public class ColorToggleButton extends JToggleButton {
 
     private static final int COLOR_BUTTON_ICON_WIDTH = 16;
     private static final int COLOR_BUTTON_ICON_HEIGHT = 16;
 
     private final Color color;
 
-    public GinjColorToggleButton(Color color) {
+    public ColorToggleButton(Color color) {
         this(null, null, color, false);
     }
 
-    public GinjColorToggleButton(Icon icon) {
+    public ColorToggleButton(Icon icon) {
         this(null, icon, null, false);
     }
 
-    public GinjColorToggleButton(Icon icon, boolean selected) {
+    public ColorToggleButton(Icon icon, boolean selected) {
         this(null, icon, null, selected);
     }
 
-    public GinjColorToggleButton(String text, Icon icon, Color color, boolean selected) {
+    public ColorToggleButton(String text, Icon icon, Color color, boolean selected) {
         super(text, icon, selected);
         this.color = color;
-        setName("GinjColorToggleButton"); // To be addressed in synth.xml
+        setName("ColorToggleButton"); // To be addressed in synth.xml
         if (color != null) {
             setIcon(UI.createRectColorIcon(color, COLOR_BUTTON_ICON_WIDTH, COLOR_BUTTON_ICON_HEIGHT));
         }

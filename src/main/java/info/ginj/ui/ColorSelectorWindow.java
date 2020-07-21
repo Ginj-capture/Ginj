@@ -1,8 +1,8 @@
 package info.ginj.ui;
 
 import info.ginj.model.Prefs;
-import info.ginj.ui.component.GinjBorderedPanel;
-import info.ginj.ui.component.GinjColorToggleButton;
+import info.ginj.ui.component.ColorToggleButton;
+import info.ginj.ui.component.YellowBorderedPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +17,7 @@ public class ColorSelectorWindow extends JWindow {
         super(captureEditingFrame);
         this.frame = captureEditingFrame;
 
-        final GinjBorderedPanel colorPanel = new GinjBorderedPanel();
+        final YellowBorderedPanel colorPanel = new YellowBorderedPanel();
         getContentPane().add(colorPanel);
 
         colorPanel.setLayout(new GridBagLayout());
@@ -29,7 +29,7 @@ public class ColorSelectorWindow extends JWindow {
             // Get color for this button
             final Color buttonColor = Prefs.getColorWithSuffix(Prefs.Key.FIXED_PALETTE_COLOR_PREFIX, String.valueOf(buttonNumber));
             // Create button with that color
-            final GinjColorToggleButton colorToggleButton = new GinjColorToggleButton(buttonColor);
+            final ColorToggleButton colorToggleButton = new ColorToggleButton(buttonColor);
             // Select the button if it is the currently selected color
             if (currentColor != null && currentColor.equals(buttonColor)) {
                 colorToggleButton.setSelected(true);

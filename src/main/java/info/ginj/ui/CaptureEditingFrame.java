@@ -44,10 +44,10 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     private final StarWindow starWindow;
     private final Capture capture;
     private final ImageEditorPane imagePane;
-    private final GinjMiniToolButton undoButton;
-    private final GinjMiniToolButton redoButton;
+    private final MiniToolButton undoButton;
+    private final MiniToolButton redoButton;
     private final UndoManager undoManager = new UndoManager();
-    private final GinjToolButton colorToolButton;
+    private final ToolButton colorToolButton;
     private final JTextField nameTextField;
 
     GinjTool currentTool;
@@ -134,7 +134,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
             addToolButton(toolBar, tool, toolButtonGroup);
         }
 
-        colorToolButton = new GinjToolButton(UI.createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
+        colorToolButton = new ToolButton(UI.createRoundRectColorIcon(getCurrentColor(), TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT));
         colorToolButton.addActionListener(e -> onColorButtonClick());
         colorToolButton.setToolTipText("Tool Color");
         toolBar.add(colorToolButton);
@@ -144,8 +144,8 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         JPanel undoRedoPanel = new JPanel();
         undoRedoPanel.setAlignmentX(0); // Otherwise the panel adds horizontal space...
         undoRedoPanel.setLayout(new BoxLayout(undoRedoPanel, BoxLayout.X_AXIS));
-        undoButton = new GinjMiniToolButton(UI.createIcon(getClass().getResource("/img/icon/undo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, UI.TOOLBAR_ICON_ENABLED_COLOR));
-        redoButton = new GinjMiniToolButton(UI.createIcon(getClass().getResource("/img/icon/redo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, UI.TOOLBAR_ICON_ENABLED_COLOR));
+        undoButton = new MiniToolButton(UI.createIcon(getClass().getResource("/img/icon/undo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, UI.TOOLBAR_ICON_ENABLED_COLOR));
+        redoButton = new MiniToolButton(UI.createIcon(getClass().getResource("/img/icon/redo.png"), MINI_TOOL_BUTTON_ICON_WIDTH, MINI_TOOL_BUTTON_ICON_HEIGHT, UI.TOOLBAR_ICON_ENABLED_COLOR));
 
         undoButton.setEnabled(false);
         undoButton.addActionListener(e -> attemptUndo());
@@ -195,7 +195,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         // Prepare name editing panel
         JPanel editPanel = new JPanel();
         editPanel.setLayout(new BorderLayout());
-        final GinjBorderedLabel nameLabel = new GinjBorderedLabel("Name ");
+        final BorderedLabel nameLabel = new BorderedLabel("Name ");
         editPanel.add(nameLabel, BorderLayout.WEST);
         nameTextField = new JTextField();
         editPanel.add(nameTextField, BorderLayout.CENTER);
@@ -291,27 +291,27 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     }
 
     private JPanel createExportButtonBar() {
-        JPanel buttonBar = new GinjLowerButtonBar();
+        JPanel buttonBar = new LowerButtonBar();
 
-        GinjLowerButton shareButton = new GinjLowerButton("Share...", UI.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+        LowerButton shareButton = new LowerButton("Share...", UI.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, UI.ICON_ENABLED_COLOR));
         shareButton.addActionListener(e -> onShare(shareButton));
         buttonBar.add(shareButton);
 
         for (Target target : Ginj.getTargetPrefs().getTargetList()) {
             Exporter exporter = target.getExporter();
             if (exporter.isImageSupported() && (!exporter.isOnlineService() || Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS))) {
-                GinjLowerButton targetButton = new GinjLowerButton(target.getDisplayName(), exporter.getButtonIcon(16));
+                LowerButton targetButton = new LowerButton(target.getDisplayName(), exporter.getButtonIcon(16));
                 targetButton.addActionListener(e -> onExport(target));
                 buttonBar.add(targetButton);
             }
         }
 
-        final JButton cancelButton = new GinjLowerButton("Cancel", UI.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+        final JButton cancelButton = new LowerButton("Cancel", UI.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, UI.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
 
         // Do we restore this button ?
-//        final JButton customizeButton = new GinjLowerButton("Customize Ginj buttons", UI.createIcon(getClass().getResource("/img/icon/customize.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+//        final JButton customizeButton = new LowerButton("Customize Ginj buttons", UI.createIcon(getClass().getResource("/img/icon/customize.png"), 16, 16, UI.ICON_ENABLED_COLOR));
 //        customizeButton.addActionListener(e -> onCustomize());
 //        buttonBar.add(customizeButton);
         return buttonBar;
@@ -349,7 +349,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
     private void addToolButton(JPanel toolBar, GinjTool tool, ButtonGroup group) {
         // Create button
-        GinjToolToggleButton toolButton = new GinjToolToggleButton(UI.createIcon(
+        ToolToggleButton toolButton = new ToolToggleButton(UI.createIcon(
                 getClass().getResource("/img/icon/tool_" + tool.getName().toLowerCase() + ".png"),
                 TOOL_BUTTON_ICON_WIDTH, TOOL_BUTTON_ICON_HEIGHT, UI.TOOLBAR_ICON_ENABLED_COLOR));
         // Add it to the toolbar, followed by a spacer
@@ -474,7 +474,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         dispose();
     }
 
-    private void onShare(GinjLowerButton button) {
+    private void onShare(LowerButton button) {
         //Create the popup menu.
         JPopupMenu popup = new JPopupMenu();
 

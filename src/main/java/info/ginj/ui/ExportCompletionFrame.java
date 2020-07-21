@@ -5,7 +5,7 @@ import info.ginj.export.clipboard.ClipboardExporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Export;
 import info.ginj.model.Prefs;
-import info.ginj.ui.component.GinjLabel;
+import info.ginj.ui.component.YellowLabel;
 import info.ginj.util.UI;
 
 import javax.swing.*;
@@ -40,7 +40,7 @@ public class ExportCompletionFrame extends JFrame {
         // Add main label
         final List<Export> exports = capture.getExports();
         final Export export = exports.get(exports.size() - 1); // last export
-        JLabel stateLabel = new GinjLabel(export.getExporterName() + " export complete");
+        JLabel stateLabel = new YellowLabel(export.getExporterName() + " export complete");
 
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
@@ -63,7 +63,7 @@ public class ExportCompletionFrame extends JFrame {
                 message = "Your capture is now available";
             }
         }
-        JLabel messageLabel = new GinjLabel(message);
+        JLabel messageLabel = new YellowLabel(message);
 
         c = new GridBagConstraints();
         c.gridx = 0;

@@ -2,10 +2,10 @@ package info.ginj.ui;
 
 import info.ginj.Ginj;
 import info.ginj.model.Capture;
-import info.ginj.ui.component.GinjBorderedLabel;
-import info.ginj.ui.component.GinjLabel;
+import info.ginj.ui.component.BorderedLabel;
 import info.ginj.ui.component.HistoryButtonPanel;
 import info.ginj.ui.component.HistoryToggleButton;
+import info.ginj.ui.component.YellowLabel;
 import info.ginj.ui.layout.WrapLayout;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
@@ -150,7 +150,7 @@ public class HistoryFrame extends JFrame {
         // Prepare status bar
         JPanel statusPanel = new JPanel();
         statusPanel.setLayout(new BorderLayout());
-        final GinjBorderedLabel nameLabel = new GinjBorderedLabel(Ginj.getAppName() + " is brought to you by a random guy.");
+        final BorderedLabel nameLabel = new BorderedLabel(Ginj.getAppName() + " is brought to you by a random guy.");
         statusPanel.add(nameLabel, BorderLayout.WEST);
 
         c = new GridBagConstraints();
@@ -310,7 +310,7 @@ public class HistoryFrame extends JFrame {
             c.insets = new Insets(10, 10, 10, 10);
             add(imageLabel, c);
 
-            nameLabel = new GinjLabel("?");
+            nameLabel = new YellowLabel("?");
             nameLabel.setBackground(null);
             nameLabel.setPreferredSize(new Dimension(90, 16));
             try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(file)))) {
@@ -335,7 +335,7 @@ public class HistoryFrame extends JFrame {
             c.anchor = GridBagConstraints.WEST;
             add(nameLabel, c);
 
-            sizeLabel = new GinjLabel("?");
+            sizeLabel = new YellowLabel("?");
             sizeLabel.setBackground(null);
             sizeLabel.setPreferredSize(new Dimension(55, 16));
             File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + (capture.isVideo()? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION));

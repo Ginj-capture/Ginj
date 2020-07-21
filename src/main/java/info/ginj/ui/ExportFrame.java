@@ -5,7 +5,7 @@ import info.ginj.export.ExportMonitor;
 import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Target;
-import info.ginj.ui.component.GinjLabel;
+import info.ginj.ui.component.YellowLabel;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
 
@@ -52,7 +52,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         mainPanel.setLayout(new GridBagLayout());
 
         // Add state label
-        stateLabel = new GinjLabel("Exporting...");
+        stateLabel = new YellowLabel("Exporting...");
 
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
@@ -91,7 +91,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
 
 
         // Add size label
-        sizeLabel = new GinjLabel(" ");
+        sizeLabel = new YellowLabel(" ");
 
         c = new GridBagConstraints();
         c.gridx = 0;

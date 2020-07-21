@@ -96,12 +96,12 @@
     </style>
     <bind style="TitleBarPanelStyle" type="name" key="TitleBarPanel"/>
 
-    <style id="GinjBorderedPanelStyle">
+    <style id="YellowBorderedPanelStyle">
         <state>
-            <imagePainter method="panelBorder" path="/img/laf/bordered_panel.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
+            <imagePainter method="panelBorder" path="/img/laf/yellow_bordered_panel.png" sourceInsets="1 1 1 1" paintCenter="false" stretch="true" center="false"/>
         </state>
     </style>
-    <bind style="GinjBorderedPanelStyle" type="name" key="GinjBorderedPanel" />
+    <bind style="YellowBorderedPanelStyle" type="name" key="YellowBorderedPanel" />
 
     <!-- The style for history button panel component. -->
     <style id="HistoryButtonPanelStyle">
@@ -869,16 +869,16 @@
     <bind style="LabelStyle" type="region" key="Label" />
 
     <!-- The style for yellow label. -->
-    <style id="GinjLabelStyle">
+    <style id="YellowLabelStyle">
         <font name="Dialog" size="12" style="BOLD"/>
         <state value="ENABLED">
             <color type="FOREGROUND" value="#FBB901"/>
         </state>
     </style>
-    <bind style="GinjLabelStyle" type="name" key="GinjLabel" />
+    <bind style="YellowLabelStyle" type="name" key="YellowLabel" />
 
     <!-- The style for yellow label on dark rectangle. -->
-    <style id="GinjBorderedLabelStyle">
+    <style id="BorderedLabelStyle">
         <insets top="3" left="3" bottom="3" right="3"/>
         <font name="Dialog" size="12" style="BOLD"/>
         <imagePainter method="labelBorder" path="/img/laf/label_bg.png" sourceInsets="2 2 2 2" paintCenter="false" stretch="true" center="false"/>
@@ -887,7 +887,7 @@
             <color type="BACKGROUND" idref="Label_Background_Color"/>
         </state>
     </style>
-    <bind style="GinjBorderedLabelStyle" type="name" key="GinjBorderedLabel" />
+    <bind style="BorderedLabelStyle" type="name" key="BorderedLabel" />
 
     <!-- This is a duplicate "default" style for key=".*". Tried to merge them to no avail. -->
     <!-- Seems this style must stay here and not move to top, otherwise background is not applied to CaptureEditingFrame (?!) -->
@@ -1177,7 +1177,7 @@
 
 
     <!-- The style for square "normal" buttons on the left -->
-    <style id="GinjToolButtonStyle">
+    <style id="ToolButtonStyle">
         <!-- Shift the text one pixel when pressed -->
         <!--        <property key="Button.textShiftOffset" type="integer" value="1"/>-->
         <!-- Space between button border and contents -->
@@ -1196,16 +1196,16 @@
             <imagePainter method="buttonBackground" path="/img/laf/toolbutton_bg.png" sourceInsets="4 4 4 4"/>
         </state>
     </style>
-    <bind style="GinjToolButtonStyle" type="name" key="GinjToolButton"/>
+    <bind style="ToolButtonStyle" type="name" key="ToolButton"/>
 
     <!-- The style for regular toggle button. -->
-    <!-- Note that all toggle buttons are subclasses with names, such as GinjToolToggleButton -->
+    <!-- Note that all toggle buttons are subclasses with names, such as ToolToggleButton -->
     <!-- According to https://docs.oracle.com/javase/tutorial/uiswing/lookandfeel/synth.html -->
     <!-- "Just as a style can be bound to multiple regions or names, multiple styles can be bound to a region or name. -->
     <!--  These multiple styles are merged for the region or name. Precedence is given to styles defined later in the file." -->
-    <!-- So I would expect the ToggleButtonStyle and GinjToolToggleButtonStyle to be redundant as everything is defined by identical painters -->
+    <!-- So I would expect the ToggleButtonStyle and ToolToggleButtonStyle to be redundant as everything is defined by identical painters -->
     <!-- However, if either the generic ToggleButtonStyle is removed then tool ToggleButtons lose their onHover styling -->
-    <!-- and if the specific GinjToolToggleButtonStyle is removed then color button becomes wider  -->
+    <!-- and if the specific ToolToggleButtonStyle is removed then color button becomes wider  -->
     <style id="ToggleButtonStyle">
         <!-- Space between button border and contents -->
         <insets top="4" left="4" bottom="4" right="4"/>
@@ -1230,7 +1230,7 @@
 
     <!-- The style for square "tool" buttons on the left ("toggle" means one remains depressed) -->
     <!-- This uses the default ToggleButtonStyle above -->
-    <style id="GinjToolToggleButtonStyle">
+    <style id="ToolToggleButtonStyle">
         <!-- Space between button border and contents -->
         <insets top="4" left="4" bottom="4" right="4"/>
         <state value="ENABLED">
@@ -1249,10 +1249,10 @@
             <imagePainter method="toggleButtonBackground" path="/img/laf/toolbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
-    <bind style="GinjToolToggleButtonStyle" type="name" key="GinjToolToggleButton"/>
+    <bind style="ToolToggleButtonStyle" type="name" key="ToolToggleButton"/>
 
     <!-- The style for mini square buttons on the left (undo/redo) -->
-    <style id="GinjMiniToolButtonStyle">
+    <style id="MiniToolButtonStyle">
         <!-- Shift the text one pixel when pressed -->
         <property key="Button.textShiftOffset" type="integer" value="1"/>
         <!-- Space between button border and contents -->
@@ -1271,10 +1271,10 @@
             <imagePainter method="buttonBackground" path="/img/laf/mini_toolbutton_bg_disabled.png" sourceInsets="4 4 4 4"/>
         </state>
     </style>
-    <bind style="GinjMiniToolButtonStyle" type="name" key="GinjMiniToolButton"/>
+    <bind style="MiniToolButtonStyle" type="name" key="MiniToolButton"/>
 
     <!-- The style for toggle buttons in the color selection popup -->
-    <style id="GinjColorToggleButtonStyle">
+    <style id="ColorToggleButtonStyle">
         <!-- Space between button border and contents -->
         <insets top="4" left="4" bottom="4" right="4"/>
         <state value="ENABLED">
@@ -1292,7 +1292,7 @@
             <imagePainter method="toggleButtonBackground" path="/img/laf/colorbutton_bg_selected.png" sourceInsets="4 4 4 4" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
-    <bind style="GinjColorToggleButtonStyle" type="name" key="GinjColorToggleButton"/>
+    <bind style="ColorToggleButtonStyle" type="name" key="ColorToggleButton"/>
 
     <!-- The style for history sort and filter toggle buttons -->
     <style id="HistoryToggleButtonStyle">

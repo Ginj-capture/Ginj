@@ -103,6 +103,13 @@
     </style>
     <bind style="YellowBorderedPanelStyle" type="name" key="YellowBorderedPanel" />
 
+    <style id="DoubleBorderedPanelStyle">
+        <state>
+            <imagePainter method="panelBorder" path="/img/laf/double_bordered_panel.png" sourceInsets="4 4 4 4" paintCenter="false" stretch="true" center="false"/>
+        </state>
+    </style>
+    <bind style="DoubleBorderedPanelStyle" type="name" key="DoubleBorderedPanel" />
+
     <!-- The style for history button panel component. -->
     <style id="HistoryButtonPanelStyle">
         <state>

@@ -22,7 +22,7 @@ public class LowerButtonBar extends JPanel {
 
     public LowerButtonBar(boolean isDoubleBuffered) {
         super(isDoubleBuffered);
-        setOpaque(true);
+        setOpaque(false);
         setBorder(new EmptyBorder(2, 0, 5, 0));
 
         setLayout(new GridBagLayout());
@@ -67,6 +67,7 @@ public class LowerButtonBar extends JPanel {
 
         // Prepare bottom left "button" panel
         buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false);
         buttonPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 5, 0));
 
         // Prepare bottom right "other" panel

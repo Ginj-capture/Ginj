@@ -2,6 +2,7 @@ package info.ginj.ui;
 
 import info.ginj.Ginj;
 import info.ginj.ui.component.BorderedLabel;
+import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.ui.component.LowerButton;
 import info.ginj.ui.component.LowerButtonBar;
 import info.ginj.util.Coords;
@@ -96,8 +97,8 @@ public class CaptureSelectionFrame extends JFrame {
         setLayout(null); // Allow absolute positioning of button bar
 
         // Prepare button bar
-        actionPanel = new JPanel(); // To add a margin around buttonBar
-        actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        actionPanel = new DoubleBorderedPanel(); // To add a margin around buttonBar
+        actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 2));
         JPanel buttonBar = new LowerButtonBar();
 
         imageButton = new LowerButton("Capture image", UI.createIcon(getClass().getResource("/img/icon/image.png"), 16, 16, UI.ICON_ENABLED_COLOR));
@@ -112,7 +113,7 @@ public class CaptureSelectionFrame extends JFrame {
         final JButton cancelButton = new LowerButton("Cancel", UI.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, UI.ICON_ENABLED_COLOR));
         cancelButton.addActionListener(e -> onCancel());
         buttonBar.add(cancelButton);
-        captureSizeLabel = new BorderedLabel("9999 x 9999");
+        captureSizeLabel = new BorderedLabel("9999 x 99999");
         buttonBar.add(captureSizeLabel);
 
         actionPanel.add(buttonBar);

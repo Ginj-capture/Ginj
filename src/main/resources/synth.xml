@@ -709,10 +709,10 @@
             <color type="BACKGROUND" value="#00FF00"/>
         </state>
         <state value="ENABLED">
-            <imagePainter method="scrollPaneBorder" path="/img/laf/border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="scrollPaneBorder" path="/img/laf/scroll_border_enabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
         </state>
         <state value="DISABLED">
-            <imagePainter method="scrollPaneBorder" path="/img/laf/border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="scrollPaneBorder" path="/img/laf/scroll_border_disabled.png" sourceInsets="1 1 1 1" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
     <bind style="Scroll Pane" type="region" key="ScrollPane" />

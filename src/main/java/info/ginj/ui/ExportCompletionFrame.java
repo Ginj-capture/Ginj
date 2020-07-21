@@ -21,6 +21,11 @@ import java.util.TimerTask;
  */
 public class ExportCompletionFrame extends JFrame {
 
+    public static final int AUTO_HIDE_DELAY_SECS = 3;
+
+    java.util.Timer autoHideTimer = null;
+    int timeRemainingBeforeHide = AUTO_HIDE_DELAY_SECS;
+
     private final JCheckBox autoHideCheckbox;
 
     public ExportCompletionFrame(Capture capture) {
@@ -88,7 +93,7 @@ public class ExportCompletionFrame extends JFrame {
         final boolean autoHide = Prefs.isTrue(Prefs.Key.EXPORT_COMPLETE_AUTOHIDE_KEY);
         autoHideCheckbox.setSelected(autoHide);
         if (autoHide) {
-            startTimer();
+            startAutoHideTimer();
         }
         autoHideCheckbox.addActionListener(e -> onAutoHideChange());
         updateCheckboxText();
@@ -124,12 +129,9 @@ public class ExportCompletionFrame extends JFrame {
     }
 
     private void onClose() {
-        stopTimer();
+        stopAutoHideTimer();
         dispose();
     }
-
-    java.util.Timer timer = null;
-    int timeRemainingBeforeHide = 5;
 
     private void onAutoHideChange() {
         Prefs.set(Prefs.Key.EXPORT_COMPLETE_AUTOHIDE_KEY, String.valueOf(autoHideCheckbox.isSelected()));
@@ -149,7 +151,7 @@ public class ExportCompletionFrame extends JFrame {
         component.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                stopTimer();
+                stopAutoHideTimer();
             }
 
             @Override
@@ -158,7 +160,7 @@ public class ExportCompletionFrame extends JFrame {
                 if(!component.contains(e.getPoint())) {
                     // Real exit
                     if (autoHideCheckbox.isSelected()) {
-                        startTimer();
+                        startAutoHideTimer();
                     }
                 }
             }
@@ -166,9 +168,9 @@ public class ExportCompletionFrame extends JFrame {
         });
     }
 
-    private void startTimer() {
-        timer = new Timer(true);
-        timer.schedule(new TimerTask() {
+    private void startAutoHideTimer() {
+        autoHideTimer = new Timer(true);
+        autoHideTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 timeRemainingBeforeHide--;
@@ -180,10 +182,10 @@ public class ExportCompletionFrame extends JFrame {
         }, 950, 1000);
     }
 
-    private void stopTimer() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
+    private void stopAutoHideTimer() {
+        if (autoHideTimer != null) {
+            autoHideTimer.cancel();
+            autoHideTimer = null;
         }
     }
 

@@ -231,7 +231,12 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         contentPane.add(actionPanel, c);
 
         // Prefill and select name
-        nameTextField.setText(capture.getBaseFilename());
+        if (capture.getName() != null && capture.getName().length() > 0) {
+            nameTextField.setText(capture.getName());
+        }
+        else {
+            nameTextField.setText(capture.getBaseFilename());
+        }
         nameTextField.selectAll();
         // TODO focus does not work
         nameTextField.requestFocusInWindow();

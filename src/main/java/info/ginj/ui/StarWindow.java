@@ -10,6 +10,8 @@ import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.HashSet;
@@ -108,6 +110,17 @@ public class StarWindow extends JWindow {
         JComponent contentPane = new MainPane();
         setContentPane(contentPane);
         addMouseBehaviour(contentPane);
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentMoved(ComponentEvent e) {
+                super.componentMoved(e);
+                if (!isDragging) {
+                    // Happens e.g. if 2nd screen is unplugged
+                    positionAndSizeHalfWindow(getClosestCenterOnScreenBorder());
+                }
+            }
+        });
 
         // Prepare to show Window
         pack();
@@ -345,21 +358,30 @@ public class StarWindow extends JWindow {
         switch (currentBorder) {
             case TOP -> {
                 setSize(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS / 2);
-                StarWindow.this.setLocation(center.x - STAR_WIDTH_PIXELS / 2, center.y);
+                setLocation(center.x - STAR_WIDTH_PIXELS / 2, center.y);
             }
             case BOTTOM -> {
                 setSize(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS / 2);
-                StarWindow.this.setLocation(center.x - STAR_WIDTH_PIXELS / 2, center.y - STAR_HEIGHT_PIXELS / 2);
+                setLocation(center.x - STAR_WIDTH_PIXELS / 2, center.y - STAR_HEIGHT_PIXELS / 2);
             }
             case LEFT -> {
                 setSize(STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS);
-                StarWindow.this.setLocation(center.x, center.y - STAR_HEIGHT_PIXELS / 2);
+                setLocation(center.x, center.y - STAR_HEIGHT_PIXELS / 2);
             }
             case RIGHT -> {
                 setSize(STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS);
-                StarWindow.this.setLocation(center.x - STAR_WIDTH_PIXELS / 2, center.y - STAR_HEIGHT_PIXELS / 2);
+                setLocation(center.x - STAR_WIDTH_PIXELS / 2, center.y - STAR_HEIGHT_PIXELS / 2);
             }
         }
+    }
+
+    // For debugging only
+    @Override
+    public void setLocation(int x, int y) {
+        if (!isDragging) {
+            System.out.println("Widget location = (" + x + ", " + y + ").");
+        }
+        super.setLocation(x, y);
     }
 
     private void setDeployed(JComponent contentPane, boolean deployed) {
@@ -469,7 +491,11 @@ public class StarWindow extends JWindow {
 
     private Point getClosestCenterOnScreenBorder() {
         // Compute current icon center
-        Point center = new Point(getLocation().x + getWidth() / 2, getLocation().y + getHeight() / 2);
+        Point center = switch (currentBorder) {
+            case TOP -> new Point(getLocation().x + getWidth() / 2, getLocation().y);
+            case LEFT -> new Point(getLocation().x, getLocation().y + getHeight() / 2);
+            case BOTTOM, RIGHT -> new Point(getLocation().x + getWidth() / 2, getLocation().y + getHeight() / 2);
+        };
 
         Rectangle bestDisplay = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
         int bestDisplayNumber = 0;

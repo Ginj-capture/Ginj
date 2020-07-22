@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This window displays and manages the historized captures
@@ -205,23 +206,23 @@ public class HistoryFrame extends JFrame {
         statusLabel.setText(numVisibleComponents + " captures listed.");
     }
 
-    private List<String> getCapturesSharingSourceFile(Capture captureToDelete) {
+    private List<Capture> getCapturesSharingSourceFile(Capture mainCapture) {
         // Find all other metadata files sharing the same ID
-        final File[] metadataFiles = Ginj.getHistoryFolder().listFiles((dir, name) -> name.startsWith(captureToDelete.getId()) && name.endsWith(Misc.METADATA_EXTENSION) && !name.startsWith(captureToDelete.getBaseFilename()));
-        List<String> siblingCaptureNames = new ArrayList<>();
+        final File[] metadataFiles = Ginj.getHistoryFolder().listFiles((dir, name) -> name.startsWith(mainCapture.getId()) && name.endsWith(Misc.METADATA_EXTENSION) && !name.equals(mainCapture.getBaseFilename() + Misc.METADATA_EXTENSION));
+        List<Capture> siblingCaptures = new ArrayList<>();
         try {
             //noinspection ConstantConditions will be caught later
             for (File metadataFile : metadataFiles) {
                 try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(metadataFile)))) {
                     Capture siblingCapture = (Capture) xmlDecoder.readObject();
-                    siblingCaptureNames.add(siblingCapture.getName());
+                    siblingCaptures.add(siblingCapture);
                 }
             }
         }
         catch (Exception e) {
             UI.alertException(this, "Error", "Error determining captures sharing the same file", e);
         }
-        return siblingCaptureNames;
+        return siblingCaptures;
     }
 
     private File getCaptureFile(Capture capture) {
@@ -254,8 +255,31 @@ public class HistoryFrame extends JFrame {
 
     private void onEdit(Capture capture) {
         try {
+            // Find captures sharing the same source to determine new version (max+1)
+            final List<Capture> sharingCaptures = getCapturesSharingSourceFile(capture);
+            int maxCaptureVersion = capture.getVersion();
+            for (Capture sharingCapture : sharingCaptures) {
+                if (sharingCapture.getVersion() > maxCaptureVersion) maxCaptureVersion = sharingCapture.getVersion();
+            }
+
+            // Find if the name ends with a version
+            String name = capture.getName();
+            final int versionPos = name.lastIndexOf(Capture.VERSION_SEPARATOR);
+            if (versionPos > -1) {
+                try {
+                    // Check that the end is a number
+                    Integer.parseInt(name.substring(versionPos +2));
+                    // if it didn't throw an exception, remove the old version from the name
+                    name = name.substring(0, versionPos);
+                }
+                catch (NumberFormatException e) {
+                    // Keep name unchanged
+                }
+            }
+
             Capture newCapture = capture.clone();
-            newCapture.setVersion(capture.getVersion() + 1);
+            newCapture.setVersion(maxCaptureVersion + 1);
+            newCapture.setName(name + Capture.VERSION_SEPARATOR + (maxCaptureVersion + 1));
             newCapture.setOriginalFile(getCaptureFile(capture));
             final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, newCapture);
             captureEditingFrame.setVisible(true);
@@ -274,11 +298,11 @@ public class HistoryFrame extends JFrame {
     private void onDelete(Capture capture) {
         // TODO ask the question: Also delete from storages (and list them) ?
         // TODO if re-exported captures point to the same source, only delete the source media when it's the last one
-        final List<String> sharingCaptures = getCapturesSharingSourceFile(capture);
+        final List<Capture> sharingCaptures = getCapturesSharingSourceFile(capture);
         String message = "The selected capture will be deleted from the history.\n";
         message += "(For now, the exported version (if any) will remain untouched.)\n";
         if (!sharingCaptures.isEmpty()) {
-            message += "NOTE: the source file will remain on disk because it is shared with the following capture(s): " + sharingCaptures + "\n";
+            message += "NOTE: the source file will remain on disk because it is shared with the following capture(s): " + sharingCaptures.stream().map(Capture::getName).collect(Collectors.toList()) + "\n";
         }
         message += "Are you sure you want to delete capture '" + capture.getName() + "'?";
         if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, message, "Delete Capture", JOptionPane.YES_NO_OPTION)) {
@@ -514,7 +538,7 @@ public class HistoryFrame extends JFrame {
             synchronized (this) { // in case we reorder while loading is in progress
                 if (capture == null) {
                     loadCapture();
-                    System.out.println("Loaded " + capture);
+                    //System.out.println("Loaded " + capture);
                 }
             }
             return capture;

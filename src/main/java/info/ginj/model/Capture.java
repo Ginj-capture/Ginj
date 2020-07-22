@@ -15,6 +15,8 @@ import java.util.List;
  * A capture is something (screenshot or screen recording) ready for export
  */
 public class Capture implements Cloneable {
+    public static final String VERSION_SEPARATOR = "_v";
+
     String id;
     int version = 1;
     boolean isVideo = false;
@@ -175,7 +177,7 @@ public class Capture implements Cloneable {
     public String getBaseFilename() {
         String baseFilename = getId();
         if (getVersion() > 1) {
-            baseFilename += "_v" + getVersion();
+            baseFilename += VERSION_SEPARATOR + getVersion();
         }
         return baseFilename;
     }

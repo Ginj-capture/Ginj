@@ -237,7 +237,7 @@ public abstract class Overlay extends JPanel {
     public final void moveHandle(int handleIndex, Point newPosition) {
         if (handleIndex != NO_INDEX) {
             // This is a move of one handle
-            setHandlePosition(handleIndex, newPosition);
+            setHandlePosition(handleIndex, newPosition, false);
             clearShadow();
         }
         else {
@@ -261,9 +261,10 @@ public abstract class Overlay extends JPanel {
      */
     public void moveDrawing(int deltaX, int deltaY) {
         // This is a drag'n'drop move => move all points
+        System.out.println("Delta : " + deltaX + ", " + deltaY);
         final Point[] handles = getHandles();
         for (int i = 0; i < handles.length; i++) {
-            setHandlePosition(i, new Point(handles[i].x + deltaX, handles[i].y + deltaY));
+            setHandlePosition(i, new Point(handles[i].x + deltaX, handles[i].y + deltaY), true);
         }
         clearShadow();
     }
@@ -322,8 +323,9 @@ public abstract class Overlay extends JPanel {
     /**
      * This method is called when the given handle must be moved to the given position
      * @param handleIndex the index of the handle to move
-     * @param newPosition the new position of the handle
+     * @param newPosition the new position of that handle
+     * @param skipSizeChecks if true, no size checks are made. This can be required when moving a component by shifting all its handles
      */
-    protected abstract void setHandlePosition(int handleIndex, Point newPosition);
+    protected abstract void setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks);
 
 }

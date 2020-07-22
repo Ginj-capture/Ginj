@@ -60,11 +60,12 @@ public class ArrowOverlay extends Overlay {
     /**
      * This method indicates that the given handle has moved to a new position
      * By convention, when a component is first drawn, the end of the drawing (arrowhead or second point of rectangle) is returned with index 0
-     * @param handleIndex
-     * @param newPosition
-     */
-    @Override
-    public void setHandlePosition(int handleIndex, Point newPosition) {
+     * @param handleIndex the index of the handle to move
+     * @param newPosition the new position of that handle
+     * @param skipSizeChecks if true, no size checks are made. This is required when moving a component by shifting
+     *                       all its handles because during the loop on the handles, some corners may break the rules
+     */    @Override
+    public void setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks) {
         if (handleIndex == 0) end = newPosition;
         else start = newPosition;
     }

@@ -123,7 +123,7 @@ public class ImageEditorPane extends JLayeredPane {
                     final Point released = e.getPoint();
                     if (!hasMouseMoved(clicked, released)) {
                         if (currentAction instanceof AddOverlayAction) {
-                            // False operation
+                            // Mouse hasn't moved during add => False operation
                             ImageEditorPane.this.remove(selectedOverlay);
                         }
                     }

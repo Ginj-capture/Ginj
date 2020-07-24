@@ -631,6 +631,12 @@ public class StarWindow extends JWindow {
         }
     }
 
+    @Override
+    public void dispose() {
+        System.out.println("Disposing StarWindow");
+        super.dispose();
+    }
+
     // Util for other Windows
 
     public void positionFrameNextToStarIcon(JFrame frame) {

@@ -71,7 +71,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         // Prepare main panel
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setOpaque(false);
-        mainPanel.setBorder(new EmptyBorder(new Insets(5,5,5,5)));
+        mainPanel.setBorder(new EmptyBorder(new Insets(20,20,20,20)));
         mainPanel.add(new JLabel("Defined targets:"), BorderLayout.NORTH);
 
 

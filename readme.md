@@ -43,11 +43,12 @@ Ginj's core is pure Java, and Java is "write once, run anywhere", so yes, it run
 
 Just kidding.
 
-Ginj targets OpenJDK 14, so obviously Ginj won't ever run on a platform that does not support that JDK version. Moreover, I don't own a Mac, and I don't intend to test Ginj on a Linux VM until my to-do list becomes manageable. Early feedback on Ubuntu indicates that the Desktop widget has visual issues but that captures are OK and can be copied, saved and shared online, which I find amazing since it never was launched under Linux before release. 
+Ginj targets OpenJDK 14, so obviously Ginj won't ever run on a platform that does not support that JDK version. Moreover, I don't own a Mac, and I don't intend to test Ginj on a Linux VM until my to-do list becomes manageable.
 
 In other words, until now, Ginj has almost exclusively been tested on Windows.
 
-If you test it on other platforms, feel free to [open an issue](https://github.com/Ginj-capture/Ginj/issues) and tell me your experience. I will update this section accordingly. 
+However, early user feedback on Ubuntu indicates that the Desktop widget has visual issues but that captures are OK and can be copied, saved and shared online, which I find amazing since it never was launched under Linux before release. 
+If you test it on other platforms, feel free to [open an issue](https://github.com/Ginj-capture/Ginj/issues) and tell me about your experience. I will update this section accordingly. 
 
 #### How can I get support?
 

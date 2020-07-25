@@ -356,7 +356,7 @@ public class UI {
                 keyLabel.setVisible(valueComponent.isVisible());
             }
             catch (ClassCastException e) {
-                throw new RuntimeException("Field panels must alternate between JLabel and other components. Received " + keyValues[componentNumber]);
+                throw new RuntimeException("Field panels must alternate between String and JComponent. Received " + keyValues[componentNumber]);
             }
             componentNumber += 2;
         }

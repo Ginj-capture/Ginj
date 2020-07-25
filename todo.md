@@ -4,6 +4,7 @@
  - ~~Implement multi-screen capture~~
  - ~~Allow positioning the "star" widget on a secondary display~~
  - React to resolution changes and taskbar move/show/hide
+ - Support scaled displays (e.g. 125%)
  - ~~Open dialogs (capture editing, "more", "history", etc), on the display where the "star" widget is located~~
  - ~~Implement capture editing window~~
  - ~~Implement arrow overlay~~
@@ -32,6 +33,7 @@
  - In export completion window, replace plain text with html for the shared link to be clickable
  - Improve "About" dialog (logo, clickable link to site, credits)
  - Implement video using ffmpeg & Jaffree
+ - Implement "check for updates" from Java
  - Implement generic preference editor
  - Typing in a Text Overlay should make the overlay grow wider
  - Add Google Drive exporter

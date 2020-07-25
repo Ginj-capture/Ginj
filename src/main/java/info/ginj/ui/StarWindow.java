@@ -1,5 +1,6 @@
 package info.ginj.ui;
 
+import com.tulskiy.keymaster.common.Provider;
 import info.ginj.Ginj;
 import info.ginj.model.Prefs;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
@@ -19,13 +20,15 @@ import java.util.Set;
 
 /**
  * This "Star Window" is the original widget displayed at the border of the screen to initiate a capture
- * Note: at first the full star was drawn no matter where it stood, half-visible, half-hidden out-of-screen,
- * but when Windows notices a resolution change (or a taskbar show/hide), it moves all windows inwards so that they are 100% on screen.
+ * Note: at first the full star was drawn no matter where it stood, half-visible onscreen, half-hidden out-of-screen.
+ * But when MS Windows notices a resolution change (or a taskbar show/hide), it moves all windows inwards so that they are 100% on screen, making the full sun appear.
  * So now the "Star Window" is a full star while dragging, but becomes a half star once dropped against a screen border.
  * <p>
  * UI transparency based on sample code by MadProgrammer at https://stackoverflow.com/questions/26205164/java-custom-shaped-frame-using-image
  */
 public class StarWindow extends JWindow {
+
+    private Provider hotKeyProvider;
 
     public enum Border {TOP, LEFT, BOTTOM, RIGHT}
 
@@ -122,10 +125,38 @@ public class StarWindow extends JWindow {
             }
         });
 
+        registerHotKey();
+
         // Prepare to show Window
         pack();
         setLocationOnStartup();
         setAlwaysOnTop(true);
+    }
+
+    void registerHotKey() {
+        // Add hotkey hook from Preferences
+        Provider provider = getHotkeyProvider();
+        if (provider != null) {
+            String keystroke = Prefs.get(Prefs.Key.CAPTURE_HOTKEY);
+            if (keystroke != null && keystroke.length() > 0) {
+                provider.register(KeyStroke.getKeyStroke(keystroke), hotKey -> onCapture());
+            }
+        }
+    }
+
+    void unregisterHotKey() {
+        // Remove hotkey
+        Provider provider = getHotkeyProvider();
+        if (provider != null) {
+            provider.reset();
+        }
+    }
+
+    Provider getHotkeyProvider() {
+        if (hotKeyProvider == null) {
+            hotKeyProvider = Provider.getCurrentProvider(true);
+        }
+        return hotKeyProvider;
     }
 
     public static Image getAppIcon() {
@@ -139,10 +170,6 @@ public class StarWindow extends JWindow {
 
     public void setHistoryFrame(HistoryFrame historyFrame) {
         this.historyFrame = historyFrame;
-    }
-
-    public MoreFrame getMoreFrame() {
-        return moreFrame;
     }
 
     public void setMoreFrame(MoreFrame moreFrame) {
@@ -633,8 +660,9 @@ public class StarWindow extends JWindow {
 
     @Override
     public void dispose() {
-        System.out.println("Disposing StarWindow");
         super.dispose();
+        System.out.println("StarWindow disposed.");
+        System.exit(Ginj.ERR_STATUS_OK);
     }
 
     // Util for other Windows
@@ -653,16 +681,16 @@ public class StarWindow extends JWindow {
     }
 
 
-    public void centerFrameOnStarIconDisplay(JFrame frame) {
-        frame.setLocation(currentDisplayBounds.x + (currentDisplayBounds.width - frame.getWidth())/2,
-                currentDisplayBounds.y + (currentDisplayBounds.height - frame.getHeight())/2);
+    public void centerFrameOnStarIconDisplay(Window window) {
+        window.setLocation(currentDisplayBounds.x + (currentDisplayBounds.width - window.getWidth())/2,
+                currentDisplayBounds.y + (currentDisplayBounds.height - window.getHeight())/2);
     }
 
 
     ////////////////////////////
     // EVENT HANDLERS
 
-    private void onCapture() {
+    void onCapture() {
         // Hide star icon during the capture
         setVisible(false);
         // Creating the capture selection window will cause the screenshot to happen

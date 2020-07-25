@@ -42,19 +42,17 @@ public class MoreFrame extends JFrame {
         JComponent mainPanel = new JPanel();
         mainPanel.setOpaque(false);
         mainPanel.setLayout(new GridLayout(0,1,20,20));
-        mainPanel.setBorder(new EmptyBorder(new Insets(50, 50, 50, 50)));
+        mainPanel.setBorder(new EmptyBorder(new Insets(20, 20, 20, 20)));
 
-        mainPanel.add(new JLabel("More options to come..."));
-        // e.g. Capture folder
-//        mainPanel.add(new JButton("Check for updates...")); // TODO
-
-//        final JButton optionsButton = new JButton("Options...");
-//        optionsButton.addActionListener(e -> onOptions());
-//        mainPanel.add(optionsButton);
+        final JButton optionsButton = new JButton("Options...");
+        optionsButton.addActionListener(e -> onOptions());
+        mainPanel.add(optionsButton);
 
         final JButton manageTargetsButton = new JButton("Manage targets...");
         manageTargetsButton.addActionListener(e -> onManageTargets());
         mainPanel.add(manageTargetsButton);
+
+//        mainPanel.add(new JButton("Check for updates...")); // TODO
 
         final JButton aboutButton = new JButton("About Ginj...");
         aboutButton.addActionListener(e -> onAbout());
@@ -84,13 +82,9 @@ public class MoreFrame extends JFrame {
         starWindow.getTargetManagementFrame().requestFocus();
     }
 
-//    private void onOptions() {
-//        if (starWindow.getOptionsFrame() == null) {
-//            starWindow.setOptionsFrame(new OptionsFrame(starWindow));
-//        }
-//        starWindow.getOptionsFrame().setVisible(true);
-//        starWindow.getOptionsFrame().requestFocus();
-//    }
+    private void onOptions() {
+        new OptionsDialog(starWindow).setVisible(true);
+    }
 
     private void onAbout() {
         JOptionPane.showMessageDialog(this, "This is " + Ginj.getAppName() + " version " + Ginj.getVersion() + "\nPlease checkout http://ginj.info for more information.", "About Ginj", JOptionPane.INFORMATION_MESSAGE);
@@ -99,7 +93,7 @@ public class MoreFrame extends JFrame {
     private void onQuit() {
         if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Are you sure you want to exit " + Ginj.getAppName() + "?", "Quit Jing?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
             Prefs.save();
-            System.exit(Ginj.ERR_STATUS_OK);
+            starWindow.dispose();
         }
     }
 

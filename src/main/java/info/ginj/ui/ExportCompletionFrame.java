@@ -124,6 +124,8 @@ public class ExportCompletionFrame extends JFrame {
 
         pack();
 
+        UI.addEscKeyShortcut(this, e -> onClose());
+
         // Position window
         Ginj.starWindow.positionFrameNextToStarIcon(this);
     }

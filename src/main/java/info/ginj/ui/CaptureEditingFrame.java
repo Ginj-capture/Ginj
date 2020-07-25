@@ -279,10 +279,13 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
             JScrollPane scrollableImagePanel = new JScrollPane(imagePane);
             mainPanel.add(scrollableImagePanel, c);
         }
+
         // Lay out components again
         pack();
         // And limit size
         setSize(size);
+
+        UI.addEscKeyShortcut(this, e -> onCancel());
 
         // Center window
         starWindow.centerFrameOnStarIconDisplay(this);

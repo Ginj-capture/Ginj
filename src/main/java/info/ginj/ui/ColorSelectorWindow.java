@@ -3,6 +3,7 @@ package info.ginj.ui;
 import info.ginj.model.Prefs;
 import info.ginj.ui.component.ColorToggleButton;
 import info.ginj.ui.component.YellowBorderedPanel;
+import info.ginj.util.UI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -90,6 +91,8 @@ public class ColorSelectorWindow extends JWindow {
                 ColorSelectorWindow.this.dispose();
             }
         });
+
+        UI.addEscKeyShortcut(this, e -> dispose());
 
         pack();
     }

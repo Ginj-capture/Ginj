@@ -101,9 +101,16 @@ public class HotKeyDefinitionDialog extends JDialog {
     }
 
     private void onOK() {
-        hotKeyTextField.setText(textField.getText());
-        // Close window
-        dispose();
+
+        String hotKey = textField.getText();
+        if (KeyEvent.getKeyText(KeyEvent.VK_ESCAPE).equalsIgnoreCase(hotKey)) {
+            UI.alertError(this, "Hotkey error", "Cannot use '" + hotKey + "' as capture hotkey because it is used to close dialogs");
+        }
+        else {
+            hotKeyTextField.setText(hotKey);
+            // Close window
+            dispose();
+        }
     }
 
     private void onCancel() {

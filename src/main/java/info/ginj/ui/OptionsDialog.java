@@ -40,7 +40,7 @@ public class OptionsDialog extends JDialog {
         contentPane.setLayout(new BorderLayout());
 
         // Prepare title bar
-        JPanel titleBar = UI.getTitleBar("Options", e -> onClose());
+        JPanel titleBar = UI.getTitleBar("Options", e -> onCancel());
         contentPane.add(titleBar, BorderLayout.NORTH);
 
 
@@ -81,7 +81,7 @@ public class OptionsDialog extends JDialog {
         lowerPanel.add(okButton);
 
         final JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(e -> onClose());
+        cancelButton.addActionListener(e -> onCancel());
         lowerPanel.add(cancelButton);
 
         contentPane.add(lowerPanel, BorderLayout.SOUTH);
@@ -91,6 +91,8 @@ public class OptionsDialog extends JDialog {
 
         //setPreferredSize(WINDOW_PREFERRED_SIZE);
         pack();
+
+        UI.addEscKeyShortcut(this, e -> onCancel());
 
         // Center window
         starWindow.centerFrameOnStarIconDisplay(this);
@@ -130,7 +132,7 @@ public class OptionsDialog extends JDialog {
     }
 
 
-    private void onClose() {
+    private void onCancel() {
         // Restore the previous hotkey
         starWindow.registerHotKey();
         // Close window

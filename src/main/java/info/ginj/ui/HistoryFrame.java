@@ -175,6 +175,8 @@ public class HistoryFrame extends JFrame {
         // Lay out components again
         pack();
 
+        UI.addEscKeyShortcut(this, e -> onClose());
+
         // Center window
         starWindow.centerFrameOnStarIconDisplay(this);
     }

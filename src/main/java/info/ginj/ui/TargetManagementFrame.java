@@ -147,6 +147,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         setPreferredSize(CONFIG_PREFERRED_SIZE);
         pack();
 
+        UI.addEscKeyShortcut(this, e -> onClose());
+
         // Center window
         starWindow.centerFrameOnStarIconDisplay(this);
     }

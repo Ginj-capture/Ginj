@@ -16,6 +16,7 @@ import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
@@ -469,5 +470,11 @@ public class UI {
         list.setEnabled(isEnabled);
         list.setVisible(isVisible);
         return list;
+    }
+
+    public static void addEscKeyShortcut(RootPaneContainer window, ActionListener actionListener) {
+        window.getRootPane().registerKeyboardAction(actionListener,
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
 }

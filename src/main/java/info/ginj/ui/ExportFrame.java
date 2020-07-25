@@ -110,6 +110,8 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         pack();
         setSize(280,70);
 
+        UI.addEscKeyShortcut(this, e -> onCancel());
+
         // Position window
         Ginj.starWindow.positionFrameNextToStarIcon(this);
     }

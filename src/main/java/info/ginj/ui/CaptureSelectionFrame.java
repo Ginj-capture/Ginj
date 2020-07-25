@@ -10,8 +10,6 @@ import info.ginj.util.UI;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.FontRenderContext;
@@ -120,7 +118,7 @@ public class CaptureSelectionFrame extends JFrame {
         UI.packPanel(actionPanel);
         contentPane.add(actionPanel);
 
-        addKeyboardShortcuts();
+        UI.addEscKeyShortcut(this, e -> onCancel());
 
         resetSelection();
 
@@ -130,17 +128,6 @@ public class CaptureSelectionFrame extends JFrame {
         requestFocus();
 
         setAlwaysOnTop(true);
-    }
-
-    private void addKeyboardShortcuts() {
-        addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    onCancel();
-                }
-            }
-        });
     }
 
 

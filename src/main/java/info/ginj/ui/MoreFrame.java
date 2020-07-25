@@ -2,6 +2,7 @@ package info.ginj.ui;
 
 import info.ginj.Ginj;
 import info.ginj.model.Prefs;
+import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.util.UI;
 
 import javax.swing.*;
@@ -9,7 +10,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * This window centralizes optins
+ * This window centralizes access to settings, targets, and other features
  */
 public class MoreFrame extends JFrame {
 
@@ -28,7 +29,8 @@ public class MoreFrame extends JFrame {
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
         setUndecorated(true);
 
-        final Container contentPane = getContentPane();
+        final JPanel contentPane = new DoubleBorderedPanel();
+        setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout());
 
         // Prepare title bar
@@ -38,6 +40,7 @@ public class MoreFrame extends JFrame {
 
         // Prepare main panel
         JComponent mainPanel = new JPanel();
+        mainPanel.setOpaque(false);
         mainPanel.setLayout(new GridLayout(0,1,20,20));
         mainPanel.setBorder(new EmptyBorder(new Insets(50, 50, 50, 50)));
 
@@ -45,9 +48,13 @@ public class MoreFrame extends JFrame {
         // e.g. Capture folder
 //        mainPanel.add(new JButton("Check for updates...")); // TODO
 
-        final JButton configureTargetsButton = new JButton("Manage targets...");
-        configureTargetsButton.addActionListener(e -> onConfigureTargets());
-        mainPanel.add(configureTargetsButton);
+//        final JButton optionsButton = new JButton("Options...");
+//        optionsButton.addActionListener(e -> onOptions());
+//        mainPanel.add(optionsButton);
+
+        final JButton manageTargetsButton = new JButton("Manage targets...");
+        manageTargetsButton.addActionListener(e -> onManageTargets());
+        mainPanel.add(manageTargetsButton);
 
         final JButton aboutButton = new JButton("About Ginj...");
         aboutButton.addActionListener(e -> onAbout());
@@ -69,13 +76,21 @@ public class MoreFrame extends JFrame {
         starWindow.centerFrameOnStarIconDisplay(this);
     }
 
-    private void onConfigureTargets() {
+    private void onManageTargets() {
         if (starWindow.getTargetManagementFrame() == null) {
             starWindow.setTargetManagementFrame(new TargetManagementFrame(starWindow));
         }
         starWindow.getTargetManagementFrame().setVisible(true);
         starWindow.getTargetManagementFrame().requestFocus();
     }
+
+//    private void onOptions() {
+//        if (starWindow.getOptionsFrame() == null) {
+//            starWindow.setOptionsFrame(new OptionsFrame(starWindow));
+//        }
+//        starWindow.getOptionsFrame().setVisible(true);
+//        starWindow.getOptionsFrame().requestFocus();
+//    }
 
     private void onAbout() {
         JOptionPane.showMessageDialog(this, "This is " + Ginj.getAppName() + " version " + Ginj.getVersion() + "\nPlease checkout http://ginj.info for more information.", "About Ginj", JOptionPane.INFORMATION_MESSAGE);

@@ -14,12 +14,14 @@ import info.ginj.model.Account;
 import info.ginj.model.ExportSettings;
 import info.ginj.model.Target;
 import info.ginj.model.TargetPrefs;
+import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.ui.layout.ButtonLayout;
 import info.ginj.util.UI;
 import org.netbeans.api.wizard.WizardDisplayer;
 import org.netbeans.spi.wizard.*;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.util.List;
@@ -57,7 +59,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
         setUndecorated(true);
 
-        final Container contentPane = getContentPane();
+        final JPanel contentPane = new DoubleBorderedPanel();
+        setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout());
 
         // Prepare title bar
@@ -67,7 +70,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         // Prepare main panel
         JPanel mainPanel = new JPanel(new BorderLayout());
-
+        mainPanel.setOpaque(false);
+        mainPanel.setBorder(new EmptyBorder(new Insets(5,5,5,5)));
         mainPanel.add(new JLabel("Defined targets:"), BorderLayout.NORTH);
 
 
@@ -128,6 +132,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         // Prepare lower panel
         JPanel lowerPanel = new JPanel();
+        lowerPanel.setOpaque(false);
+        lowerPanel.setBorder(new EmptyBorder(new Insets(5,5,5,5)));
         lowerPanel.setLayout(new FlowLayout());
         final JButton closeButton = new JButton("Close");
         closeButton.addActionListener(e -> onClose());
@@ -470,7 +476,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
                 String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
                 if (displayName == null) {
-                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";;
+                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";
                 }
 
                 final JCheckBox shareAlbumCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);
@@ -505,7 +511,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             if (exporter != null && account != null) {
                 String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
                 if (displayName == null) {
-                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";;
+                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";
                 }
 
                 final JCheckBox shareCaptureCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);

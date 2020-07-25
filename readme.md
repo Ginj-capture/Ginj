@@ -72,15 +72,16 @@ Great. Head over to the [latest release page](https://github.com/Ginj-capture/Gi
 
 Note 1: there's no splash screen yet, so look for the circle at the center top of your desktop.
 
-Note 2: if you already have OpenJDK 14 installed and configured by default, you may alternately just download and use the executable .jar which is less than 3Mb and includes all Ginj code and libraries.
+Note 2: if you already have OpenJDK 14 installed and configured by default, you may alternately just download the executable .jar (less than 3Mb for all Ginj code and libraries) and launch Ginj by typing `java -jar Ginj.jar` in the download folder.
 
 #### Credits. 
 
 The app makes use of the following libraries:
-- HttpComponents, Copyright © 2005–2020 The Apache Software Foundation.
-- GSon, Copyright © 2008 Google Inc.
-- SLF4j, Copyright © 2004-2017 QOS.ch
-- Wizard by Timothy Boudreau of Netbeans, originally hosted at https://wizard.dev.java.net , v1.1 saved by Lonzak and available at https://github.com/Lonzak/Wizard-API (in source version as it's pre-Maven).
+- [HttpComponents](https://hc.apache.org/), Copyright © 2005–2020 The Apache Software Foundation
+- [GSon](https://github.com/google/gson), Copyright © 2008 Google Inc.
+- [SLF4j](http://www.slf4j.org/), Copyright © 2004-2017 QOS.ch
+- Wizard by Timothy Boudreau of Netbeans, originally hosted at https://wizard.dev.java.net , v1.1 saved from the internet drain by Lonzak and available at https://github.com/Lonzak/Wizard-API (in source version as it's pre-Maven).
+- [JKeyMaster](https://github.com/tulskiy/jkeymaster), Copyright © 2011 Denis Tulskiy
 
 The source code contains classes or snippets from:
 - The open source [EaSynth_Look_And_Feel_Bundle.zip](http://www.easynth.com/freewares/EaSynthLookAndFeel.html)

@@ -259,7 +259,7 @@ public class UI {
         return editorPane;
     }
 
-    public static void addDraggableWindowMouseBehaviour(JFrame frame, Component handle) {
+    public static void addDraggableWindowMouseBehaviour(Window window, Component handle) {
         MouseInputListener mouseListener = new MouseInputAdapter() {
             Point clicked;
 
@@ -269,10 +269,10 @@ public class UI {
 
             public void mouseDragged(MouseEvent e) {
                 Point position = e.getPoint();
-                Point location = frame.getLocation();
+                Point location = window.getLocation();
                 int x = location.x - clicked.x + position.x;
                 int y = location.y - clicked.y + position.y;
-                frame.setLocation(x, y);
+                window.setLocation(x, y);
             }
         };
         handle.addMouseListener(mouseListener);
@@ -356,7 +356,7 @@ public class UI {
                 keyLabel.setVisible(valueComponent.isVisible());
             }
             catch (ClassCastException e) {
-                throw new RuntimeException("Field panels must alternate between String and JComponent. Received " + keyValues[componentNumber]);
+                throw new RuntimeException("Field panels must alternate between String and JComponent. Received " + keyValues[componentNumber], e);
             }
             componentNumber += 2;
         }

@@ -224,6 +224,8 @@ public class ImageEditorPane extends JLayeredPane {
             // De-select previous one
             if (selectedOverlay != null) {
                 selectedOverlay.setSelected(false);
+                // Give focus back to the image handler, in case it was a text component, so that e.g. DEL will now delete the selected component
+                requestFocus();
             }
             selectedOverlay = overlay;
             if (overlay != null) {

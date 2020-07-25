@@ -331,13 +331,13 @@ public class UI {
     }
 
     /**
-     * Returns a panel with the given fields
+     * Create a panel containing a series of label/field pairs, arranged in two columns.
      * @param keyValues must alternate between String (the label to display) and value (the component for users to enter value)
-     * @return
+     * @return a panel with the given fields
      */
-    public static JPanel getFieldPanel(Object ... keyValues) {
+    public static JPanel createFieldPanel(Object ... keyValues) {
         if (keyValues.length % 2 != 0) {
-            throw new RuntimeException("Field panels must receive an even number of components");
+            throw new RuntimeException("Field panels expect an even number of components");
         }
 
         JPanel fieldsPanel = new JPanel(new BorderLayout());
@@ -378,6 +378,7 @@ public class UI {
      * @param isVisible if true, the field is visible
      * @return the created JTextField
      */
+    @SuppressWarnings("rawtypes")
     public static JTextField createWizardTextField(String name, Map map, String defaultText, boolean isEnabled, boolean isVisible) {
         String text = (String) map.get(name);
         if (text == null) {
@@ -400,6 +401,7 @@ public class UI {
      * @param isVisible if true, the field is visible
      * @return the created JCheckBox
      */
+    @SuppressWarnings("rawtypes")
     public static JCheckBox createWizardCheckBox(String name, Map map, boolean defaultSelected, boolean isEnabled, boolean isVisible) {
         Boolean selected = (Boolean) map.get(name);
         if (selected == null) {
@@ -423,6 +425,7 @@ public class UI {
      * @param isVisible if true, the field is visible
      * @return the created JCheckBox
      */
+    @SuppressWarnings("rawtypes")
     public static JCheckBox createWizardCheckBox(String name, Map map, boolean defaultSelected, JCheckBox masterCheckBox, boolean isVisible) {
         Boolean selected = (Boolean) map.get(name);
         if (selected == null) {
@@ -448,6 +451,7 @@ public class UI {
      * @param isVisible if true, the field is visible
      * @return the created JList
      */
+    @SuppressWarnings("rawtypes")
     public static <T> JList<T> createWizardList(String name, T[] values, Map map, int defaultIndex, boolean isEnabled, boolean isVisible) {
         final Object object = map.get(name);
         DefaultListModel<T> model = new DefaultListModel<>();

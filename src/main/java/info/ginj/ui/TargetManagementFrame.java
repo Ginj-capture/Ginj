@@ -480,7 +480,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                 }
 
                 final JCheckBox shareAlbumCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);
-                JPanel fieldsPanel = UI.getFieldPanel(
+                JPanel fieldsPanel = UI.createFieldPanel(
                         "Username:", UI.createWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, getWizardDataMap(), account.getName(), false, true),
                         "Email:", UI.createWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, getWizardDataMap(), account.getEmail(), false, true),
                         "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
@@ -515,7 +515,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                 }
 
                 final JCheckBox shareCaptureCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);
-                JPanel fieldsPanel = UI.getFieldPanel(
+                JPanel fieldsPanel = UI.createFieldPanel(
                         "Username:", UI.createWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, getWizardDataMap(), account.getName(), false, true),
                         "Email:", UI.createWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, getWizardDataMap(), account.getEmail(), false, true),
                         "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
@@ -547,7 +547,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                 }
             }
 
-            JPanel fieldsPanel = UI.getFieldPanel(
+            JPanel fieldsPanel = UI.createFieldPanel(
                     "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true)
             );
 
@@ -587,7 +587,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
 
             final JCheckBox alwaysAskCheckBox = UI.createWizardCheckBox(ExportSettings.MUST_ALWAYS_ASK_LOCATION_KEY, getWizardDataMap(), false, true, true);
-            JPanel fieldsPanel = UI.getFieldPanel(
+            JPanel fieldsPanel = UI.createFieldPanel(
                     "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
                     "Save to:", UI.createWizardTextField(ExportSettings.DEST_LOCATION_KEY, getWizardDataMap(), defaultSaveDir, true, true),
                     "Always ask save location:", alwaysAskCheckBox,

@@ -21,7 +21,7 @@ public class MoreFrame extends JFrame {
         this.starWindow = starWindow;
 
         // For Alt+Tab behaviour
-        this.setTitle(Ginj.getAppName() + " Options");
+        this.setTitle(Ginj.getAppName() + " more...");
         this.setIconImage(StarWindow.getAppIcon());
 
 
@@ -34,7 +34,7 @@ public class MoreFrame extends JFrame {
         contentPane.setLayout(new BorderLayout());
 
         // Prepare title bar
-        JPanel titleBar = UI.getTitleBar(Ginj.getAppName() + " Options", e -> onClose());
+        JPanel titleBar = UI.getTitleBar("More...", e -> onClose());
         contentPane.add(titleBar, BorderLayout.NORTH);
 
 

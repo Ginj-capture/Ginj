@@ -94,6 +94,7 @@ public class StarWindow extends JWindow {
 
     // Monitor opened frames
     private HistoryFrame historyFrame;
+    private MoreFrame moreFrame;
     private TargetManagementFrame targetManagementFrame;
     private final Set<TargetListChangeListener> targetListChangeListener = new HashSet<>();
 
@@ -172,7 +173,7 @@ public class StarWindow extends JWindow {
     }
 
     /**
-     * This makes sure only one target management window is open, no matter if requested by "capture editing" or by the "more" dialog
+     * This makes sure only one target management window is open, no matter if requested by "capture editing" or by the "more" frame
      */
     public void openTargetManagementFrame() {
         if (targetManagementFrame == null) {
@@ -184,6 +185,23 @@ public class StarWindow extends JWindow {
 
     public void clearTargetManagementFrame() {
         targetManagementFrame = null;
+    }
+
+    /**
+     * This makes sure only one "more" window is open.
+     * Note: we tried making it a dialog, but then it freezes this StarWindow, which gets stuck with the More button open :-(
+     */
+    public void openMoreFrame() {
+        if (moreFrame == null) {
+            moreFrame = new MoreFrame(this);
+        }
+        moreFrame.setVisible(true);
+        moreFrame.requestFocus();
+    }
+
+
+    public void clearMoreFrame() {
+        moreFrame = null;
     }
 
     public class MainPane extends JPanel {
@@ -714,7 +732,7 @@ public class StarWindow extends JWindow {
 
 
     private void onMore() {
-        new MoreDialog(this).setVisible(true);
+        openMoreFrame();
     }
 
 

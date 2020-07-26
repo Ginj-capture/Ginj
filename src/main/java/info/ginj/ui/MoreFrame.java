@@ -12,15 +12,12 @@ import java.awt.*;
 /**
  * This dialog centralizes access to settings, targets, and other features
  */
-public class MoreDialog extends JDialog {
+public class MoreFrame extends JFrame {
 
     private final StarWindow starWindow;
 
-    public MoreDialog(StarWindow starWindow) {
+    public MoreFrame(StarWindow starWindow) {
         super();
-        // When entering a modal dialog, hotkey must be disabled, otherwise the app gets locked if hotkey gets pressed
-        starWindow.unregisterHotKey();
-        setModal(true);
         this.starWindow = starWindow;
 
         // For Alt+Tab behaviour
@@ -99,6 +96,7 @@ public class MoreDialog extends JDialog {
     }
 
     private void onClose() {
+        starWindow.clearMoreFrame();
         // Restore the previous hotkey
         starWindow.registerHotKey();
         // Close window

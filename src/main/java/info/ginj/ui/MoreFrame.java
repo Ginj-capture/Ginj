@@ -85,7 +85,7 @@ public class MoreFrame extends JFrame {
     }
 
     private void onAbout() {
-        JOptionPane.showMessageDialog(this, "This is " + Ginj.getAppName() + " version " + Ginj.getVersion() + "\nPlease checkout http://ginj.info for more information.", "About Ginj", JOptionPane.INFORMATION_MESSAGE);
+        new AboutDialog(starWindow).setVisible(true);
     }
 
     private void onQuit() {

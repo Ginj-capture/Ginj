@@ -477,4 +477,25 @@ public class UI {
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                 JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
+
+    public static String readDisplayDetails() {
+        String displayDetails = "";
+        GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice[] screenDevices = graphicsEnvironment.getScreenDevices();
+        for (int currentDisplay = 0; currentDisplay < screenDevices.length; currentDisplay++) {
+            GraphicsConfiguration[] screenConfigurations = screenDevices[currentDisplay].getConfigurations();
+            for (int currentConfiguration = 0; currentConfiguration < screenConfigurations.length; currentConfiguration++) {
+                GraphicsConfiguration screenConfiguration = screenConfigurations[currentConfiguration];
+                final Rectangle screenBounds = screenConfiguration.getBounds();
+                // determine the "borders" (taskbars, menus):
+                final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
+                displayDetails += "Screen.config " + currentDisplay + "." + currentConfiguration + ": "
+                        + screenBounds.width + "x" + screenBounds.height + "@" + screenBounds.x + "," + screenBounds.y
+                        + " minus "
+                        + screenInsets.top + "/" + screenInsets.left + "/" + screenInsets.bottom + "/" + screenInsets.right
+                        + " insets.";
+            }
+        }
+        return displayDetails;
+    }
 }

@@ -21,10 +21,8 @@ public class OptionsDialog extends JDialog {
 
     public OptionsDialog(StarWindow starWindow) {
         super();
-        // When entering a modal dialog, hotkey must be disabled, otherwise the app gets locked
-        starWindow.unregisterHotKey();
-        OptionsDialog.starWindow = starWindow;
         setModal(true);
+        OptionsDialog.starWindow = starWindow;
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " options");
@@ -124,17 +122,12 @@ public class OptionsDialog extends JDialog {
         }
         Prefs.save();
 
-        // Exiting modal dialog: Restore the hotkey behaviour (previous or new)
-        starWindow.registerHotKey();
-
         // Close window
         dispose();
     }
 
 
     private void onCancel() {
-        // Restore the previous hotkey
-        starWindow.registerHotKey();
         // Close window
         dispose();
     }

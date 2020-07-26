@@ -94,7 +94,6 @@ public class StarWindow extends JWindow {
 
     // Monitor opened frames
     private HistoryFrame historyFrame;
-    private MoreFrame moreFrame;
     private TargetManagementFrame targetManagementFrame;
     private final Set<TargetListChangeListener> targetListChangeListener = new HashSet<>();
 
@@ -172,16 +171,19 @@ public class StarWindow extends JWindow {
         this.historyFrame = historyFrame;
     }
 
-    public void setMoreFrame(MoreFrame moreFrame) {
-        this.moreFrame = moreFrame;
+    /**
+     * This makes sure only one target management window is open, no matter if requested by "capture editing" or by the "more" dialog
+     */
+    public void openTargetManagementFrame() {
+        if (targetManagementFrame == null) {
+            targetManagementFrame = new TargetManagementFrame(this);
+        }
+        targetManagementFrame.setVisible(true);
+        targetManagementFrame.requestFocus();
     }
 
-    public TargetManagementFrame getTargetManagementFrame() {
-        return targetManagementFrame;
-    }
-
-    public void setTargetManagementFrame(TargetManagementFrame targetManagementFrame) {
-        this.targetManagementFrame = targetManagementFrame;
+    public void clearTargetManagementFrame() {
+        targetManagementFrame = null;
     }
 
     public class MainPane extends JPanel {
@@ -712,11 +714,7 @@ public class StarWindow extends JWindow {
 
 
     private void onMore() {
-        if (moreFrame == null) {
-            moreFrame = new MoreFrame(this);
-        }
-        moreFrame.setVisible(true);
-        moreFrame.requestFocus();
+        new MoreDialog(this).setVisible(true);
     }
 
 

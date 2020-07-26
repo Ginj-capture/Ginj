@@ -504,11 +504,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     }
 
     private void onConfigureTargets() {
-        if (starWindow.getTargetManagementFrame() == null) {
-            starWindow.setTargetManagementFrame(new TargetManagementFrame(starWindow));
-        }
-        starWindow.getTargetManagementFrame().setVisible(true);
-        starWindow.getTargetManagementFrame().requestFocus();
+        starWindow.openTargetManagementFrame();
     }
 
     private void onCustomize() {

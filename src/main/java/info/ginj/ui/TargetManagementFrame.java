@@ -246,7 +246,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
     @Override
     public void dispose() {
         // Unregister this window
-        starWindow.setTargetManagementFrame(null);
+        starWindow.clearTargetManagementFrame();
         starWindow.removeTargetChangeListener(this);
         super.dispose();
     }

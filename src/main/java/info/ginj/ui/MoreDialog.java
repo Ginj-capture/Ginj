@@ -10,14 +10,17 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * This window centralizes access to settings, targets, and other features
+ * This dialog centralizes access to settings, targets, and other features
  */
-public class MoreFrame extends JFrame {
+public class MoreDialog extends JDialog {
 
     private final StarWindow starWindow;
 
-    public MoreFrame(StarWindow starWindow) {
+    public MoreDialog(StarWindow starWindow) {
         super();
+        // When entering a modal dialog, hotkey must be disabled, otherwise the app gets locked if hotkey gets pressed
+        starWindow.unregisterHotKey();
+        setModal(true);
         this.starWindow = starWindow;
 
         // For Alt+Tab behaviour
@@ -77,11 +80,7 @@ public class MoreFrame extends JFrame {
     }
 
     private void onManageTargets() {
-        if (starWindow.getTargetManagementFrame() == null) {
-            starWindow.setTargetManagementFrame(new TargetManagementFrame(starWindow));
-        }
-        starWindow.getTargetManagementFrame().setVisible(true);
-        starWindow.getTargetManagementFrame().requestFocus();
+        starWindow.openTargetManagementFrame();
     }
 
     private void onOptions() {
@@ -100,7 +99,8 @@ public class MoreFrame extends JFrame {
     }
 
     private void onClose() {
-        starWindow.setMoreFrame(null);
+        // Restore the previous hotkey
+        starWindow.registerHotKey();
         // Close window
         dispose();
     }

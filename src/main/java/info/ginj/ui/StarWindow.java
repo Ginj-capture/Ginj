@@ -11,9 +11,7 @@ import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -126,6 +124,13 @@ public class StarWindow extends JWindow {
         });
 
         registerHotKey();
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+                toFront();
+            }
+        });
 
         // Prepare to show Window
         pack();

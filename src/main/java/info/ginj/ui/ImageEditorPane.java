@@ -110,7 +110,7 @@ public class ImageEditorPane extends JLayeredPane {
                 }
                 else {
                     // Only a handle is dragged
-                    selectedOverlay.moveHandle(selectedHandleIndex, mousePosition);
+                    selectedHandleIndex = selectedOverlay.moveHandle(selectedHandleIndex, mousePosition);
                 }
                 repaint();
             }

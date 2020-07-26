@@ -50,7 +50,7 @@ public class ArrowOverlay extends Overlay {
     /**
      * Returns all handles of the component. Handles are squares displayed over the selected overlay, providing ways to change its shape.
      * By convention, when a component is first drawn, getHandles()[0] is the end of the drawing (arrowhead or second point of rectangle)
-     * @return
+     * @return an array with all handles of this component
      */
     @Override
     public Point[] getHandles() {
@@ -64,10 +64,13 @@ public class ArrowOverlay extends Overlay {
      * @param newPosition the new position of that handle
      * @param skipSizeChecks if true, no size checks are made. This is required when moving a component by shifting
      *                       all its handles because during the loop on the handles, some corners may break the rules
-     */    @Override
-    public void setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks) {
+     * @return the index of the (new) handle to move from now on. Normally = handleIndex param, except when changing quadrants
+     */
+    @Override
+    public int setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks) {
         if (handleIndex == 0) end = newPosition;
         else start = newPosition;
+        return handleIndex;
     }
 
 

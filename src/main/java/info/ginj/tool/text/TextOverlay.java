@@ -103,12 +103,12 @@ public class TextOverlay extends RectangleOverlay {
     }
 
     @Override
-    public void setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks) {
-        super.setHandlePosition(handleIndex, newPosition, skipSizeChecks);
+    public int setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks) {
         // As in Jing, moving or resizing a text overlay gives the focus to the TextArea
         if (!textArea.hasFocus()) {
             textArea.requestFocusInWindow();
         }
+        return super.setHandlePosition(handleIndex, newPosition, skipSizeChecks);
     }
 
     @Override

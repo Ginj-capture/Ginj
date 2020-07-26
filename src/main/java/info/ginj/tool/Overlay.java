@@ -233,16 +233,18 @@ public abstract class Overlay extends JPanel {
      * By convention, when a component is first drawn, the end of the drawing (arrowhead or second point of rectangle) is returned with index 0
      * @param handleIndex the index of the handle
      * @param newPosition the new position of that handle
+     * @return the index of the (new) handle to move from now on. Normally = handleIndex param, except when changing quadrants
      */
-    public final void moveHandle(int handleIndex, Point newPosition) {
+    public final int moveHandle(int handleIndex, Point newPosition) {
         if (handleIndex != NO_INDEX) {
             // This is a move of one handle
-            setHandlePosition(handleIndex, newPosition, false);
+            handleIndex = setHandlePosition(handleIndex, newPosition, false);
             clearShadow();
         }
         else {
             System.err.print("moveHandle with a handleIndex = NO_INDEX");
         }
+        return handleIndex;
     }
 
     /**
@@ -314,7 +316,7 @@ public abstract class Overlay extends JPanel {
     /**
      * Returns all handles of the component. Handles are squares displayed over the selected overlay, providing ways to change its shape.
      * By convention, when a component is first drawn, getHandles()[0] is the handle at the "end" of the drawing (arrowhead or second point of rectangle).
-     * @return the array of all handles for this overlay
+     * @return an array with all handles of this component
      */
     @java.beans.Transient
     public abstract Point[] getHandles();
@@ -325,7 +327,8 @@ public abstract class Overlay extends JPanel {
      * @param handleIndex the index of the handle to move
      * @param newPosition the new position of that handle
      * @param skipSizeChecks if true, no size checks are made. This can be required when moving a component by shifting all its handles
+     * @return the index of the (new) handle to move from now on. Normally = handleIndex param, except when changing quadrants
      */
-    protected abstract void setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks);
+    protected abstract int setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks);
 
 }

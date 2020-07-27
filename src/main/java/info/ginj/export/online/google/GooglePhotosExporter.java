@@ -296,12 +296,12 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new CommunicationException("Could not parse album list response as String: " + response.getEntity());
+                    throw new CommunicationException("Could not parse album list response as String:\n" + response.getEntity());
                 }
                 return new Gson().fromJson(responseText, AlbumList.class);
             }
             else {
-                throw new CommunicationException("The server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when listing albums:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -341,7 +341,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new AuthorizationException("Could not parse album sharing response as String: " + response.getEntity());
+                    throw new AuthorizationException("Could not parse album sharing response as String:\n" + response.getEntity());
                 }
 
                 ShareResult shareResult = new Gson().fromJson(responseText, ShareResult.class);
@@ -352,7 +352,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 // and return it.
             }
             else {
-                throw new CommunicationException("The server returned an error when sharing album: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when sharing album:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -385,12 +385,12 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new CommunicationException("Could not parse album list response as String: " + response.getEntity());
+                    throw new CommunicationException("Could not parse album list response as String:\n" + response.getEntity());
                 }
                 return new Gson().fromJson(responseText, Album.class);
             }
             else {
-                throw new CommunicationException("The server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when listing albums:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -434,13 +434,13 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new CommunicationException("Could not parse album creation response as String: " + response.getEntity());
+                    throw new CommunicationException("Could not parse album creation response as String:\n" + response.getEntity());
                 }
                 // Parse response back
                 return gson.fromJson(responseText, Album.class);
             }
             else {
-                throw new CommunicationException("The server returned an error when creating album: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when creating album:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -478,11 +478,11 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 //                    uploadToken = EntityUtils.toString(response.getEntity());
 //                }
 //                catch (ParseException e) {
-//                    throw new CommunicationException("Could not parse media upload response as String: " + response.getEntity());
+//                    throw new CommunicationException("Could not parse media upload response as String:\n" + response.getEntity());
 //                }
 //            }
 //            else {
-//                throw new UploadException("The server returned an error when uploading file contents: " + getResponseError(response));
+//                throw new UploadException("The server returned the following error when uploading file contents:\n" + getResponseError(response));
 //            }
 //        }
 //        catch (IOException e) {
@@ -546,11 +546,11 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     }
                 }
                 catch (ProtocolException e) {
-                    throw new CommunicationException("Protocol exception initializing upload: " + response.getEntity());
+                    throw new CommunicationException("Protocol exception initializing upload:\n" + response.getEntity());
                 }
             }
             else {
-                throw new UploadException("The server returned an error when uploading file contents: " + getResponseError(response));
+                throw new UploadException("The server returned the following error when uploading file contents:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -599,16 +599,16 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                         uploadToken = EntityUtils.toString(response.getEntity());
                     }
                     catch (ParseException e) {
-                        throw new CommunicationException("Could not parse media upload response as String: " + response.getEntity());
+                        throw new CommunicationException("Could not parse media upload response as String:\n" + response.getEntity());
                     }
                 }
                 else {
                     final String responseError = getResponseError(response);
                     if ((response.getCode() / 100) == 5) {
                         // Error 5xx
-                        throw new UploadException("Resuming not implemented yet: " + responseError);
+                        throw new UploadException("Resuming not implemented yet:\n" + responseError);
                     }
-                    throw new UploadException("The server returned an error when uploading file contents: " + responseError);
+                    throw new UploadException("The server returned the following error when uploading file contents:\n" + responseError);
                 }
             }
             catch (IOException e) {
@@ -674,7 +674,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new AuthorizationException("Could not parse media creation response as String: " + response.getEntity());
+                    throw new AuthorizationException("Could not parse media creation response as String:\n" + response.getEntity());
                 }
 
                 MediaCreationResponse mediaCreationResponse = new Gson().fromJson(responseText, MediaCreationResponse.class);
@@ -692,7 +692,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 return mediaItemResult.getMediaItem().getId();
             }
             else {
-                throw new UploadException("The server returned an error when creating media: " + getResponseError(response));
+                throw new UploadException("The server returned the following error when creating media:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {

@@ -291,7 +291,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
 
     private void checkScopesResponse(String error, String code, List<String> allowedScopes) throws AuthorizationException {
         if (error != null) {
-            throw new AuthorizationException(getExporterName() + " returned an error: " + error);
+            throw new AuthorizationException(getExporterName() + " returned the following error:\n" + error);
         }
         if (code == null || code.isEmpty()) {
             throw new AuthorizationException("Missing code (" + code + ") in " + getExporterName() + " response.");

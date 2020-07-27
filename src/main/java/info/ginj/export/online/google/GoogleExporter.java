@@ -134,11 +134,11 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
 
                 final List<String> missingScopes = getMissingScopes(scopeStr);
                 if (!missingScopes.isEmpty()) {
-                    throw new AuthorizationException("The authorizations below are missing for " + getExporterName() + ". Please re-authorize this account.\n Missing scopes: " + missingScopes);
+                    throw new AuthorizationException("The authorizations below are missing for " + getExporterName() + ".\nPlease re-authorize this account.\n Missing scopes: " + missingScopes);
                 }
             }
             else {
-                throw new AuthorizationException("The server returned an error when listing albums: " + getResponseError(response));
+                throw new AuthorizationException("The server returned the following error when listing albums:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -187,11 +187,11 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
                     return profile;
                 }
                 catch (ParseException e) {
-                    throw new CommunicationException("Could not parse account information response as String: " + response.getEntity());
+                    throw new CommunicationException("Could not parse account information response as String:\n" + response.getEntity());
                 }
             }
             else {
-                throw new CommunicationException("The server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when listing albums:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {

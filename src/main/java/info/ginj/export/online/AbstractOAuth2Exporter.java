@@ -230,7 +230,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
                 }
             }
             else {
-                throw new AuthorizationException("Server returned code " + getResponseError(response));
+                throw new AuthorizationException("The server returned code " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -404,7 +404,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
                 }
             }
             else {
-                // throw new AuthorizationException("Server returned code " + getResponseError(response));
+                // throw new AuthorizationException("The server returned code " + getResponseError(response));
                 // This code used to track a nasty bug and throw additional info in that case... I'm leaving it.
                 final int code = response.getCode();
                 String responseText = null;
@@ -417,7 +417,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
 
                 // Fine tune the error message
                 if (responseText == null) {
-                    throw new AuthorizationException("Server returned code " + code);
+                    throw new AuthorizationException("The server returned code " + code);
                 }
                 else {
                     if (code == 400) {
@@ -438,7 +438,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
                         }
                     }
 
-                    throw new AuthorizationException("Server returned code " + code + " (" + responseText + ")");
+                    throw new AuthorizationException("The server returned code " + code + " (" + responseText + ")");
                 }
 
             }

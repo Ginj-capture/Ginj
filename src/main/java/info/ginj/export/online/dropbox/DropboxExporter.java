@@ -197,7 +197,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                 return profile;
             }
             else {
-                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned an error when listing albums: " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -298,7 +298,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                     // Don't know if Dropbox actually uses it but well
                     throw new UploadException("Resuming not implemented yet: " + responseError);
                 }
-                throw new UploadException("Server returned an error when starting file contents: " + responseError);
+                throw new UploadException("The server returned an error when starting file contents: " + responseError);
             }
         }
         catch (IOException e) {
@@ -337,7 +337,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                         // Don't know if Dropbox actually uses it but well
                         throw new UploadException("Resuming not implemented yet: " + responseError);
                     }
-                    throw new UploadException("Server returned an error when appending file contents: " + responseError);
+                    throw new UploadException("The server returned an error when appending file contents: " + responseError);
                 }
             }
             catch (IOException e) {
@@ -398,7 +398,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                     // Don't know if Dropbox actually uses it but well
                     throw new UploadException("Resuming not implemented yet: " + responseError);
                 }
-                throw new UploadException("Server returned an error when finishing file contents: " + responseError);
+                throw new UploadException("The server returned an error when finishing file contents: " + responseError);
             }
         }
         catch (IOException e) {
@@ -451,7 +451,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                 }
             }
             else {
-                throw new CommunicationException("Server returned an error when creating shared link: " + getResponseError(response));
+                throw new CommunicationException("The server returned an error when creating shared link: " + getResponseError(response));
             }
         }
         catch (IOException e) {

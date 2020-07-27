@@ -301,7 +301,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 return new Gson().fromJson(responseText, AlbumList.class);
             }
             else {
-                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned an error when listing albums: " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -352,7 +352,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 // and return it.
             }
             else {
-                throw new CommunicationException("Server returned an error when sharing album: " + getResponseError(response));
+                throw new CommunicationException("The server returned an error when sharing album: " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -390,7 +390,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 return new Gson().fromJson(responseText, Album.class);
             }
             else {
-                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned an error when listing albums: " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -440,7 +440,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 return gson.fromJson(responseText, Album.class);
             }
             else {
-                throw new CommunicationException("Server returned an error when creating album: " + getResponseError(response));
+                throw new CommunicationException("The server returned an error when creating album: " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -482,7 +482,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 //                }
 //            }
 //            else {
-//                throw new UploadException("Server returned an error when uploading file contents: " + getResponseError(response));
+//                throw new UploadException("The server returned an error when uploading file contents: " + getResponseError(response));
 //            }
 //        }
 //        catch (IOException e) {
@@ -550,7 +550,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 }
             }
             else {
-                throw new UploadException("Server returned an error when uploading file contents: " + getResponseError(response));
+                throw new UploadException("The server returned an error when uploading file contents: " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -608,7 +608,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                         // Error 5xx
                         throw new UploadException("Resuming not implemented yet: " + responseError);
                     }
-                    throw new UploadException("Server returned an error when uploading file contents: " + responseError);
+                    throw new UploadException("The server returned an error when uploading file contents: " + responseError);
                 }
             }
             catch (IOException e) {
@@ -692,7 +692,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 return mediaItemResult.getMediaItem().getId();
             }
             else {
-                throw new UploadException("Server returned an error when creating media: " + getResponseError(response));
+                throw new UploadException("The server returned an error when creating media: " + getResponseError(response));
             }
         }
         catch (IOException e) {

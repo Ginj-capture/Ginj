@@ -138,7 +138,7 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
                 }
             }
             else {
-                throw new AuthorizationException("Server returned an error when listing albums: " + getResponseError(response));
+                throw new AuthorizationException("The server returned an error when listing albums: " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -191,7 +191,7 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
                 }
             }
             else {
-                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned an error when listing albums: " + getResponseError(response));
             }
         }
         catch (IOException e) {

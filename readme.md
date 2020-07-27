@@ -73,7 +73,7 @@ Great. Head over to the [latest release page](https://github.com/Ginj-capture/Gi
 
 Note 1: there's no splash screen yet, so look for the circle at the center top of your desktop.
 
-Note 2: if you already have OpenJDK 14 installed and configured by default, you may alternately just download the executable .jar (less than 3Mb for all Ginj code and libraries) and launch Ginj by typing `java -jar Ginj.jar` in the download folder.
+Note 2: if you already have OpenJDK 14 installed and configured by default, you may alternately just download the executable .jar (around 5MB of which 600KB for Ginj code and the rest for libraries) and launch Ginj by typing `java -jar Ginj.jar` in the download folder.
 
 #### Credits. 
 

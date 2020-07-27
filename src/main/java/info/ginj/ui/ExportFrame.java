@@ -8,6 +8,8 @@ import info.ginj.model.Target;
 import info.ginj.ui.component.YellowLabel;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -26,6 +28,8 @@ import java.nio.file.Files;
  * This "small" progress window is responsible for starting, monitoring, and controlling an export in background.
  */
 public class ExportFrame extends JFrame implements ExportMonitor {
+
+    private static final Logger logger = LoggerFactory.getLogger(ExportFrame.class);
 
     private final JLabel stateLabel;
     private final JLabel sizeLabel;
@@ -236,7 +240,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
             }
         }
         catch (IOException e) {
-            UI.alertException(this, "Save error", "Saving capture to history failed (" + originalFile.getAbsolutePath() + ")", e);
+            UI.alertException(this, "Save error", "Saving capture to history failed (" + originalFile.getAbsolutePath() + ")", e, logger);
             return false;
         }
 
@@ -293,7 +297,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
                 }
             }
             catch (IOException e) {
-                UI.alertException(this, "Save error", "Saving thumbnail to history failed (" + thumbnailFile.getAbsolutePath() + ")", e);
+                UI.alertException(this, "Save error", "Saving thumbnail to history failed (" + thumbnailFile.getAbsolutePath() + ")", e, logger);
                 return false;
             }
         }

@@ -331,14 +331,6 @@ public class UI {
 
     // Convenience methods to display a message from a separate Thread
 
-    /**
-     * @deprecated use version with logger
-     */
-    public static void alertException(Component parentComponent, String title, String messagePrefix, Exception e) {
-        e.printStackTrace();
-        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information (or start '" + Ginj.getAppName() + " /create-i4j-log' next time to save logs)", title, JOptionPane.ERROR_MESSAGE));
-    }
-
     public static void alertException(Component parentComponent, String title, String messagePrefix, Exception e, Logger logger) {
         logger.error(messagePrefix, e);
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information (or start '" + Ginj.getAppName() + " /create-i4j-log' next time to save logs)", title, JOptionPane.ERROR_MESSAGE));

@@ -27,6 +27,8 @@ import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -46,6 +48,8 @@ import static info.ginj.util.Misc.DATE_FORMAT_PATTERN;
  * TODO: videos must be max 10GB
  */
 public class GooglePhotosExporter extends GoogleExporter implements OnlineExporter {
+
+    private static final Logger logger = LoggerFactory.getLogger(GooglePhotosExporter.class);
 
     // "Access to create an album, share it, upload media items to it, and join a shared album."
     private static final String[] GOOGLE_PHOTOS_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/photoslibrary.appendonly", "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata", "https://www.googleapis.com/auth/photoslibrary.sharing"};
@@ -131,7 +135,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             complete(message);
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e, logger);
             failed("Upload error");
         }
     }

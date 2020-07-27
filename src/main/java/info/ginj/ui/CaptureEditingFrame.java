@@ -99,7 +99,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
                     originalImage = ImageIO.read(capture.getOriginalFile());
                 }
                 catch (IOException e) {
-                    UI.alertException(this, "Load error", "Error loading capture file '" + capture.getOriginalFile() + "'", e);
+                    UI.alertException(this, "Load error", "Error loading capture file '" + capture.getOriginalFile() + "'", e, logger);
                     originalImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
                 }
             }

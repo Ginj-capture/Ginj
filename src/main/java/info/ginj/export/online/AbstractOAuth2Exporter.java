@@ -21,6 +21,8 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
@@ -45,6 +47,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * see https://www.dropbox.com/lp/developers/reference/oauth-guide
  */
 public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineExporter {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractOAuth2Exporter.class);
+
     public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + UI.colorToHex(UI.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + UI.colorToHex(UI.LABEL_FOREGROUND_COLOR) + ";} a{color:" + UI.colorToHex(UI.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";
     protected static final int PORT_GINJ = 6193;
@@ -82,12 +87,12 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
             checkAuthorizations(target.getAccount());
         }
         catch (AuthorizationException e) {
-            UI.alertException(parentFrame, getExporterName() + " authorization error", "Ginj was not authorized on " + getExporterName() + ".\nPlease go to " + Ginj.getAppName() + " preferences to re-authorize.", e);
+            UI.alertException(parentFrame, getExporterName() + " authorization error", "Ginj was not authorized on " + getExporterName() + ".\nPlease go to " + Ginj.getAppName() + " preferences to re-authorize.", e, logger);
             failed("Authorization error");
             return false;
         }
         catch (CommunicationException e) {
-            UI.alertException(parentFrame, getExporterName() + " authorization check error", "There was an error checking authorization on " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + " authorization check error", "There was an error checking authorization on " + getExporterName(), e, logger);
             failed("Communication error");
             return false;
         }

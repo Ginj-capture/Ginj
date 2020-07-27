@@ -21,6 +21,8 @@ import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -32,6 +34,9 @@ import java.util.Map;
  * see https://www.dropbox.com/developers/documentation/http/documentation
  */
 public class DropboxExporter extends AbstractOAuth2Exporter {
+
+    private static final Logger logger = LoggerFactory.getLogger(DropboxExporter.class);
+
     private static final String DROPBOX_CLIENT_APP_KEY = "pdio3i9brehyjo1";
     private static final String DROPBOX_OAUTH2_AUTH_URL = "https://www.dropbox.com/oauth2/authorize";
     private static final String DROPBOX_OAUTH2_TOKEN_URL = "https://api.dropboxapi.com/oauth2/token";
@@ -136,7 +141,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             complete(message);
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e, logger);
             failed("Upload error");
         }
     }

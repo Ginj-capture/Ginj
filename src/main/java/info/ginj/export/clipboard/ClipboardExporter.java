@@ -5,6 +5,8 @@ import info.ginj.model.Capture;
 import info.ginj.model.Export;
 import info.ginj.model.Target;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -17,7 +19,7 @@ import java.awt.datatransfer.Clipboard;
  */
 public class ClipboardExporter extends Exporter {
 
-
+    private static final Logger logger = LoggerFactory.getLogger(ClipboardExporter.class);
     public static final String NAME = "Clipboard";
 
     @Override
@@ -81,7 +83,7 @@ public class ClipboardExporter extends Exporter {
             complete("Image copied to clipboard");
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, "Export error", "There was an error copying image to the clipboard", e);
+            UI.alertException(parentFrame, "Export error", "There was an error copying image to the clipboard", e, logger);
             failed("Error copying capture");
         }
     }

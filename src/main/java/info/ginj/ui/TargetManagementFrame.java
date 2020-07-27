@@ -397,8 +397,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                             isOK = true;
                         }
                     }
-                    catch (AuthorizationException | CommunicationException ex) {
-                        UI.alertException(OAuthAuthorizePage.this, "", "", ex);
+                    catch (AuthorizationException | CommunicationException e) {
+                        UI.alertException(OAuthAuthorizePage.this, "Authorisation error", "An error occurred while processing authorization", e, logger);
                     }
                     finally {
                         setBusy(false);

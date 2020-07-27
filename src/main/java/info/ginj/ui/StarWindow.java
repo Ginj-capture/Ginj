@@ -5,6 +5,8 @@ import info.ginj.Ginj;
 import info.ginj.model.Prefs;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -25,6 +27,8 @@ import java.util.Set;
  * UI transparency based on sample code by MadProgrammer at https://stackoverflow.com/questions/26205164/java-custom-shaped-frame-using-image
  */
 public class StarWindow extends JWindow {
+
+    private static final Logger logger = LoggerFactory.getLogger(StarWindow.class);
 
     private Provider hotKeyProvider;
 
@@ -128,7 +132,7 @@ public class StarWindow extends JWindow {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowDeactivated(WindowEvent e) {
-                System.out.println("Window got deactivated. Trying to recover...");
+                logger.warn("Window got deactivated. Trying to recover...");
                 setVisible(true);
                 toFront();
             }
@@ -235,8 +239,7 @@ public class StarWindow extends JWindow {
 
             }
             catch (IOException e) {
-                System.err.println("Error loading images for the main star UI");
-                e.printStackTrace();
+                logger.error("Error loading images for the main star UI", e);
                 System.exit(Ginj.ERR_STATUS_LOAD_IMG);
             }
 
@@ -433,7 +436,7 @@ public class StarWindow extends JWindow {
     @Override
     public void setLocation(int x, int y) {
         if (!isDragging) {
-            System.out.println("Widget location = (" + x + ", " + y + ").");
+            logger.info("Widget location = (" + x + ", " + y + ").");
         }
         super.setLocation(x, y);
     }
@@ -688,7 +691,7 @@ public class StarWindow extends JWindow {
     @Override
     public void dispose() {
         super.dispose();
-        System.out.println("StarWindow disposed.");
+        logger.info("StarWindow disposed.");
         System.exit(Ginj.ERR_STATUS_OK);
     }
 
@@ -786,7 +789,7 @@ public class StarWindow extends JWindow {
 //            //timer.stop();
 //        }
 //        catch (Exception e){
-//            e.printStackTrace();
+//            logger.error("Splash screen error", e);
 //            // In all cases, ignore exceptions and skip animation
 //        }
 //    }

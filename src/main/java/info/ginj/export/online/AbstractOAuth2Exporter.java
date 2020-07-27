@@ -109,7 +109,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
             sr.nextBytes(code);
             final Base64.Encoder encoder = Base64.getUrlEncoder();
             verifier = encoder.encodeToString(code).replaceAll("=+$", ""); // replacement required for Dropbox
-            // System.out.println("verifier = " + verifier);
+            // Logger.info("verifier = " + verifier);
 
             // Create a Code Challenge
             byte[] bytes = verifier.getBytes(StandardCharsets.US_ASCII);
@@ -117,7 +117,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
             md.update(bytes, 0, bytes.length);
             byte[] digest = md.digest();
             final String challenge = encoder.encodeToString(digest).replaceAll("=+$", ""); // replacement required for Google
-            // System.out.println("challenge = " + challenge);
+            // Logger.info("challenge = " + challenge);
 
             // Prepare the URL to forward the user to
             String url = getOAuth2AuthorizeUrl()
@@ -135,7 +135,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
             if (requiredScopes != null) {
                 url += "&scope=" + encodeScopes(requiredScopes);
             }
-            // System.out.println("url = " + url);
+            // Logger.info("url = " + url);
 
             // Step 2: Send a request to the OAuth 2.0 server
 
@@ -265,7 +265,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
                 if (receivedCode == null) {
                     // First callback. Remember the received code, which will continue at Step 5.
                     receivedCode = code;
-                    // System.out.println("Server received code = " + code);
+                    // Logger.info("Server received code = " + code);
                 }
             }
             catch (Exception e) {

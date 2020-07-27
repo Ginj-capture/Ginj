@@ -5,6 +5,8 @@ import info.ginj.Ginj;
 import info.ginj.model.Prefs;
 import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,7 +17,9 @@ import java.awt.*;
  * This window allows a user to set her or his preferences
  */
 public class OptionsDialog extends JDialog {
-    
+
+    private static final Logger logger = LoggerFactory.getLogger(OptionsDialog.class);
+
     private static StarWindow starWindow = null;
     private final JTextField hotKeyTextField;
 
@@ -116,7 +120,7 @@ public class OptionsDialog extends JDialog {
         if (newHotKey != null && !newHotKey.equals(Prefs.get(Prefs.Key.CAPTURE_HOTKEY))) {
             // Hotkey changed
             if (newHotKey.length() == 0) {
-                System.out.println("Removing capture hotkey");
+                logger.info("Removing capture hotkey");
                 Prefs.remove(Prefs.Key.CAPTURE_HOTKEY);
             }
             else {

@@ -5,6 +5,8 @@ import info.ginj.model.TargetPrefs;
 import info.ginj.ui.StarWindow;
 import info.ginj.ui.laf.GinjSynthLookAndFeel;
 import info.ginj.util.Misc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.plaf.synth.SynthLookAndFeel;
@@ -19,6 +21,9 @@ import java.util.concurrent.FutureTask;
 import static java.awt.GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSLUCENT;
 
 public class Ginj {
+
+    private static final Logger logger = LoggerFactory.getLogger(Ginj.class);
+
     public static final String APP_VERSION = "0.3.6";
 
     public static final String LAF_XML = "/synth.xml";
@@ -42,7 +47,7 @@ public class Ginj {
 
         //If translucent windows aren't supported, exit.
         if (!gd.isWindowTranslucencySupported(PERPIXEL_TRANSLUCENT)) {
-            System.err.println("Per-pixel translucency is not supported");
+            logger.error("Per-pixel translucency is not supported");
             System.exit(ERR_STATUS_TRANSPARENCY);
         }
 
@@ -54,8 +59,7 @@ public class Ginj {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         }
         catch (Exception e) {
-            System.err.println("Error loading Ginj look and feel");
-            e.printStackTrace();
+            logger.error("Error loading " + getAppName() + " look and feel", e);
             System.exit(ERR_STATUS_LAF);
         }
 

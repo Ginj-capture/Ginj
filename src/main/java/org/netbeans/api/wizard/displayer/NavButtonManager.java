@@ -497,7 +497,7 @@ public class NavButtonManager implements ActionListener
         try
         {
             Object o = wizard.finish(settings);
-            // System.err.println("WIZARD FINISH GOT ME A " + o);
+            // logger.error("WIZARD FINISH GOT ME A " + o);
 
             boolean closeWindow = true;
 
@@ -573,12 +573,12 @@ public class NavButtonManager implements ActionListener
         Wizard wizard = parent.getWizard();
         MergeMap settings = parent.getSettings();
         
-        // System.err.println("ProcessCancel " + reallyCancel + " receiver " + parent.receiver);
+        // logger.error("ProcessCancel " + reallyCancel + " receiver " + parent.receiver);
         boolean closeWindow = false;
         
         if (reallyCancel && parent.cancel()) 
         {
-            // System.err.println("DO CANCEL");
+            // logger.error("DO CANCEL");
             logger.fine("calling wizard cancel method on " + wizard);
             wizard.cancel (settings);
             return;

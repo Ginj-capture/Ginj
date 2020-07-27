@@ -31,6 +31,9 @@
 
 package info.ginj.ui.layout;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -44,14 +47,17 @@ import java.awt.*;
  * https://docs.oracle.com/javase/tutorial/uiswing/layout/spring.html
  */
 public class SpringLayoutUtilities {
+
+    private static final Logger logger = LoggerFactory.getLogger(SpringLayoutUtilities.class);
+
     /**
      * A debugging utility that prints to stdout the component's
      * minimum, preferred, and maximum sizes.
      */
     public static void printSizes(Component c) {
-        System.out.println("minimumSize = " + c.getMinimumSize());
-        System.out.println("preferredSize = " + c.getPreferredSize());
-        System.out.println("maximumSize = " + c.getMaximumSize());
+        logger.info("minimumSize = " + c.getMinimumSize());
+        logger.info("preferredSize = " + c.getPreferredSize());
+        logger.info("maximumSize = " + c.getMaximumSize());
     }
 
     /**
@@ -76,8 +82,8 @@ public class SpringLayoutUtilities {
         try {
             layout = (SpringLayout) parent.getLayout();
         }
-        catch (ClassCastException exc) {
-            System.err.println("The first argument to makeGrid must use SpringLayout.");
+        catch (ClassCastException e) {
+            logger.error("The first argument to makeGrid must use SpringLayout.", e);
             return;
         }
 
@@ -164,8 +170,8 @@ public class SpringLayoutUtilities {
         try {
             layout = (SpringLayout) parent.getLayout();
         }
-        catch (ClassCastException exc) {
-            System.err.println("The first argument to makeCompactGrid must use SpringLayout.");
+        catch (ClassCastException e) {
+            logger.error("The first argument to makeCompactGrid must use SpringLayout.", e);
             return;
         }
 

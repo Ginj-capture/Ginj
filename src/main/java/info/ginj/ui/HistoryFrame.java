@@ -9,6 +9,8 @@ import info.ginj.ui.component.YellowLabel;
 import info.ginj.ui.layout.WrapLayout;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
  * This window displays and manages the historized captures
  */
 public class HistoryFrame extends JFrame {
+
+    private static final Logger logger = LoggerFactory.getLogger(HistoryFrame.class);
 
     private final BorderedLabel statusLabel;
 
@@ -222,7 +226,7 @@ public class HistoryFrame extends JFrame {
             }
         }
         catch (Exception e) {
-            UI.alertException(this, "Error", "Error determining captures sharing the same file", e);
+            UI.alertException(this, "Error", "Error determining captures sharing the same file", e, logger);
         }
         return siblingCaptures;
     }
@@ -287,7 +291,7 @@ public class HistoryFrame extends JFrame {
             captureEditingFrame.setVisible(true);
         }
         catch (CloneNotSupportedException e) {
-            UI.alertException(this, "Clone error", "Error creating clone of previous capture", e);
+            UI.alertException(this, "Clone error", "Error creating clone of previous capture", e, logger);
         }
     }
 
@@ -505,8 +509,7 @@ public class HistoryFrame extends JFrame {
                 deleteButton.addActionListener(e -> onDelete(capture));
             }
             catch (Exception e) {
-                UI.alertException(HistoryFrame.this, "Load error", "Error loading capture '" + file.getAbsolutePath() + "'", e);
-                e.printStackTrace();
+                UI.alertException(HistoryFrame.this, "Load error", "Error loading capture '" + file.getAbsolutePath() + "'", e, logger);
             }
         }
 
@@ -540,7 +543,7 @@ public class HistoryFrame extends JFrame {
             synchronized (this) { // in case we reorder while loading is in progress
                 if (capture == null) {
                     loadCapture();
-                    //System.out.println("Loaded " + capture);
+                    //Logger.info("Loaded " + capture);
                 }
             }
             return capture;
@@ -577,8 +580,7 @@ public class HistoryFrame extends JFrame {
                 image = ImageIO.read(new File(imagePath));
             }
             catch (Exception e) {
-                System.err.println("Error reading '" + imagePath + "'...");
-                e.printStackTrace();
+                logger.error("Error reading '" + imagePath + "'...", e);
             }
             repaint();
         }

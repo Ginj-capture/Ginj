@@ -108,7 +108,7 @@ public abstract class RectangleOverlay extends Overlay {
                 }
             }
         }
-        //System.out.println("Rectangle old = " + rOld + " ; new = " + rectangle + " ; delta size = (" + (rectangle.width - rOld.width) + ", " + (rectangle.height - rOld.height) + ")");
+        //Logger.info("Rectangle old = " + rOld + " ; new = " + rectangle + " ; delta size = (" + (rectangle.width - rOld.width) + ", " + (rectangle.height - rOld.height) + ")");
         return handleIndex;
     }
 

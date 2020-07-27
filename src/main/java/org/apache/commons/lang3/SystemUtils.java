@@ -1654,7 +1654,7 @@ public class SystemUtils {
             return System.getProperty(property);
         } catch (final SecurityException ex) {
             // we are not allowed to look at this property
-            // System.err.println("Caught a SecurityException reading the system property '" + property
+            // logger.error("Caught a SecurityException reading the system property '" + property
             // + "'; the SystemUtils property value will default to null.");
             return null;
         }
@@ -1682,7 +1682,7 @@ public class SystemUtils {
             return value == null ? defaultValue : value;
         } catch (final SecurityException ex) {
             // we are not allowed to look at this property
-            // System.err.println("Caught a SecurityException reading the environment variable '" + name + "'.");
+            // logger.error("Caught a SecurityException reading the environment variable '" + name + "'.");
             return defaultValue;
         }
     }

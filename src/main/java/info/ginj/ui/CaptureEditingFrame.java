@@ -15,12 +15,15 @@ import info.ginj.tool.text.TextTool;
 import info.ginj.ui.component.*;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.*;
@@ -32,6 +35,8 @@ import java.util.Date;
 import java.util.List;
 
 public class CaptureEditingFrame extends JFrame implements TargetListChangeListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(CaptureEditingFrame.class);
 
     public static final int TOOL_BUTTON_ICON_WIDTH = 24;
     public static final int TOOL_BUTTON_ICON_HEIGHT = 24;
@@ -395,8 +400,8 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
             try {
                 undoManager.undo();
             }
-            catch (CannotRedoException cre) {
-                cre.printStackTrace();
+            catch (CannotUndoException e) {
+                logger.error("Cannot undo", e);
             }
             imagePane.repaint();
             refreshUndoRedoButtons();
@@ -408,8 +413,8 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
             try {
                 undoManager.redo();
             }
-            catch (CannotRedoException cre) {
-                cre.printStackTrace();
+            catch (CannotRedoException e) {
+                logger.error("Cannot redo", e);
             }
             imagePane.repaint();
             refreshUndoRedoButtons();
@@ -423,7 +428,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
      * @param action The undoable action
      */
     public void addUndoableAction(AbstractUndoableAction action) {
-        //System.out.println("Adding undoable action: " + action.getPresentationName());
+        //Logger.info("Adding undoable action: " + action.getPresentationName());
         undoManager.undoableEditHappened(new UndoableEditEvent(imagePane, action));
         refreshUndoRedoButtons();
     }

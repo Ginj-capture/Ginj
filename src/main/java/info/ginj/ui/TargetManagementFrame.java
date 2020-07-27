@@ -19,6 +19,8 @@ import info.ginj.ui.layout.ButtonLayout;
 import info.ginj.util.UI;
 import org.netbeans.api.wizard.WizardDisplayer;
 import org.netbeans.spi.wizard.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -31,6 +33,9 @@ import java.util.*;
  * This window displays and manages the export targets
  */
 public class TargetManagementFrame extends JFrame implements TargetListChangeListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(TargetManagementFrame.class);
+
     public static final Dimension CONFIG_PREFERRED_SIZE = new Dimension(400, 300);
     public static final Dimension DETAIL_PANEL_PREFERRED_SIZE = new Dimension(500, 400);
 
@@ -277,7 +282,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         @SuppressWarnings("rawtypes")
         public Wizard getWizardForStep(String step, Map data) {
-//            System.err.println("Get Wizard For Step " + step + " with " + data);
+//            logger.info("Get Wizard For Step " + step + " with " + data);
             if (SELECT_TARGET_TYPE_STEP.equals(step)) {
                 //check data in the map to decide which wizard will follow
                 final Exporter exporter = (Exporter) data.get(TargetPrefs.EXPORTER_KEY);
@@ -648,7 +653,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
                     // Safeguard
                     if (!settingsMap.isEmpty()) {
-                        System.err.println("Unhandled settings in map: " + settingsMap);
+                        logger.warn("Unhandled settings in map: " + settingsMap);
                     }
 
                     final TargetPrefs targetPrefs = Ginj.getTargetPrefs();
@@ -662,13 +667,13 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                     return Summary.create("The following target was configured successfully:\n\n" + map.get(TargetPrefs.DISPLAY_NAME_KEY) + "\n\n" + getAdditionalFinishText(map), map);
                 }
                 else {
-                    System.err.println(map);
+                    logger.error("Error saving target, no exporter in map: " + map);
                     return Summary.create("There was an error saving target, no exporter in map.", map);
                 }
             }
             catch (Exception e) {
-                System.err.println(map);
-                e.printStackTrace();
+                logger.error("Error saving target", e);
+                logger.info("Map was " + map);
                 return Summary.create("There was an error saving target, please check the console", map);
             }
         }

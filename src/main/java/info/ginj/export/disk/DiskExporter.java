@@ -7,6 +7,8 @@ import info.ginj.model.Export;
 import info.ginj.model.Target;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -20,6 +22,8 @@ import java.util.concurrent.ExecutionException;
  * This exporter saves the image as a PNG file to disk, and optionally copies its path to the clipboard
  */
 public class DiskExporter extends Exporter {
+
+    private static final Logger logger = LoggerFactory.getLogger(DiskExporter.class);
 
     public static final String NAME = "Disk";
     public static final int PROGRESS_SAVE_CALC_DESTINATION = 5;
@@ -108,8 +112,7 @@ public class DiskExporter extends Exporter {
             fileChooser = Ginj.futureFileChooser.get();
         }
         catch (InterruptedException | ExecutionException e) {
-            JOptionPane.showMessageDialog(parentFrame, "Error opening file chooser: " + e.getMessage());
-            e.printStackTrace();
+            UI.alertException(parentFrame, "Save error", "Error opening file chooser", e, logger);
             return false;
         }
         fileChooser.setDialogTitle("Save capture as...");
@@ -163,7 +166,7 @@ public class DiskExporter extends Exporter {
             }
         }
         catch (IOException e) {
-            UI.alertException(parentFrame, "Save Error", "Encountered an error while saving image as\n'" + destinationFile.getAbsolutePath() + "'\n" + e.getMessage() + "\nMore info is available on the Java console", e);
+            UI.alertException(parentFrame, "Save Error", "Encountered an error while saving image as\n'" + destinationFile.getAbsolutePath() + "'\n" + e.getMessage() + "\nMore info is available on the Java console", e, logger);
             failed("Save error");
             return;
         }

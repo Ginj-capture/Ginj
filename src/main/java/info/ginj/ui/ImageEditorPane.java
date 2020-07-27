@@ -3,6 +3,8 @@ package info.ginj.ui;
 import info.ginj.action.*;
 import info.ginj.tool.Overlay;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
@@ -14,6 +16,9 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 public class ImageEditorPane extends JLayeredPane {
+
+    private static final Logger logger = LoggerFactory.getLogger(ImageEditorPane.class);
+
     private final CaptureEditingFrame frame;
     private final BufferedImage capturedImg;
     private final Dimension capturedImgSize;
@@ -68,7 +73,7 @@ public class ImageEditorPane extends JLayeredPane {
                         }
                     }
                     else {
-                        System.err.println("Encountered unexpected component: " + component);
+                        logger.error("Encountered unexpected component: " + component, e);
                     }
                 }
                 setSelectedOverlay(foundOverlay);
@@ -117,7 +122,7 @@ public class ImageEditorPane extends JLayeredPane {
 
             public void mouseReleased(MouseEvent e) {
                 if (currentAction == null) {
-                    System.err.println("Mouse released with no currentAction !");
+                    logger.error("Mouse released with no currentAction !", e);
                 }
                 else {
                     final Point released = e.getPoint();

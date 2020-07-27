@@ -4,6 +4,8 @@ import com.github.jjYBdx4IL.utils.awt.Desktop;
 import info.ginj.Ginj;
 import info.ginj.ui.layout.SpringLayoutUtilities;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -27,6 +29,9 @@ import java.net.URL;
 import java.util.Map;
 
 public class UI {
+
+    private static final Logger logger = LoggerFactory.getLogger(UI.class);
+
     public static final Color AREA_SELECTION_COLOR = new Color(251, 185, 1);
     public static final Color SELECTION_SIZE_BOX_COLOR = new Color(0, 0, 0, 128);
     public static final Color UNSELECTED_AREA_DIMMED_COLOR = new Color(144, 144, 144, 112);
@@ -108,8 +113,7 @@ public class UI {
             return new ImageIcon(scaledImage);
         }
         catch (IOException e) {
-            System.err.println("Error loading resource: " + resource);
-            e.printStackTrace();
+            logger.error("Error loading resource: " + resource, e);
             return null;
         }
     }
@@ -326,8 +330,17 @@ public class UI {
     }
 
     // Convenience methods to display a message from a separate Thread
+
+    /**
+     * @deprecated use version with logger
+     */
     public static void alertException(Component parentComponent, String title, String messagePrefix, Exception e) {
         e.printStackTrace();
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information (or start '" + Ginj.getAppName() + " /create-i4j-log' next time to save logs)", title, JOptionPane.ERROR_MESSAGE));
+    }
+
+    public static void alertException(Component parentComponent, String title, String messagePrefix, Exception e, Logger logger) {
+        logger.error(messagePrefix, e);
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information (or start '" + Ginj.getAppName() + " /create-i4j-log' next time to save logs)", title, JOptionPane.ERROR_MESSAGE));
     }
 

@@ -2,6 +2,8 @@ package info.ginj.tool;
 
 import com.jhlabs.image.GaussianFilter;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,6 +11,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 
 public abstract class Overlay extends JPanel {
+
+    private static final Logger logger = LoggerFactory.getLogger(Overlay.class);
+
     public static final RenderingHints ANTI_ALIASING_ON = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     public static final RenderingHints ANTI_ALIASING_OFF = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
@@ -242,7 +247,7 @@ public abstract class Overlay extends JPanel {
             clearShadow();
         }
         else {
-            System.err.print("moveHandle with a handleIndex = NO_INDEX");
+            logger.error("moveHandle with a handleIndex = NO_INDEX");
         }
         return handleIndex;
     }
@@ -263,7 +268,7 @@ public abstract class Overlay extends JPanel {
      */
     public void moveDrawing(int deltaX, int deltaY) {
         // This is a drag'n'drop move => move all points
-        System.out.println("Delta : " + deltaX + ", " + deltaY);
+        //Logger.info("Delta : " + deltaX + ", " + deltaY);
         final Point[] handles = getHandles();
         for (int i = 0; i < handles.length; i++) {
             setHandlePosition(i, new Point(handles[i].x + deltaX, handles[i].y + deltaY), true);

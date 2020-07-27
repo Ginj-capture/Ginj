@@ -3,6 +3,8 @@ package info.ginj.model;
 import info.ginj.Ginj;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
@@ -12,6 +14,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class Prefs {
+
+    private static final Logger logger = LoggerFactory.getLogger(Prefs.class);
 
     public enum Key {
         TOOL_COLOR_PREFIX("tool.color.", "The current color for the corresponding tool", false),
@@ -71,7 +75,7 @@ public class Prefs {
             preferences.load(reader);
         }
         catch (IOException e) {
-            System.err.println("Error reading preferences from " + preferencesFile.getAbsolutePath() + ". Using default preferences...");
+            logger.error("Error reading preferences from " + preferencesFile.getAbsolutePath() + ". Using default preferences...", e);
             resetToDefaults();
         }
     }
@@ -93,7 +97,7 @@ public class Prefs {
             preferences.store(writer, Ginj.getAppName() + " preferences");
         }
         catch (IOException e) {
-            System.err.println("Error writing preferences to " + preferencesFile.getAbsolutePath() + ". Preferences are not saved...");
+            logger.error("Error writing preferences to " + preferencesFile.getAbsolutePath() + ". Preferences are not saved...", e);
         }
     }
 

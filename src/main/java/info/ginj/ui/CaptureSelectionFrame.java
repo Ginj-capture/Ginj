@@ -7,6 +7,8 @@ import info.ginj.ui.component.LowerButton;
 import info.ginj.ui.component.LowerButtonBar;
 import info.ginj.util.Coords;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,6 +48,8 @@ import java.util.Map;
  * Thanks for reading :-)
  */
 public class CaptureSelectionFrame extends JFrame {
+
+    private static final Logger logger = LoggerFactory.getLogger(CaptureSelectionFrame.class);
 
     public static final int SIZE_BOX_WIDTH = 75;
     public static final int SIZE_BOX_HEIGHT = 18;
@@ -144,7 +148,7 @@ public class CaptureSelectionFrame extends JFrame {
                 GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
                 for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
                     GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
-                    //System.out.println(screenConfiguration.getBounds());
+                    //Logger.info(screenConfiguration.getBounds());
                     visibleAreas.add(screenConfiguration.getBounds());
                     Rectangle2D.union(areaToCapture, screenConfiguration.getBounds(), areaToCapture);
                 }
@@ -158,7 +162,7 @@ public class CaptureSelectionFrame extends JFrame {
                 capturedScreenImg = robot.createScreenCapture(capturedArea);
             }
             catch (AWTException e) {
-                e.printStackTrace();
+                logger.error("Error performing robot capture", e);
             }
 
             // Prepared a dimmed & greyscale version to be used for "unselected area"
@@ -523,7 +527,7 @@ public class CaptureSelectionFrame extends JFrame {
         };
         Point bestPosition = null;
         for (Point candidatePosition : candidatePositions) {
-//            System.out.print("Testing " + candidatePosition + "... ");
+//            Logger.info("Testing " + candidatePosition + "... ");
             // We have to apply the mega-window position offset to test this point in "window coordinates" against visibility in "device coordinates"
             final Rectangle candidateBounds = new Rectangle(capturedArea.x + candidatePosition.x, capturedArea.y + candidatePosition.y, barWidth, barHeight);
             if (capturedArea.contains(candidateBounds)) {
@@ -533,20 +537,20 @@ public class CaptureSelectionFrame extends JFrame {
                 for (Rectangle visibleArea : visibleAreas) {
                     if (visibleArea.contains(candidateBounds)) {
                         bestPosition = candidatePosition;
-//                        System.out.println("On screen " + visibleArea + ": SELECTED !");
+//                        Logger.info("On screen " + visibleArea + ": SELECTED !");
                         break;
                     }
 //                    else {
-//                        System.out.print("Out of screen " + visibleArea + "... ");
+//                        Logger.info("Out of screen " + visibleArea + "... ");
 //                    }
                 }
                 if (bestPosition != null) {
                     break;
                 }
-//                System.out.println("Rejected.");
+//                Logger.info("Rejected.");
             }
 //            else {
-//                System.out.println("Out of mega-rectangle: Rejected.");
+//                Logger.info("Out of mega-rectangle: Rejected.");
 //            }
         }
         if (bestPosition == null) {

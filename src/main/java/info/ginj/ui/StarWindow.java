@@ -128,6 +128,7 @@ public class StarWindow extends JWindow {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowDeactivated(WindowEvent e) {
+                System.out.println("Window got deactivated. Trying to recover...");
                 setVisible(true);
                 toFront();
             }

@@ -508,21 +508,10 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
     }
 
     @java.beans.Transient
-    @SuppressWarnings("rawtypes")
-    protected static String getResponseError(CloseableHttpResponse httpResponse) {
+    protected String getResponseError(CloseableHttpResponse httpResponse) {
         String errorMsg = String.valueOf(httpResponse.getCode());
         try {
-            String responseText = EntityUtils.toString(httpResponse.getEntity());
-            // Try to parse response as a Dropbox-like JSON object of the form {"error_summary": "email_not_verified/..", "error": {".tag": "email_not_verified"}}
-            try {
-                Map messageMap = new Gson().fromJson(responseText, Map.class);
-                Map errorMap = (Map) messageMap.get("error");
-                String errorTag = (String) errorMap.get(".tag");
-                errorMsg += " (" + errorTag + ")";
-            }
-            catch (Exception e) {
-                errorMsg += " (" + responseText + ")";
-            }
+            errorMsg += " (" + EntityUtils.toString(httpResponse.getEntity()) + ")";
             // Note: if error is 405 and message complains it expected POST and received GET, it could be that the URL was redirected (301), eg from http to https
             // Which httpComponents by default converts from POST to GET
             // Seems the default has changed from HttpComponents 4 to 5 : https://www.baeldung.com/httpclient-redirect-on-http-post

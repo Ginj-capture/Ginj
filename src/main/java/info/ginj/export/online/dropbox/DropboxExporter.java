@@ -8,10 +8,7 @@ import info.ginj.export.online.AbstractOAuth2Exporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
-import info.ginj.model.Account;
-import info.ginj.model.Capture;
-import info.ginj.model.Profile;
-import info.ginj.model.Target;
+import info.ginj.model.*;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -124,16 +121,17 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     @Override
     public void exportCapture(Capture capture, Target target) {
         try {
-            final String captureUrl = uploadCapture(capture, target);
+            final Export export = uploadCapture(capture, target);
             String message = "Upload successful.";
 
-            if (captureUrl != null) {
+            if (export.getLocation() != null) {
                 if (target.getSettings().getMustCopyPath()) {
-                    copyTextToClipboard(captureUrl);
+                    copyTextToClipboard(export.getLocation());
+                    export.setLocationCopied(true);
                     message += "\nA link to your capture was copied to the clipboard";
                 }
             }
-            capture.addExport(getExporterName(), captureUrl, null, target.getSettings().getMustCopyPath()); // TODO store media Id. UploadCapture should return an Export object
+            capture.addExport(export);
             // Indicate export is complete.
             complete(message);
         }
@@ -219,7 +217,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
      * @throws UploadException        if an upload-specfic error occurs
      */
     @Override
-    public String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
+    public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
         logProgress("Rendering file", PROGRESS_RENDER_START);
         try {
@@ -238,9 +236,11 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             // Step 2: Share it
             SharedLinkMetadata sharedLinkMetadata = shareFile(client, target, fileMetadata);
 
-            return sharedLinkMetadata.getUrl();
+            return new Export(getExporterName(), fileMetadata.getId(), sharedLinkMetadata.getUrl(), false);
         }
-        else return null;
+        else {
+            return new Export(getExporterName(), fileMetadata.getId(), null, false);
+        }
     }
 
     public FileMetadata uploadFile(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {

@@ -3,6 +3,7 @@ package info.ginj.export.disk;
 import info.ginj.Ginj;
 import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
+import info.ginj.model.Export;
 import info.ginj.model.Target;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
@@ -173,13 +174,16 @@ public class DiskExporter extends Exporter {
             Ginj.getTargetPrefs().save();
         }
 
+        Export export = new Export(getExporterName(), destinationFile.getAbsolutePath(), null, false);
+
         String message = "Export completed successfully.";
         if (target.getSettings().getMustCopyPath()) {
-            copyTextToClipboard(destinationFile.getAbsolutePath());
+            copyTextToClipboard(export.getLocation());
+            export.setLocationCopied(true);
             message += "\nPath was copied to clipboard";
         }
 
-        capture.addExport(getExporterName(), destinationFile.getAbsolutePath(), null, target.getSettings().getMustCopyPath());
+        capture.addExport(export);
         complete(message);
     }
 

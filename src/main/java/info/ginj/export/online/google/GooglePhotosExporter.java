@@ -11,6 +11,7 @@ import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 import info.ginj.model.Capture;
+import info.ginj.model.Export;
 import info.ginj.model.Target;
 import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -116,15 +117,16 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     @Override
     public void exportCapture(Capture capture, Target target) {
         try {
-            final String albumUrl = uploadCapture(capture, target);
+            final Export export = uploadCapture(capture, target);
             String message = "Upload successful.";
-            if (albumUrl != null) {
+            if (export.getLocation() != null) {
                 if (target.getSettings().getMustCopyPath()) {
-                    copyTextToClipboard(albumUrl);
+                    copyTextToClipboard(export.getLocation());
+                    export.setLocationCopied(true);
                     message += "\nA link to the album containing your capture was copied to the clipboard";
                 }
             }
-            capture.addExport(getExporterName(), albumUrl, null, target.getSettings().getMustCopyPath()); // TODO store media Id. UploadCapture should return an Export object
+            capture.addExport(export);
             // Indicate export is complete.
             complete(message);
         }
@@ -150,7 +152,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
      * @throws UploadException        if an upload-specfic error occurs
      */
     @Override
-    public String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
+    public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
         logProgress("Rendering file", PROGRESS_RENDER_START);
         try {
@@ -175,10 +177,10 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         // Unfortunately, mediaId seems to be useless as we can only share the album...
 
         if (target.getSettings().getMustShare()) {
-            return album.getShareInfo().getShareableUrl();
+            return new Export(getExporterName(), mediaId, album.getShareInfo().getShareableUrl(), false);
         }
         else {
-            return null;
+            return new Export(getExporterName(), mediaId, null, false);
         }
     }
 

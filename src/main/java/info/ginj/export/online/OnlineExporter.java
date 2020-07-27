@@ -5,6 +5,7 @@ import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 import info.ginj.model.Account;
 import info.ginj.model.Capture;
+import info.ginj.model.Export;
 import info.ginj.model.Target;
 
 public interface OnlineExporter {
@@ -38,5 +39,5 @@ public interface OnlineExporter {
      * @throws UploadException
      * @throws CommunicationException
      */
-    String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException;
+    Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException;
 }

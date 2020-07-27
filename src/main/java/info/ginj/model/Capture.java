@@ -84,8 +84,8 @@ public class Capture implements Cloneable {
         this.exports = exports;
     }
 
-    public void addExport(String exporter, String url, String id, boolean isPathCopied) {
-        exports.add(new Export(exporter, id, url, isPathCopied));
+    public void addExport(Export export) {
+        exports.add(export);
     }
 
     // Note: Transient to prevent being saved to disk

@@ -40,7 +40,7 @@
  - Add Youtube exporter
  - Add FTP exporter :-)
  - Implement tray icon and menu
- - Implement global shortcut
+ - ~~Implement global shortcut~~
  - Implement load on startup
  - Implement windows detection (using JNA?)
  - ~~Close most frames with ESC (ex: History)~~

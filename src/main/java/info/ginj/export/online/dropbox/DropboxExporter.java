@@ -454,7 +454,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                 throw new CommunicationException("Server returned an error when creating shared link: " + getResponseError(response));
             }
         }
-        catch (IOException | CommunicationException e) {
+        catch (IOException e) {
             throw new CommunicationException("Error creating shared link", e);
         }
     }

@@ -25,7 +25,7 @@
  - ~~Implement preferences~~
  - ~~Implement history with **editable** items~~
  - ~~Implement edit from history window~~
- - Finalize history window (export button)
+ - Finalize history window (export button should perform a "smart" re-export, performing only missing operations (reupload, reshare, or just re-copy link))
  - ~~Load history contents asynchronously~~
  - ~~Persist StarWindow position~~
  - ~~Position ExportFrame and ExportCompletionFrame next to Star Window~~

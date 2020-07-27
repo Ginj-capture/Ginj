@@ -8,6 +8,8 @@ import info.ginj.model.Capture;
 import info.ginj.model.Export;
 import info.ginj.model.Target;
 
+// TODO should OnlineExporter renamed AbstractOnlineExporter
+//  and be an abstract class between Exporter and AbstractOAuth2Exporter
 public interface OnlineExporter {
 
     int PROGRESS_CHECK_AUTHORIZE_START = 2;

@@ -234,12 +234,12 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
         if (target.getSettings().getMustShare()) {
             // Step 2: Share it
-            SharedLinkMetadata sharedLinkMetadata = shareFile(client, target, fileMetadata);
+            SharedLinkMetadata sharedLinkMetadata = shareFile(client, target, fileMetadata.getPathDisplay());
 
-            return new Export(getExporterName(), fileMetadata.getId(), sharedLinkMetadata.getUrl(), false);
+            return new Export(getExporterName(), fileMetadata.getPathDisplay(), sharedLinkMetadata.getUrl(), false);
         }
         else {
-            return new Export(getExporterName(), fileMetadata.getId(), null, false);
+            return new Export(getExporterName(), fileMetadata.getPathDisplay(), null, false);
         }
     }
 
@@ -423,13 +423,68 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         return bytesRead;
     }
 
-    private SharedLinkMetadata shareFile(CloseableHttpClient client, Target target, FileMetadata fileMetadata) throws AuthorizationException, CommunicationException {
+    public boolean fileExists(CloseableHttpClient client, Target target, String path) throws AuthorizationException, CommunicationException {
+        try {
+            getFileMetadata(client, target, path);
+            return true;
+        }
+        catch (FileNotFoundException e) {
+            return false;
+        }
+    }
+
+    /**
+     * This method implements https://api.dropboxapi.com/2/files/get_metadata
+     * @param path
+     * @return
+     */
+    private FileMetadata getFileMetadata(CloseableHttpClient client, Target target, String path) throws AuthorizationException, CommunicationException, FileNotFoundException {
+        HttpPost httpPost = new HttpPost("https://api.dropboxapi.com/2/files/get_metadata");
+
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
+        httpPost.addHeader("Content-Type", "application/json");
+        httpPost.setEntity(new StringEntity(
+                "{\"path\": \"" + path + "\"," +
+                        "\"include_media_info\": false," +
+                        "\"include_deleted\": false," +
+                        "\"include_has_explicit_shared_members\": false}"
+
+        ));
+
+        // Send request
+        CloseableHttpResponse response;
+        try {
+            response = client.execute(httpPost);
+        }
+        catch (IOException e) {
+            throw new CommunicationException("Error getting metadata", e);
+        }
+        if (isStatusOK(response.getCode())) {
+            final String responseText;
+            try {
+                responseText = EntityUtils.toString(response.getEntity());
+                return new Gson().fromJson(responseText, FileMetadata.class);
+            }
+            catch (ParseException | IOException e) {
+                throw new CommunicationException("Could not parse metadata query response as String: " + response.getEntity());
+            }
+        }
+        else {
+            String responseError = getResponseError(response);
+            if ("path".equals(responseError)) {
+                throw new FileNotFoundException();
+            }
+            throw new CommunicationException("The server returned an error when getting metadata: " + responseError);
+        }
+    }
+
+    public SharedLinkMetadata shareFile(CloseableHttpClient client, Target target, String pathDisplay) throws AuthorizationException, CommunicationException {
         HttpPost httpPost = new HttpPost("https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         httpPost.addHeader("Content-Type", "application/json");
         httpPost.setEntity(new StringEntity(
-                "{\"path\": \"" + fileMetadata.getPathDisplay() + "\"," +
+                "{\"path\": \"" + pathDisplay + "\"," +
                         "\"settings\": {" +
                         "\"requested_visibility\": \"public\"," +
                         "\"audience\": \"public\"," +
@@ -456,6 +511,39 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         }
         catch (IOException e) {
             throw new CommunicationException("Error creating shared link", e);
+        }
+    }
+
+    /**
+     * Dropbox specific version.
+     * See https://www.dropbox.com/developers/documentation/http/documentation#error-handling
+     * @param httpResponse
+     * @return
+     */
+    @SuppressWarnings("rawtypes")
+    @Override
+    protected String getResponseError(CloseableHttpResponse httpResponse) {
+        int errCode = httpResponse.getCode();
+        if (errCode == 409) { // Dropbox endpoint specific error
+            try {
+                String responseText = EntityUtils.toString(httpResponse.getEntity());
+                // Dropbox errors 409 are of the form
+                // {"error_summary": "email_not_verified/..", "error": {".tag": "email_not_verified"}}
+                try {
+                    Map messageMap = new Gson().fromJson(responseText, Map.class);
+                    Map errorMap = (Map) messageMap.get("error");
+                    return (String) errorMap.get(".tag");
+                }
+                catch (Exception e) {
+                    return httpResponse.getCode() + " (" + responseText + ")";
+                }
+            }
+            catch (IOException | ParseException e) {
+                return String.valueOf(errCode);
+            }
+        }
+        else {
+            return super.getResponseError(httpResponse);
         }
     }
 
@@ -930,8 +1018,11 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
 
     @SuppressWarnings("unused")
-    public static class FileMetadata {
+    public class FileMetadata {
 
+        @SerializedName(".tag")
+        @Expose
+        private String tag;
         @SerializedName("name")
         @Expose
         private String name;
@@ -975,11 +1066,34 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         @Expose
         private FileLockInfo fileLockInfo;
 
+        /**
+         * No args constructor for use in serialization
+         *
+         */
         public FileMetadata() {
         }
 
-        public FileMetadata(String name, String id, String clientModified, String serverModified, String rev, Integer size, String pathLower, String pathDisplay, SharingInfo sharingInfo, Boolean isDownloadable, List<PropertyGroup> propertyGroups, Boolean hasExplicitSharedMembers, String contentHash, FileLockInfo fileLockInfo) {
+        /**
+         *
+         * @param pathDisplay
+         * @param fileLockInfo
+         * @param rev
+         * @param clientModified
+         * @param pathLower
+         * @param propertyGroups
+         * @param contentHash
+         * @param isDownloadable
+         * @param size
+         * @param name
+         * @param hasExplicitSharedMembers
+         * @param serverModified
+         * @param tag
+         * @param id
+         * @param sharingInfo
+         */
+        public FileMetadata(String tag, String name, String id, String clientModified, String serverModified, String rev, Integer size, String pathLower, String pathDisplay, SharingInfo sharingInfo, Boolean isDownloadable, List<PropertyGroup> propertyGroups, Boolean hasExplicitSharedMembers, String contentHash, FileLockInfo fileLockInfo) {
             super();
+            this.tag = tag;
             this.name = name;
             this.id = id;
             this.clientModified = clientModified;
@@ -994,6 +1108,14 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             this.hasExplicitSharedMembers = hasExplicitSharedMembers;
             this.contentHash = contentHash;
             this.fileLockInfo = fileLockInfo;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+
+        public void setTag(String tag) {
+            this.tag = tag;
         }
 
         public String getName() {

@@ -131,7 +131,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             complete(message);
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e);
             failed("Upload error");
         }
     }

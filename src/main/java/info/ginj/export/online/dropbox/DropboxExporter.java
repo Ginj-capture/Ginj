@@ -136,7 +136,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             complete(message);
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e);
             failed("Upload error");
         }
     }

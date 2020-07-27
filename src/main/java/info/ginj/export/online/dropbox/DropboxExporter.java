@@ -133,7 +133,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                     message += "\nA link to your capture was copied to the clipboard";
                 }
             }
-            capture.addExport(getExporterName(), captureUrl, null); // TODO store media Id. UploadCapture should return an Export object
+            capture.addExport(getExporterName(), captureUrl, null, target.getSettings().getMustCopyPath()); // TODO store media Id. UploadCapture should return an Export object
             // Indicate export is complete.
             complete(message);
         }

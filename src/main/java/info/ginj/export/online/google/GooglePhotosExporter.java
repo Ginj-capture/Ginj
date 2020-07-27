@@ -124,7 +124,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     message += "\nA link to the album containing your capture was copied to the clipboard";
                 }
             }
-            capture.addExport(getExporterName(), albumUrl, null); // TODO store media Id. UploadCapture should return an Export object
+            capture.addExport(getExporterName(), albumUrl, null, target.getSettings().getMustCopyPath()); // TODO store media Id. UploadCapture should return an Export object
             // Indicate export is complete.
             complete(message);
         }

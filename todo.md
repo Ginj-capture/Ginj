@@ -30,7 +30,7 @@
  - ~~Persist StarWindow position~~
  - ~~Position ExportFrame and ExportCompletionFrame next to Star Window~~
  - ~~Implement target editing~~
- - In export completion window, replace plain text with html for the shared link to be clickable
+ - ~~In export completion window, replace plain text with html for the shared link to be clickable~~
  - ~~Improve "About" dialog (logo, clickable link to site, credits)~~
  - Implement video using ffmpeg & Jaffree
  - Implement "check for updates" from Java

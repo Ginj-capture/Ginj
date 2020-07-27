@@ -76,7 +76,7 @@ public class ClipboardExporter extends Exporter {
             clipboard.setContents(transferableImage, (clipboard1, contents) -> {
                 // Do nothing. It's normal to lose ownership when another app copies something to the clipboard
             });
-            capture.addExport(getExporterName(), null, null);
+            capture.addExport(getExporterName(), null, null, false);
             complete("Image copied to clipboard");
         }
         catch (Exception e) {

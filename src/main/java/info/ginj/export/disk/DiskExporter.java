@@ -175,7 +175,7 @@ public class DiskExporter extends Exporter {
             message += "\nPath was copied to clipboard";
         }
 
-        capture.addExport(getExporterName(), destinationFile.getAbsolutePath(), null);
+        capture.addExport(getExporterName(), destinationFile.getAbsolutePath(), null, target.getSettings().getMustCopyPath());
         complete(message);
     }
 

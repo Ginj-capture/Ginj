@@ -3,17 +3,19 @@ package info.ginj.model;
 import java.io.Serializable;
 
 public class Export implements Serializable {
-    String exporterName;
-    String location;
-    String mediaId;
+    private String exporterName;
+    private String location;
+    private String mediaId;
+    private boolean isLocationCopied;
 
     public Export() {
     }
 
-    public Export(String exporterName, String mediaId, String location) {
+    public Export(String exporterName, String mediaId, String location, boolean isLocationCopied) {
         this.exporterName = exporterName;
         this.location = location;
         this.mediaId = mediaId;
+        this.isLocationCopied = isLocationCopied;
     }
 
     public String getExporterName() {
@@ -45,12 +47,21 @@ public class Export implements Serializable {
         this.mediaId = mediaId;
     }
 
+    public boolean isLocationCopied() {
+        return isLocationCopied;
+    }
+
+    public void setLocationCopied(boolean locationCopied) {
+        isLocationCopied = locationCopied;
+    }
+
     @Override
     public String toString() {
         return "Export{" +
                 "exporterName='" + exporterName + '\'' +
-                ", path='" + location + '\'' +
+                ", location='" + location + '\'' +
                 ", mediaId='" + mediaId + '\'' +
+                ", isLocationCopied=" + isLocationCopied +
                 '}';
     }
 }

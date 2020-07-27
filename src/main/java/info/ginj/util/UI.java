@@ -1,5 +1,6 @@
 package info.ginj.util;
 
+import com.github.jjYBdx4IL.utils.awt.Desktop;
 import info.ginj.Ginj;
 import info.ginj.ui.layout.SpringLayoutUtilities;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
@@ -20,6 +21,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
@@ -230,6 +232,9 @@ public class UI {
     }
 
     public static JEditorPane createClickableHtmlEditorPane(String htmlMessage) {
+        return createClickableHtmlEditorPane(htmlMessage, null);
+    }
+        public static JEditorPane createClickableHtmlEditorPane(String htmlMessage, ActionListener listener) {
         // for copying style
         JLabel label = new JLabel();
         Font font = label.getFont();
@@ -249,7 +254,15 @@ public class UI {
         editorPane.addHyperlinkListener(e -> {
             if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED)) {
                 try {
-                    Desktop.getDesktop().browse(e.getURL().toURI());
+                    if (e.getDescription().startsWith("http") || e.getDescription().startsWith("ftp")) {
+                        Desktop.browse(e.getURL().toURI());
+                    }
+                    else {
+                        Desktop.open(new File(e.getDescription()));
+                    }
+                    if (listener != null) {
+                        listener.actionPerformed(new ActionEvent(e.getSource(), 0, "click"));
+                    }
                 }
                 catch (Exception e1) {
                     // noop

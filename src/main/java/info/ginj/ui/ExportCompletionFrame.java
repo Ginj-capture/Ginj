@@ -10,6 +10,7 @@ import info.ginj.util.UI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -26,7 +27,7 @@ public class ExportCompletionFrame extends JFrame {
     java.util.Timer autoHideTimer = null;
     int timeRemainingBeforeHide = AUTO_HIDE_DELAY_SECS;
 
-    private final JCheckBox autoHideCheckbox;
+    private JCheckBox autoHideCheckbox;
 
     public ExportCompletionFrame(Capture capture) {
         super();
@@ -56,19 +57,28 @@ public class ExportCompletionFrame extends JFrame {
         mainPanel.add(stateLabel, c);
 
         // Add message label
-        String message;
+        String html;
         if (ClipboardExporter.NAME.equals(export.getExporterName())) {
-            message = "Your capture was copied to the clipboard and is ready to be pasted";
+            html = "Your capture is ready to be pasted.";
         }
         else {
             if (export.getLocation() != null && export.getLocation().length() > 0) {
-                message = "Your capture is available at the following location:\n" + export.getLocation();
+                html = "Your capture is available at the following location:<br/>"
+                        + "<a href=\"" + export.getLocation() + "\">" + export.getLocation() + "</a>";
+                if (export.isLocationCopied()) {
+                    html += "<br/>That location is ready to be pasted.";
+                }
             }
             else {
-                message = "Your capture is now available";
+                html = "Your capture is now available.";
             }
         }
-        JLabel messageLabel = new YellowLabel(message);
+        // Let the "auto-hide" countdown active if the user clicks on the link.
+        ActionListener linkClickListener = e -> {
+            if (autoHideCheckbox.isSelected()) {
+                startAutoHideTimer();
+            }
+        };
 
         c = new GridBagConstraints();
         c.gridx = 0;
@@ -76,7 +86,7 @@ public class ExportCompletionFrame extends JFrame {
         c.gridwidth = 2;
         c.anchor = GridBagConstraints.CENTER;
         c.insets = new Insets(8, 16, 8, 16);
-        mainPanel.add(messageLabel, c);
+        mainPanel.add(UI.createClickableHtmlEditorPane(html, linkClickListener), c);
 
         // Add joke label
         JLabel jokelabel = new JLabel("Ginj will not be replaced - it's is here to stay :-).");

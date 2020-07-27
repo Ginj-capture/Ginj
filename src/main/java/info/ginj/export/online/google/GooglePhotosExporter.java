@@ -54,9 +54,6 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     // "Access to create an album, share it, upload media items to it, and join a shared album."
     private static final String[] GOOGLE_PHOTOS_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/photoslibrary.appendonly", "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata", "https://www.googleapis.com/auth/photoslibrary.sharing"};
 
-    public static final ByteArrayEntity EMPTY_ENTITY = new ByteArrayEntity(new byte[]{}, ContentType.APPLICATION_OCTET_STREAM);
-
-    public static final int CHUNK_SIZE = 262144; // 256k
     public static final String NAME = "Google Photos";
 
     public enum Granularity {

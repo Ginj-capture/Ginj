@@ -521,11 +521,10 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         httpPost.addHeader("X-Goog-Upload-Protocol", "resumable");
         httpPost.addHeader("X-Goog-Upload-Raw-Size", file.length());
 
-        String uploadUrl;
-        int chunkGranularityBytes;
-
         httpPost.setEntity(EMPTY_ENTITY);
 
+        String uploadUrl;
+        int chunkGranularityBytes;
         try {
             CloseableHttpResponse response = client.execute(httpPost);
             if (isStatusOK(response.getCode())) {

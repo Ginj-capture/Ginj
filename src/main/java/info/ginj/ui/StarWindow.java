@@ -128,6 +128,7 @@ public class StarWindow extends JWindow {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowDeactivated(WindowEvent e) {
+                setVisible(true);
                 toFront();
             }
         });

@@ -123,6 +123,10 @@ public class DiskExporter extends Exporter {
         }
 
         destinationFile = fileChooser.getSelectedFile();
+        // Make sure it ends with the default extension
+        if (!destinationFile.getName().toLowerCase().endsWith(Misc.IMAGE_EXTENSION)) {
+            destinationFile = new File(destinationFile.getAbsolutePath() + Misc.IMAGE_EXTENSION);
+        }
         if (!destinationFile.exists()) {
             // Selected file does not exist, go ahead
             return true;
@@ -152,7 +156,7 @@ public class DiskExporter extends Exporter {
                     ImageIO.write(capture.getRenderedImage(), Misc.IMAGE_FORMAT_PNG, destinationFile);
                 }
                 else {
-                    // TODO make this a block copy loop that it can be cancelled
+                    // TODO make this a block copy loop that it can be cancelled (and doesn't freeze the UI) for large files
                     Files.copy(capture.getRenderedFile().toPath(), destinationFile.toPath());
                 }
             }

@@ -24,7 +24,7 @@ public class Ginj {
 
     private static final Logger logger = LoggerFactory.getLogger(Ginj.class);
 
-    public static final String APP_VERSION = "0.3.6";
+    public static final String APP_VERSION = "0.3.7";
 
     public static final String LAF_XML = "/synth.xml";
 

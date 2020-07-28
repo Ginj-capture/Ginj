@@ -446,7 +446,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
 
     private void onExport(Target target) {
-        // Render image and overlays, but no handles
+        // 1. Render image and overlays, but no handles
         imagePane.setSelectedOverlay(null);
         BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
         Graphics g = renderedImage.getGraphics();
@@ -465,7 +465,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         }
         capture.setOverlays(overlays);
 
-        // Perform export
+        // 2. Perform export
         Exporter exporter = target.getExporter();
         ExportFrame exportFrame = new ExportFrame(this, capture, exporter);
         exporter.initialize(this, exportFrame);

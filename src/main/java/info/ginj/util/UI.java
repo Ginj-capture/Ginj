@@ -238,7 +238,8 @@ public class UI {
     public static JEditorPane createClickableHtmlEditorPane(String htmlMessage) {
         return createClickableHtmlEditorPane(htmlMessage, null);
     }
-        public static JEditorPane createClickableHtmlEditorPane(String htmlMessage, ActionListener listener) {
+
+    public static JEditorPane createClickableHtmlEditorPane(String htmlMessage, ActionListener listener) {
         // for copying style
         JLabel label = new JLabel();
         Font font = label.getFont();

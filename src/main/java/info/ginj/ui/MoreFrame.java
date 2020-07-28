@@ -52,7 +52,9 @@ public class MoreFrame extends JFrame {
         manageTargetsButton.addActionListener(e -> onManageTargets());
         mainPanel.add(manageTargetsButton);
 
-//        mainPanel.add(new JButton("Check for updates...")); // TODO
+        final JButton checkForUpdatesButton = new JButton("Check for updates...");
+        checkForUpdatesButton.addActionListener(e -> onCheckForUpdates());
+        mainPanel.add(checkForUpdatesButton);
 
         final JButton aboutButton = new JButton("About Ginj...");
         aboutButton.addActionListener(e -> onAbout());
@@ -82,6 +84,10 @@ public class MoreFrame extends JFrame {
 
     private void onOptions() {
         new OptionsDialog(starWindow).setVisible(true);
+    }
+
+    private void onCheckForUpdates() {
+        new CheckForUpdateDialog(starWindow).setVisible(true);
     }
 
     private void onAbout() {

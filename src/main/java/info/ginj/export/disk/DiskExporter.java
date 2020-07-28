@@ -106,6 +106,7 @@ public class DiskExporter extends Exporter {
         }
 
         // Ask for location
+        String extension = capture.computeExtension();
         JFileChooser fileChooser;
         try {
             // TODO does this bring real performance boost compared to fileChooser = new JFileChooser(); ?
@@ -118,7 +119,7 @@ public class DiskExporter extends Exporter {
         fileChooser.setDialogTitle("Save capture as...");
         fileChooser.setAcceptAllFileFilterUsed(false);
         fileChooser.setMultiSelectionEnabled(false);
-        fileChooser.setFileFilter(new FileNameExtensionFilter("PNG (*" + Misc.IMAGE_EXTENSION + ")", Misc.IMAGE_EXTENSION.substring(1)));
+        fileChooser.setFileFilter(new FileNameExtensionFilter(extension.substring(1).toUpperCase() + " (*" + extension + ")", extension.substring(1)));
         fileChooser.setSelectedFile(destinationFile);
 
         if (fileChooser.showSaveDialog(parentFrame) != JFileChooser.APPROVE_OPTION) {
@@ -128,8 +129,8 @@ public class DiskExporter extends Exporter {
 
         destinationFile = fileChooser.getSelectedFile();
         // Make sure it ends with the default extension
-        if (!destinationFile.getName().toLowerCase().endsWith(Misc.IMAGE_EXTENSION)) {
-            destinationFile = new File(destinationFile.getAbsolutePath() + Misc.IMAGE_EXTENSION);
+        if (!destinationFile.getName().toLowerCase().endsWith(extension)) {
+            destinationFile = new File(destinationFile.getAbsolutePath() + extension);
         }
         if (!destinationFile.exists()) {
             // Selected file does not exist, go ahead

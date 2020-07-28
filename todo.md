@@ -33,7 +33,7 @@
  - ~~In export completion window, replace plain text with html for the shared link to be clickable~~
  - ~~Improve "About" dialog (logo, clickable link to site, credits)~~
  - Implement video using ffmpeg & Jaffree
- - Implement "check for updates" from Java
+ - ~~Implement "check for updates" from Java~~
  - Implement generic preference editor
  - Typing in a Text Overlay should make the overlay grow wider
  - ~~Add Google Drive exporter~~

@@ -221,7 +221,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         // Save the original file to history
         // ENHANCEMENT we store the source, not the rendered version !
         // Compute filename (no version involved here)
-        File originalFile = new File(historyFolder, capture.getId() + (capture.isVideo()? Misc.VIDEO_EXTENSION: Misc.IMAGE_EXTENSION));
+        File originalFile = new File(historyFolder, capture.getId() + capture.computeExtension());
         try {
             // Original file could be shared between multiple captures, only store it once
             if (!originalFile.exists()) {

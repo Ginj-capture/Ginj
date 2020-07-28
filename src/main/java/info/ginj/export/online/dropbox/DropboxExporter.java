@@ -9,7 +9,6 @@ import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 import info.ginj.model.*;
-import info.ginj.util.Misc;
 import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -358,7 +357,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         // Step 3: Finish session (optionally with the remaining bytes)
         logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
 
-        final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + (capture.isVideo() ? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION);
+        final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + capture.computeExtension();
         FileMetadata fileMetadata;
 
         httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/finish");

@@ -138,6 +138,9 @@ public class Capture implements Cloneable {
 
 // Utils
 
+    public String computeExtension() {
+        return isVideo()? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION;
+    }
 
 
     /**

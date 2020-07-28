@@ -36,7 +36,7 @@
  - Implement "check for updates" from Java
  - Implement generic preference editor
  - Typing in a Text Overlay should make the overlay grow wider
- - Add Google Drive exporter
+ - ~~Add Google Drive exporter~~
  - Add Youtube exporter
  - Add FTP exporter :-)
  - Implement tray icon and menu

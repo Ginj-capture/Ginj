@@ -179,8 +179,13 @@ public class GoogleDriveExporter extends GoogleExporter implements OnlineExporte
 
         // Add file metadata in JSON as body. Something like:
         httpPost.addHeader("Content-Type", "application/json; charset=UTF-8");
+        String filename = capture.getName();
+        String extension = capture.computeExtension();
+        if (!filename.toLowerCase().endsWith(extension)) {
+            filename += extension;
+        }
         httpPost.setEntity(new StringEntity(
-                "{\"name\": \"" + file.getName() + "\"}"
+                "{\"name\": \"" + filename + "\"}"
         ));
 
 

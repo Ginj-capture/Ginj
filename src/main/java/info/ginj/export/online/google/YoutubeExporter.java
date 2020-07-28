@@ -8,6 +8,7 @@ import info.ginj.model.Capture;
 import info.ginj.model.Export;
 import info.ginj.model.Target;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,7 +25,9 @@ public class YoutubeExporter extends GoogleExporter implements OnlineExporter {
 
     @Override
     protected List<String> getRequiredScopes() {
-        return Arrays.asList(YOUTUBE_REQUIRED_SCOPES);
+        List<String> scopes = new ArrayList<>(super.getRequiredScopes());
+        scopes.addAll(Arrays.asList(YOUTUBE_REQUIRED_SCOPES));
+        return scopes;
     }
 
     @Override

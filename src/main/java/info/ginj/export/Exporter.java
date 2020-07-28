@@ -3,6 +3,7 @@ package info.ginj.export;
 import info.ginj.export.clipboard.ClipboardExporter;
 import info.ginj.export.disk.DiskExporter;
 import info.ginj.export.online.dropbox.DropboxExporter;
+import info.ginj.export.online.google.GoogleDriveExporter;
 import info.ginj.export.online.google.GooglePhotosExporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Target;
@@ -34,6 +35,7 @@ public abstract class Exporter implements Cancellable {
         exporters.add(new ClipboardExporter());
         exporters.add(new DropboxExporter());
         exporters.add(new GooglePhotosExporter());
+        exporters.add(new GoogleDriveExporter());
         return exporters;
     }
 

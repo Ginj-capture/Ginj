@@ -78,10 +78,9 @@ public class OptionsDialog extends JDialog {
         // Add fields to main panel
         mainPanel.add(UI.createFieldPanel(
                 "Capture hotkey", hotKeyFieldPanel,
-                "Enable Oval Overlay", ovalOverlayCheckBox,
-                "More options to come", new JLabel("...")));
+                "Enable Oval Overlay", ovalOverlayCheckBox));
 
-        // e.g. Capture folder
+        // TODO add Capture folder
 
         // Add main panel to dialog
         contentPane.add(mainPanel, BorderLayout.CENTER);

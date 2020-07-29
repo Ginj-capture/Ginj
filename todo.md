@@ -42,6 +42,7 @@
  - Implement tray icon and menu
  - ~~Implement global shortcut~~
  - Implement load on startup
+ - Make sure to stop http server when aborting target configuration, and restarted it if user goes back
  - Implement windows detection (using JNA?)
  - ~~Close most frames with ESC (ex: History)~~
  - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp 640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960

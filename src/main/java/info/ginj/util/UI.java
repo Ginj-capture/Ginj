@@ -239,7 +239,7 @@ public class UI {
         return createClickableHtmlEditorPane(htmlMessage, null);
     }
 
-    public static JEditorPane createClickableHtmlEditorPane(String htmlMessage, ActionListener listener) {
+    public static JEditorPane createClickableHtmlEditorPane(String htmlMessage, ActionListener additionalClickListener) {
         // for copying style
         JLabel label = new JLabel();
         Font font = label.getFont();
@@ -265,12 +265,12 @@ public class UI {
                     else {
                         Desktop.open(new File(e.getDescription()));
                     }
-                    if (listener != null) {
-                        listener.actionPerformed(new ActionEvent(e.getSource(), 0, "click"));
+                    if (additionalClickListener != null) {
+                        additionalClickListener.actionPerformed(new ActionEvent(e.getSource(), 0, "click"));
                     }
                 }
                 catch (Exception e1) {
-                    // noop
+                    logger.error("Error trying to open capture location", e1);
                 }
             }
         });

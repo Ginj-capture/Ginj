@@ -89,15 +89,13 @@ public class ExportCompletionFrame extends JFrame {
         mainPanel.add(UI.createClickableHtmlEditorPane(html, linkClickListener), c);
 
         // Add joke label
-        JLabel jokelabel = new JLabel("Ginj will not be replaced - it's is here to stay :-).");
-
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 2;
         c.gridwidth = 2;
         c.anchor = GridBagConstraints.WEST;
         c.insets = new Insets(8, 16, 8, 16);
-        mainPanel.add(jokelabel, c);
+        mainPanel.add(new JLabel("Ginj will not be replaced - it's is here to stay :-)."), c);
 
         autoHideCheckbox = new JCheckBox();
         final boolean autoHide = Prefs.isTrue(Prefs.Key.EXPORT_COMPLETE_AUTOHIDE_KEY);

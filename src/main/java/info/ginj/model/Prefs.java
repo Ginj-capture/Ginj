@@ -27,7 +27,8 @@ public class Prefs {
         STAR_WINDOW_POSTION_ON_BORDER("star.window.position.on.border", "This indicates the screen border that the 'Star' icon is resting on", true),
         STAR_WINDOW_DISTANCE_FROM_CORNER("star.window.distance.from.corner", "This indicates the distance from the top or left edge of the screen to the 'Star' icon", true),
         STAR_WINDOW_DISPLAY_NUMBER("star.window.display.number", "This is the number of the display the 'Star' icon should be displayed on (0=Main, 1=Secondary, ...)", true),
-        CAPTURE_HOTKEY("capture.hotkey", "This is the combination to type to trigger a new capture", false);
+        CAPTURE_HOTKEY("capture.hotkey", "This is the combination to type to trigger a new capture", false),
+        USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION("use.tray.notification.on.export.completion", "If enabled, the 'end of export' window is replaced by an OS tray notification" , true);
 
         private final String keyString;
         private final String help;

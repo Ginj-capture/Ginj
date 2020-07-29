@@ -1,8 +1,8 @@
 package info.ginj.ui;
 
 import info.ginj.Ginj;
-import info.ginj.model.Prefs;
 import info.ginj.ui.component.DoubleBorderedPanel;
+import info.ginj.util.Misc;
 import info.ginj.util.UI;
 
 import javax.swing.*;
@@ -53,16 +53,16 @@ public class MoreFrame extends JFrame {
         mainPanel.add(manageTargetsButton);
 
         final JButton checkForUpdatesButton = new JButton("Check for updates...");
-        checkForUpdatesButton.addActionListener(e -> onCheckForUpdates());
+        checkForUpdatesButton.addActionListener(e -> starWindow.onCheckForUpdates());
         mainPanel.add(checkForUpdatesButton);
 
         final JButton aboutButton = new JButton("About Ginj...");
         aboutButton.addActionListener(e -> onAbout());
         mainPanel.add(aboutButton);
 
-        final JButton quitButton = new JButton("Quit " + Ginj.getAppName());
-        quitButton.addActionListener(e -> onQuit());
-        mainPanel.add(quitButton);
+        final JButton exitButton = new JButton(Misc.getExitQuitText() + " " + Ginj.getAppName());
+        exitButton.addActionListener(e -> starWindow.onExit());
+        mainPanel.add(exitButton);
 
         contentPane.add(mainPanel, BorderLayout.CENTER);
 
@@ -86,20 +86,10 @@ public class MoreFrame extends JFrame {
         new OptionsDialog(starWindow).setVisible(true);
     }
 
-    private void onCheckForUpdates() {
-        new CheckForUpdateDialog(starWindow).setVisible(true);
-    }
-
     private void onAbout() {
         new AboutDialog(starWindow).setVisible(true);
     }
 
-    private void onQuit() {
-        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Are you sure you want to exit " + Ginj.getAppName() + "?", "Quit Jing?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
-            Prefs.save();
-            starWindow.dispose();
-        }
-    }
 
     private void onClose() {
         starWindow.clearMoreFrame();

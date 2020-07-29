@@ -1,9 +1,12 @@
 package info.ginj.ui;
 
+import com.github.jjYBdx4IL.utils.awt.Desktop;
 import com.tulskiy.keymaster.common.Provider;
 import info.ginj.Ginj;
+import info.ginj.model.Export;
 import info.ginj.model.Prefs;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
+import info.ginj.util.Misc;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +17,9 @@ import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,6 +36,8 @@ public class StarWindow extends JWindow {
     private static final Logger logger = LoggerFactory.getLogger(StarWindow.class);
 
     private Provider hotKeyProvider;
+    private TrayIcon trayIcon;
+    private Export lastExport = null;
 
     public enum Border {TOP, LEFT, BOTTOM, RIGHT}
 
@@ -103,7 +110,7 @@ public class StarWindow extends JWindow {
     public StarWindow() {
         super();
 
-//        showSplashIntro();
+        showSplashIntro();
 
         appIcon = new ImageIcon(getClass().getResource("/img/app-icon-64.png")).getImage();
 
@@ -138,11 +145,90 @@ public class StarWindow extends JWindow {
             }
         });
 
+        addSystemTrayIcon();
+
         // Prepare to show Window
         pack();
         setLocationOnStartup();
         setAlwaysOnTop(true);
     }
+
+    private void addSystemTrayIcon() {
+        //Check the SystemTray support
+        if (SystemTray.isSupported()) {
+            final PopupMenu popup = new PopupMenu();
+            trayIcon = new TrayIcon(new ImageIcon(getClass().getResource("/img/app-logo-180-opaque.png")).getImage());
+
+            // Create a popup menu components
+            MenuItem captureItem = new MenuItem("Capture");
+            MenuItem historyItem = new MenuItem("History");
+            MenuItem moreItem = new MenuItem("More");
+            MenuItem checkForUpdatesItem = new MenuItem("Check for updates");
+            MenuItem exitItem = new MenuItem(Misc.getExitQuitText());
+            popup.add(captureItem);
+            popup.add(historyItem);
+            popup.add(moreItem);
+            popup.add(checkForUpdatesItem);
+            popup.add(exitItem);
+
+            trayIcon.setPopupMenu(popup);
+
+            try {
+                SystemTray.getSystemTray().add(trayIcon);
+            }
+            catch (AWTException e) {
+                logger.error("TrayIcon could not be added.");
+                return;
+            }
+
+            trayIcon.setImageAutoSize(true);
+            trayIcon.setToolTip(Ginj.getAppName());
+
+            // On balloon notification click (or icon double click), pop-up the last export, if possible
+            // Note that in Windows 10, notifications are historized but I see no way of knowing which one was clicked in the
+            // notification history. So for now the click works only once...
+            trayIcon.addActionListener(e -> {
+                if (lastExport != null && lastExport.isLocationCopied()) {
+                    try {
+                        if (lastExport.getLocation().startsWith("http") || lastExport.getLocation().startsWith("ftp")) {
+                            Desktop.browse(new URI(lastExport.getLocation()));
+                        }
+                        else {
+                            Desktop.open(new File(lastExport.getLocation()));
+                        }
+                    }
+                    catch (Exception e1) {
+                        logger.error("Error trying to open capture location", e1);
+                    }
+                    // Forget about it once clicked
+                    lastExport = null;
+                }
+                else {
+                    showSplashIntro();
+                }
+            });
+
+            // Handlers for the different menus
+            captureItem.addActionListener(e -> onCapture());
+            historyItem.addActionListener(e -> onHistory());
+            moreItem.addActionListener(e -> onMore());
+            checkForUpdatesItem.addActionListener(e -> onCheckForUpdates());
+            exitItem.addActionListener(e -> onExit());
+        }
+    }
+
+    public boolean isTrayAvailable() {
+        return trayIcon != null;
+    }
+
+
+    public void popupTrayNotification(Export export) {
+        trayIcon.displayMessage(export.getExporterName() + " export complete",
+                export.getMessage(false),
+                TrayIcon.MessageType.INFO);
+        lastExport = export;
+    }
+
 
     void registerHotKey() {
         // Add hotkey hook from Preferences
@@ -691,6 +777,9 @@ public class StarWindow extends JWindow {
     @Override
     public void dispose() {
         super.dispose();
+        if (trayIcon != null) {
+            SystemTray.getSystemTray().remove(trayIcon);
+        }
         logger.info("StarWindow disposed.");
         System.exit(Ginj.ERR_STATUS_OK);
     }
@@ -712,8 +801,8 @@ public class StarWindow extends JWindow {
 
 
     public void centerFrameOnStarIconDisplay(Window window) {
-        window.setLocation(currentDisplayBounds.x + (currentDisplayBounds.width - window.getWidth())/2,
-                currentDisplayBounds.y + (currentDisplayBounds.height - window.getHeight())/2);
+        window.setLocation(currentDisplayBounds.x + (currentDisplayBounds.width - window.getWidth()) / 2,
+                currentDisplayBounds.y + (currentDisplayBounds.height - window.getHeight()) / 2);
     }
 
 
@@ -745,6 +834,17 @@ public class StarWindow extends JWindow {
         openMoreFrame();
     }
 
+    void onCheckForUpdates() {
+        new CheckForUpdateDialog(this).setVisible(true);
+    }
+
+    void onExit() {
+        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Are you sure you want to " + Misc.getExitQuitText().toLowerCase() + " " + Ginj.getAppName() + "?", "Quit Jing?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+            Prefs.save();
+            dispose();
+        }
+    }
+
 
     public void addTargetChangeListener(TargetListChangeListener listener) {
         targetListChangeListener.add(listener);
@@ -760,8 +860,8 @@ public class StarWindow extends JWindow {
         }
     }
 
-//
-//    private void showSplashIntro() {
+
+    private void showSplashIntro() {
 //        final Point startCenter = new Point(screenSize.width / 2, screenSize.height / 2);
 //        final Point endCenter = getSavedCenterLocation();
 //        Point currentCenter = new Point();
@@ -792,7 +892,7 @@ public class StarWindow extends JWindow {
 //            logger.error("Splash screen error", e);
 //            // In all cases, ignore exceptions and skip animation
 //        }
-//    }
+    }
 //
 //    private static class AnimationJWindow extends JWindow {
 //        private final BufferedImage image;

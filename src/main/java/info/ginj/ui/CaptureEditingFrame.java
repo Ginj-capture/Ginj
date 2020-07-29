@@ -467,7 +467,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
         // 2. Perform export
         Exporter exporter = target.getExporter();
-        ExportFrame exportFrame = new ExportFrame(this, capture, exporter);
+        ExportFrame exportFrame = new ExportFrame(this, starWindow, capture, exporter);
         exporter.initialize(this, exportFrame);
         // Note the chicken/egg problem:
         // - Frame needs the Exporter to start and control it

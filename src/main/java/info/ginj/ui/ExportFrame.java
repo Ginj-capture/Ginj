@@ -4,6 +4,8 @@ import info.ginj.Ginj;
 import info.ginj.export.ExportMonitor;
 import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
+import info.ginj.model.Export;
+import info.ginj.model.Prefs;
 import info.ginj.model.Target;
 import info.ginj.ui.component.YellowLabel;
 import info.ginj.util.Misc;
@@ -23,6 +25,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 
 /**
  * This "small" progress window is responsible for starting, monitoring, and controlling an export in background.
@@ -35,12 +38,14 @@ public class ExportFrame extends JFrame implements ExportMonitor {
     private final JLabel sizeLabel;
     private final BoundedRangeModel progressModel;
     private final Window parentWindow;
+    private final StarWindow starWindow;
     private final Capture capture;
     private Exporter exporter;
 
-    public ExportFrame(Window parentWindow, Capture capture, Exporter exporter) {
+    public ExportFrame(Window parentWindow, StarWindow starWindow, Capture capture, Exporter exporter) {
         super();
         this.parentWindow = parentWindow;
+        this.starWindow = starWindow;
         this.capture = capture;
         this.exporter = exporter;
 
@@ -169,8 +174,17 @@ public class ExportFrame extends JFrame implements ExportMonitor {
 
         closeExportWindow();
 
-        // Open the "capture completion" notification window with auto-hide
-        new ExportCompletionFrame(capture).setVisible(true);
+        final List<Export> exports = capture.getExports();
+        final Export export = exports.get(exports.size() - 1); // last export
+
+        if (Prefs.isTrue(Prefs.Key.USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION) && starWindow.isTrayAvailable()) {
+            starWindow.popupTrayNotification(export);
+        }
+        else {
+            // Open the "capture completion" notification window with auto-hide
+            new ExportCompletionFrame(export).setVisible(true);
+        }
+
     }
 
     @Override

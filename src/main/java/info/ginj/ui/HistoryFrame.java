@@ -327,17 +327,17 @@ public class HistoryFrame extends JFrame {
     private void onSort(SortOrder order) {
         List<Component> components = new ArrayList<>(Arrays.asList(historyList.getComponents()));
         Comparator<Component> comparator = switch (order) {
-            case DATE -> (Comparator<Component>) (o1, o2) -> {
+            case DATE -> (o1, o2) -> {
                 HistoryItemWidget historyItemWidget1 = (HistoryItemWidget) o1;
                 HistoryItemWidget historyItemWidget2 = (HistoryItemWidget) o2;
                 return (int) (historyItemWidget2.getFile().lastModified() - (historyItemWidget1.getFile().lastModified()));
             };
-            case SIZE -> (Comparator<Component>) (o1, o2) -> {
+            case SIZE -> (o1, o2) -> {
                 HistoryItemWidget historyItemWidget1 = (HistoryItemWidget) o1;
                 HistoryItemWidget historyItemWidget2 = (HistoryItemWidget) o2;
                 return (int) (historyItemWidget2.getCaptureSize() - (historyItemWidget1.getCaptureSize()));
             };
-            case NAME -> (Comparator<Component>) (o1, o2) -> {
+            case NAME -> (o1, o2) -> {
                 HistoryItemWidget historyItemWidget1 = (HistoryItemWidget) o1;
                 HistoryItemWidget historyItemWidget2 = (HistoryItemWidget) o2;
                 return historyItemWidget1.getOrLoadCapture().getName().compareTo(historyItemWidget2.getOrLoadCapture().getName());
@@ -476,9 +476,14 @@ public class HistoryFrame extends JFrame {
                 });
                 String xmlFilename = file.getAbsolutePath();
 
-                imagePanel.setImagePath(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + Misc.THUMBNAIL_EXTENSION);
+                String basename = xmlFilename.substring(0, xmlFilename.lastIndexOf('.'));
+                imagePanel.setImagePath(basename + Misc.THUMBNAIL_EXTENSION);
 
-                File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + capture.computeExtension());
+                int versionPos = basename.lastIndexOf("_v");
+                if (versionPos != -1) {
+                    basename = basename.substring(0, versionPos);
+                }
+                File captureFile = new File(basename + capture.computeExtension());
                 captureSize = captureFile.length();
                 sizeLabel.setText(Misc.getPrettySize(captureSize));
                 addMouseListener(new MouseAdapter() {

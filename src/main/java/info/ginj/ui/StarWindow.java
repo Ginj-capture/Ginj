@@ -157,7 +157,7 @@ public class StarWindow extends JWindow {
         //Check the SystemTray support
         if (SystemTray.isSupported()) {
             final PopupMenu popup = new PopupMenu();
-            trayIcon = new TrayIcon(new ImageIcon(getClass().getResource("/img/app-logo-180-opaque.png")).getImage());
+            trayIcon = new TrayIcon(new ImageIcon(getClass().getResource("/img/app-icon-64.png")).getImage());
 
             // Create a popup menu components
             MenuItem captureItem = new MenuItem("Capture");

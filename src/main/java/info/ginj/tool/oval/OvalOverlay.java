@@ -4,6 +4,7 @@ import info.ginj.tool.RectangleOverlay;
 
 import java.awt.*;
 
+/** ENHANCEMENT oval overlay support */
 public class OvalOverlay extends RectangleOverlay {
     @Override
     public String getPresentationName() {

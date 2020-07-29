@@ -39,7 +39,7 @@
  - ~~Add Google Drive exporter~~
  - Add Youtube exporter
  - Add FTP exporter :-)
- - Implement tray icon and menu
+ - ~~Implement tray icon and menu~~
  - ~~Implement global shortcut~~
  - Implement load on startup
  - Make sure to stop http server when aborting target configuration, and restarted it if user goes back
@@ -73,7 +73,7 @@
  - Remember previously used custom colors
  - Add optional "Speech Balloon" overlay
  - Add optional "Line" overlay (with CTRL to constrain)
- - Add optional "Oval" overlay
+ - ~~Add optional "Oval" overlay~~
  - Shift should constrain handle move horizontally/vertically, Ctrl should resize symmetrically
  - Add overlays on video
 

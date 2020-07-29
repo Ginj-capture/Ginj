@@ -7,10 +7,13 @@ import info.ginj.ui.ImageEditorPane;
 
 import java.awt.*;
 
-public class ArrowTool implements GinjTool {
+public class ArrowTool extends GinjTool {
+
+    public static final String NAME = "Arrow";
+
     @Override
     public String getName() {
-        return "Arrow";
+        return NAME;
     }
 
     @Override

@@ -8,7 +8,10 @@ import info.ginj.util.UI;
 
 import java.awt.*;
 
-public class TextTool implements GinjTool {
+public class TextTool extends GinjTool {
+
+    public static final String NAME = "Text";
+
     // Remember color for new text overlays
     Color textColor = UI.TEXT_TOOL_DEFAULT_FOREGROUND_COLOR;
 
@@ -23,7 +26,7 @@ public class TextTool implements GinjTool {
 
     @Override
     public String getName() {
-        return "Text";
+        return NAME;
     }
 
     @Override

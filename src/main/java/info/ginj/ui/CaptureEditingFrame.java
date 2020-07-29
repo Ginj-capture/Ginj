@@ -8,10 +8,6 @@ import info.ginj.model.Prefs;
 import info.ginj.model.Target;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
-import info.ginj.tool.arrow.ArrowTool;
-import info.ginj.tool.frame.FrameTool;
-import info.ginj.tool.highlight.HighlightTool;
-import info.ginj.tool.text.TextTool;
 import info.ginj.ui.component.*;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
@@ -134,7 +130,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         toolBar.setBorder(new EmptyBorder(6, 6, 6, 6));
 
         ButtonGroup toolButtonGroup = new ButtonGroup();
-        GinjTool[] tools = new GinjTool[]{new ArrowTool(), new TextTool(), new FrameTool(), new HighlightTool()};
+        List<GinjTool> tools = Prefs.getToolList();
         for (GinjTool tool : tools) {
             addToolButton(toolBar, tool, toolButtonGroup);
         }

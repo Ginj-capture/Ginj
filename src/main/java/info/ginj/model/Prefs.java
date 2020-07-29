@@ -1,6 +1,11 @@
 package info.ginj.model;
 
 import info.ginj.Ginj;
+import info.ginj.tool.GinjTool;
+import info.ginj.tool.arrow.ArrowTool;
+import info.ginj.tool.frame.FrameTool;
+import info.ginj.tool.highlight.HighlightTool;
+import info.ginj.tool.text.TextTool;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
@@ -11,16 +16,20 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class Prefs {
 
     private static final Logger logger = LoggerFactory.getLogger(Prefs.class);
 
+    private static final String DEFAULT_TOOL_LIST = ArrowTool.NAME + "," + TextTool.NAME + "," + FrameTool.NAME + "," + HighlightTool.NAME;
+
     public enum Key {
         TOOL_COLOR_PREFIX("tool.color.", "The current color for the corresponding tool", false),
         FIXED_PALETTE_COLOR_PREFIX("fixed.palette.color.", "The color for the corresponding button in the fixed palette", true),
-
+        TOOL_LIST("tool.list", "The list of active overlays", false),
         CAPTURE_HISTORY_PATH("capture.history.path", "The folder where all capture history is stored" , true),
         USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS("use.small.buttons.for.online.target", "If set, small buttons like are shown for online targets, like for save and copy", true),
         EXPORT_COMPLETE_AUTOHIDE_KEY("export.complete.autohide", "If set, the window displayed upon export completion will fade away and close when not hovered", true),
@@ -66,6 +75,7 @@ public class Prefs {
         setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "6", new Color(0,0,255));
         setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "7", new Color(128,0,128));
         setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "8", new Color(75,0,130));
+        set(Key.TOOL_LIST, DEFAULT_TOOL_LIST);
     }
 
 
@@ -168,4 +178,16 @@ public class Prefs {
         preferences.remove(key.keyString + suffix);
     }
 
+    public static List<GinjTool> getToolList() {
+        List<GinjTool> toolList = new ArrayList();
+        String toolListStr = Prefs.get(Key.TOOL_LIST);
+        if (toolListStr == null || toolListStr.length() == 0) {
+            toolListStr = DEFAULT_TOOL_LIST;
+        }
+        String[] toolNames = toolListStr.split(",");
+        for (String toolName : toolNames) {
+            toolList.add(GinjTool.getMap().get(toolName));
+        }
+        return toolList;
+    }
 }

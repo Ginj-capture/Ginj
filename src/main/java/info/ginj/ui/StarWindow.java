@@ -8,6 +8,7 @@ import info.ginj.model.Prefs;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,7 +210,20 @@ public class StarWindow extends JWindow {
             });
 
             // Handlers for the different menus
-            captureItem.addActionListener(e -> onCapture());
+            captureItem.addActionListener(e -> {
+                if (SystemUtils.IS_OS_WINDOWS) {
+                    // On Windows the default behaviour of the tray pop-up menu is to fade out instead of closing immediately,
+                    // Causing the menu to be visible on the screenshot. So we add a delay here
+                    // See https://stackoverflow.com/questions/63155462/java-robot-launched-from-windows-system-tray
+                    try {
+                        Thread.sleep(300);
+                    }
+                    catch (InterruptedException interruptedException) {
+                        //noop
+                    }
+                }
+                onCapture();
+            });
             historyItem.addActionListener(e -> onHistory());
             moreItem.addActionListener(e -> onMore());
             checkForUpdatesItem.addActionListener(e -> onCheckForUpdates());

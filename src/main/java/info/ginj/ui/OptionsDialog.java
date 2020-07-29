@@ -3,6 +3,8 @@ package info.ginj.ui;
 import com.tulskiy.keymaster.common.Provider;
 import info.ginj.Ginj;
 import info.ginj.model.Prefs;
+import info.ginj.tool.GinjTool;
+import info.ginj.tool.oval.OvalTool;
 import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
@@ -11,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.Set;
 
 
 /**
@@ -22,6 +25,7 @@ public class OptionsDialog extends JDialog {
 
     private static StarWindow starWindow = null;
     private final JTextField hotKeyTextField;
+    private final JCheckBox ovalOverlayCheckBox;
 
     public OptionsDialog(StarWindow starWindow) {
         super();
@@ -67,9 +71,16 @@ public class OptionsDialog extends JDialog {
         hotKeyDefineButton.addActionListener((e -> onDefineHotKey()));
         hotKeyFieldPanel.add(hotKeyDefineButton);
 
+        ovalOverlayCheckBox = new JCheckBox();
+        GinjTool ovalTool = GinjTool.getMap().get(OvalTool.NAME);
+        ovalOverlayCheckBox.setSelected(Prefs.getToolSet().contains(ovalTool));
+
         // Add fields to main panel
-        mainPanel.add(UI.createFieldPanel("Capture hotkey", hotKeyFieldPanel,
+        mainPanel.add(UI.createFieldPanel(
+                "Capture hotkey", hotKeyFieldPanel,
+                "Enable Oval Overlay", ovalOverlayCheckBox,
                 "More options to come", new JLabel("...")));
+
         // e.g. Capture folder
 
         // Add main panel to dialog
@@ -127,6 +138,17 @@ public class OptionsDialog extends JDialog {
                 Prefs.set(Prefs.Key.CAPTURE_HOTKEY, newHotKey);
             }
         }
+
+        GinjTool ovalTool = GinjTool.getMap().get(OvalTool.NAME);
+        Set<GinjTool> toolSet = Prefs.getToolSet();
+        if (ovalOverlayCheckBox.isSelected()) {
+            toolSet.add(ovalTool);
+        }
+        else {
+            toolSet.remove(ovalTool);
+        }
+        Prefs.setToolSet(toolSet);
+
         Prefs.save();
 
         // Exiting modal dialog: Restore the hotkey behaviour (previous or new)

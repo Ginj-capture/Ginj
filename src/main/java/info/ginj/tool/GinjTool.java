@@ -3,6 +3,7 @@ package info.ginj.tool;
 import info.ginj.tool.arrow.ArrowTool;
 import info.ginj.tool.frame.FrameTool;
 import info.ginj.tool.highlight.HighlightTool;
+import info.ginj.tool.oval.OvalTool;
 import info.ginj.tool.text.TextTool;
 import info.ginj.ui.CaptureEditingFrame;
 import info.ginj.ui.ImageEditorPane;
@@ -31,6 +32,7 @@ public abstract class GinjTool {
             toolMap.put(ArrowTool.NAME, new ArrowTool());
             toolMap.put(TextTool.NAME, new TextTool());
             toolMap.put(FrameTool.NAME, new FrameTool());
+            toolMap.put(OvalTool.NAME, new OvalTool());
             toolMap.put(HighlightTool.NAME, new HighlightTool());
         }
         return toolMap;

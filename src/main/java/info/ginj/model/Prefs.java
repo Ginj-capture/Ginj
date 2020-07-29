@@ -16,28 +16,29 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Properties;
+import java.util.Set;
 
 public class Prefs {
 
     private static final Logger logger = LoggerFactory.getLogger(Prefs.class);
 
     private static final String DEFAULT_TOOL_LIST = ArrowTool.NAME + "," + TextTool.NAME + "," + FrameTool.NAME + "," + HighlightTool.NAME;
+    private static Set<GinjTool> toolSet;
 
     public enum Key {
         TOOL_COLOR_PREFIX("tool.color.", "The current color for the corresponding tool", false),
         FIXED_PALETTE_COLOR_PREFIX("fixed.palette.color.", "The color for the corresponding button in the fixed palette", true),
         TOOL_LIST("tool.list", "The list of active overlays", false),
-        CAPTURE_HISTORY_PATH("capture.history.path", "The folder where all capture history is stored" , true),
+        CAPTURE_HISTORY_PATH("capture.history.path", "The folder where all capture history is stored", true),
         USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS("use.small.buttons.for.online.target", "If set, small buttons like are shown for online targets, like for save and copy", true),
         EXPORT_COMPLETE_AUTOHIDE_KEY("export.complete.autohide", "If set, the window displayed upon export completion will fade away and close when not hovered", true),
         STAR_WINDOW_POSTION_ON_BORDER("star.window.position.on.border", "This indicates the screen border that the 'Star' icon is resting on", true),
         STAR_WINDOW_DISTANCE_FROM_CORNER("star.window.distance.from.corner", "This indicates the distance from the top or left edge of the screen to the 'Star' icon", true),
         STAR_WINDOW_DISPLAY_NUMBER("star.window.display.number", "This is the number of the display the 'Star' icon should be displayed on (0=Main, 1=Secondary, ...)", true),
         CAPTURE_HOTKEY("capture.hotkey", "This is the combination to type to trigger a new capture", false),
-        USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION("use.tray.notification.on.export.completion", "If enabled, the 'end of export' window is replaced by an OS tray notification" , true);
+        USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION("use.tray.notification.on.export.completion", "If enabled, the 'end of export' window is replaced by an OS tray notification", true);
 
         private final String keyString;
         private final String help;
@@ -66,15 +67,15 @@ public class Prefs {
     private static final Properties preferences = new Properties();
 
     static void resetToDefaults() {
-        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "0", new Color(0,0,0));
-        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "1", new Color(255,255,255));
-        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "2", new Color(255,0,0));
-        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "3", new Color(255,165,0));
-        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "4", new Color(255,255,0));
-        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "5", new Color(0,128,0));
-        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "6", new Color(0,0,255));
-        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "7", new Color(128,0,128));
-        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "8", new Color(75,0,130));
+        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "0", new Color(0, 0, 0));
+        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "1", new Color(255, 255, 255));
+        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "2", new Color(255, 0, 0));
+        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "3", new Color(255, 165, 0));
+        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "4", new Color(255, 255, 0));
+        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "5", new Color(0, 128, 0));
+        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "6", new Color(0, 0, 255));
+        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "7", new Color(128, 0, 128));
+        setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "8", new Color(75, 0, 130));
         set(Key.TOOL_LIST, DEFAULT_TOOL_LIST);
     }
 
@@ -130,6 +131,7 @@ public class Prefs {
         if (hexColor == null || hexColor.isBlank()) return null;
         return Color.decode(hexColor);
     }
+
     public static void set(Key key, String value) {
         preferences.setProperty(key.keyString, value);
     }
@@ -178,16 +180,31 @@ public class Prefs {
         preferences.remove(key.keyString + suffix);
     }
 
-    public static List<GinjTool> getToolList() {
-        List<GinjTool> toolList = new ArrayList();
-        String toolListStr = Prefs.get(Key.TOOL_LIST);
-        if (toolListStr == null || toolListStr.length() == 0) {
-            toolListStr = DEFAULT_TOOL_LIST;
+    public static Set<GinjTool> getToolSet() {
+        if (toolSet == null) {
+            toolSet = new LinkedHashSet<>();
+            String toolListStr = Prefs.get(Key.TOOL_LIST);
+            if (toolListStr == null || toolListStr.length() == 0) {
+                toolListStr = DEFAULT_TOOL_LIST;
+            }
+            String[] toolNames = toolListStr.split(",");
+            for (String toolName : toolNames) {
+                toolSet.add(GinjTool.getMap().get(toolName));
+            }
         }
-        String[] toolNames = toolListStr.split(",");
-        for (String toolName : toolNames) {
-            toolList.add(GinjTool.getMap().get(toolName));
+        return toolSet;
+    }
+
+    @SuppressWarnings("StringConcatenationInLoop")
+    public static void setToolSet(Set<GinjTool> toolSet) {
+        Prefs.toolSet = toolSet;
+        String toolNames = "";
+        for (GinjTool ginjTool : toolSet) {
+            if (toolNames.length() > 0) {
+                toolNames += ",";
+            }
+            toolNames += ginjTool.getName();
         }
-        return toolList;
+        Prefs.set(Key.TOOL_LIST, toolNames);
     }
 }

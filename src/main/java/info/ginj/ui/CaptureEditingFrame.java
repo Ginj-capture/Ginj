@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public class CaptureEditingFrame extends JFrame implements TargetListChangeListener {
 
@@ -130,7 +131,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         toolBar.setBorder(new EmptyBorder(6, 6, 6, 6));
 
         ButtonGroup toolButtonGroup = new ButtonGroup();
-        List<GinjTool> tools = Prefs.getToolList();
+        Set<GinjTool> tools = Prefs.getToolSet();
         for (GinjTool tool : tools) {
             addToolButton(toolBar, tool, toolButtonGroup);
         }

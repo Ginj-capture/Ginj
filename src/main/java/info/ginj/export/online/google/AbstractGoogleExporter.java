@@ -33,14 +33,8 @@ import java.util.Map;
  * <p>
  * TODO: only keep a single HttpClient ?
  */
-public abstract class GoogleExporter extends AbstractOAuth2Exporter {
+public abstract class AbstractGoogleExporter extends AbstractOAuth2Exporter {
     public static final ByteArrayEntity EMPTY_ENTITY = new ByteArrayEntity(new byte[]{}, ContentType.APPLICATION_OCTET_STREAM);
-
-    /** The chunk size to use for data upload.
-     * Must be a multiple of 256*1024 for Google Drive
-     * TODO make it larger for better performance
-     */
-    public static final int CHUNK_SIZE = 256*1024;
 
     private static final String GOOGLE_CLIENT_APP_KEY = "805469689820-c3drai5blocq5ae120md067te73ejv49.apps.googleusercontent.com";
     private static final String GOOGLE_NOT_SO_SECRET_CLIENT_APP_KEY = "2guKmYBdrb1nhGkMgdSrbeXl"; // "In this context, the client secret is obviously not treated as a secret." ( https://developers.google.com/identity/protocols/oauth2 )

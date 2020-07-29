@@ -41,7 +41,6 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     private static final String DROPBOX_OAUTH2_TOKEN_URL = "https://api.dropboxapi.com/oauth2/token";
     private static final String DROPBOX_REVOKE_URL = "https://www.dropbox.com/account/connected_apps";
 
-    public static final int CHUNK_SIZE = 262144; // 256k
     public static final String NAME = "Dropbox";
 
 
@@ -218,7 +217,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
      * @return a public URL to share to give access to the uploaded media.
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException        if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specific error occurs
      */
     @Override
     public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {

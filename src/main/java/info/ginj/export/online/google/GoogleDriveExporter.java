@@ -3,7 +3,6 @@ package info.ginj.export.online.google;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-import info.ginj.export.online.OnlineExporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
@@ -39,7 +38,7 @@ import java.util.List;
  * See https://developers.google.com/drive/api/v3/manage-uploads#resumable
  * See https://developers.google.com/drive/api/v3/manage-sharing
  */
-public class GoogleDriveExporter extends GoogleExporter implements OnlineExporter {
+public class GoogleDriveExporter extends AbstractGoogleExporter {
 
     private static final Logger logger = LoggerFactory.getLogger(GoogleDriveExporter.class);
 
@@ -120,7 +119,7 @@ public class GoogleDriveExporter extends GoogleExporter implements OnlineExporte
      * @return a public URL to share to give access to the uploaded media.
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException        if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specific error occurs
      */
     @Override
     public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
@@ -163,7 +162,7 @@ public class GoogleDriveExporter extends GoogleExporter implements OnlineExporte
      * @return a public URL to share to give access to the uploaded media.
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException        if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specific error occurs
      */
     private FilesResource uploadFile(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, CommunicationException, UploadException {
         final File file = capture.getRenderedFile();
@@ -179,11 +178,7 @@ public class GoogleDriveExporter extends GoogleExporter implements OnlineExporte
 
         // Add file metadata in JSON as body. Something like:
         httpPost.addHeader("Content-Type", "application/json; charset=UTF-8");
-        String filename = capture.getName();
-        String extension = capture.computeExtension();
-        if (!filename.toLowerCase().endsWith(extension)) {
-            filename += extension;
-        }
+        String filename = getSharedName(capture);
         httpPost.setEntity(new StringEntity(
                 "{\"name\": \"" + filename + "\"}"
         ));
@@ -297,6 +292,15 @@ public class GoogleDriveExporter extends GoogleExporter implements OnlineExporte
         return fileResource;
     }
 
+    private String getSharedName(Capture capture) {
+        String filename = capture.getName();
+        String extension = capture.computeExtension();
+        if (!filename.toLowerCase().endsWith(extension)) {
+            filename += extension;
+        }
+        return filename;
+    }
+
     /**
      * This method implements https://developers.google.com/drive/api/v3/reference/permissions/create
      * see https://stackoverflow.com/a/11669565/13551878
@@ -364,7 +368,6 @@ public class GoogleDriveExporter extends GoogleExporter implements OnlineExporte
             throw new CommunicationException("Error creating shared link", e);
         }
     }
-
 
 
     ////////////////////////////////////////////////////

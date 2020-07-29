@@ -1,6 +1,5 @@
 package info.ginj.export.online.google;
 
-import info.ginj.export.online.OnlineExporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
@@ -12,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class YoutubeExporter extends GoogleExporter implements OnlineExporter {
+public class YoutubeExporter extends AbstractGoogleExporter {
 
     private static final String[] YOUTUBE_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/youtube.upload"};
     public static final String NAME = "Youtube";

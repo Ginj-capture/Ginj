@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import info.ginj.Ginj;
-import info.ginj.export.online.OnlineExporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
@@ -47,7 +46,7 @@ import static info.ginj.util.Misc.DATE_FORMAT_PATTERN;
  * <p>
  * TODO: videos must be max 10GB
  */
-public class GooglePhotosExporter extends GoogleExporter implements OnlineExporter {
+public class GooglePhotosExporter extends AbstractGoogleExporter {
 
     private static final Logger logger = LoggerFactory.getLogger(GooglePhotosExporter.class);
 
@@ -150,7 +149,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
      * @return a public URL to share to give access to the uploaded media.
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException        if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specific error occurs
      */
     @Override
     public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
@@ -208,7 +207,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         };
 
         // Try to find the album in the list of existing albums
-        logProgress("Getting album", OnlineExporter.PROGRESS_GETTING_ALBUM);
+        logProgress("Getting album", PROGRESS_GETTING_ALBUM);
         Album album = getAlbumByName(client, target, albumName);
 
         // See if we found it
@@ -216,17 +215,17 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             // Yes. See if it is shared
             if (album.getShareInfo() == null || album.getShareInfo().getShareableUrl() == null) {
                 // No, share it
-                logProgress("Sharing album", OnlineExporter.PROGRESS_SHARING_ALBUM);
+                logProgress("Sharing album", PROGRESS_SHARING_ALBUM);
                 shareAlbum(client, target, album);
             }
         }
         else {
             // Not found. Create it
-            logProgress("Creating album", OnlineExporter.PROGRESS_CREATING_ALBUM);
+            logProgress("Creating album", PROGRESS_CREATING_ALBUM);
             album = createAlbum(client, target, albumName);
 
             // And, share it
-            logProgress("Sharing album", OnlineExporter.PROGRESS_SHARING_ALBUM);
+            logProgress("Sharing album", PROGRESS_SHARING_ALBUM);
             shareAlbum(client, target, album);
         }
 
@@ -459,7 +458,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 //     * @return the uploadToken to be used to link this content to a media
 //     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
 //     * @throws CommunicationException if an url, network or decoding error occurs
-//     * @throws UploadException if an upload-specfic error occurs
+//     * @throws UploadException if an upload-specific error occurs
 //     */
 //    private String uploadFileBytesSimple(CloseableHttpClient client, String accountNumber, File file) throws AuthorizationException, UploadException, CommunicationException {
 //        String uploadToken;
@@ -502,7 +501,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
      * @return the uploadToken to be used to link this content to a media
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException        if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specific error occurs
      */
     private String uploadFileBytes(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
         String uploadToken = null;
@@ -636,11 +635,11 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
      * @return the ID of the created media
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException        if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specific error occurs
      */
     private String createMediaItem(CloseableHttpClient client, Target target, Capture capture, String albumId, String uploadToken) throws AuthorizationException, UploadException, CommunicationException {
 
-        logProgress("Creating media", OnlineExporter.PROGRESS_CREATING_MEDIA);
+        logProgress("Creating media", PROGRESS_CREATING_MEDIA);
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));

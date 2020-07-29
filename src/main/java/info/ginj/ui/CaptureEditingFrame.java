@@ -56,7 +56,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     private final JTextField nameTextField;
 
     GinjTool currentTool;
-    private JPanel actionPanel;
+    private final JPanel actionPanel;
 
 
     public CaptureEditingFrame(StarWindow starWindow, BufferedImage capturedImg) {

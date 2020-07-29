@@ -61,7 +61,7 @@ public class MoreFrame extends JFrame {
         mainPanel.add(aboutButton);
 
         final JButton exitButton = new JButton(Misc.getExitQuitText() + " " + Ginj.getAppName());
-        exitButton.addActionListener(e -> starWindow.onExit());
+        exitButton.addActionListener(e -> starWindow.onExit(this));
         mainPanel.add(exitButton);
 
         contentPane.add(mainPanel, BorderLayout.CENTER);

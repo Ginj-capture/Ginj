@@ -227,7 +227,7 @@ public class StarWindow extends JWindow {
             historyItem.addActionListener(e -> onHistory());
             moreItem.addActionListener(e -> onMore());
             checkForUpdatesItem.addActionListener(e -> onCheckForUpdates());
-            exitItem.addActionListener(e -> onExit());
+            exitItem.addActionListener(e -> onExit(this));
         }
     }
 
@@ -852,8 +852,8 @@ public class StarWindow extends JWindow {
         new CheckForUpdateDialog(this).setVisible(true);
     }
 
-    void onExit() {
-        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Are you sure you want to " + Misc.getExitQuitText().toLowerCase() + " " + Ginj.getAppName() + "?", Misc.getExitQuitText() + " Jing?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+    void onExit(Component parentComponent) {
+        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(parentComponent, "Are you sure you want to " + Misc.getExitQuitText().toLowerCase() + " " + Ginj.getAppName() + "?", Misc.getExitQuitText() + " Jing?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
             Prefs.save();
             dispose();
         }

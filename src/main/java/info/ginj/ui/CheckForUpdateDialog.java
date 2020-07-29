@@ -129,7 +129,7 @@ public class CheckForUpdateDialog extends JDialog {
         String message = "Your version: <b><span style=\"color:#00FF00\">" + Ginj.getVersion() + "</span></b><br/>";
 
         if (latestVersion == null) {
-            message += "Fetching latest version...<br/>" +
+            message += "Fetching latest release information...<br/>" +
                     "For details about " + Ginj.getAppName() + " releases, take a look at the";
          }
         else {

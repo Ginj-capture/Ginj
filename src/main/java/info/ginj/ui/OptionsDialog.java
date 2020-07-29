@@ -25,6 +25,7 @@ public class OptionsDialog extends JDialog {
 
     private static StarWindow starWindow = null;
     private final JTextField hotKeyTextField;
+    private final JCheckBox useTrayNotificationsOnExportCompletion;
     private final JCheckBox ovalOverlayCheckBox;
 
     public OptionsDialog(StarWindow starWindow) {
@@ -71,6 +72,9 @@ public class OptionsDialog extends JDialog {
         hotKeyDefineButton.addActionListener((e -> onDefineHotKey()));
         hotKeyFieldPanel.add(hotKeyDefineButton);
 
+        useTrayNotificationsOnExportCompletion = new JCheckBox();
+        useTrayNotificationsOnExportCompletion.setSelected(Prefs.isTrue(Prefs.Key.USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION));
+
         ovalOverlayCheckBox = new JCheckBox();
         GinjTool ovalTool = GinjTool.getMap().get(OvalTool.NAME);
         ovalOverlayCheckBox.setSelected(Prefs.getToolSet().contains(ovalTool));
@@ -78,7 +82,9 @@ public class OptionsDialog extends JDialog {
         // Add fields to main panel
         mainPanel.add(UI.createFieldPanel(
                 "Capture hotkey", hotKeyFieldPanel,
-                "Enable Oval Overlay", ovalOverlayCheckBox));
+                "Enable Oval Overlay", ovalOverlayCheckBox,
+                "Use tray notification on export", useTrayNotificationsOnExportCompletion
+        ));
 
         // TODO add Capture folder
 
@@ -137,6 +143,8 @@ public class OptionsDialog extends JDialog {
                 Prefs.set(Prefs.Key.CAPTURE_HOTKEY, newHotKey);
             }
         }
+
+        Prefs.set(Prefs.Key.USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION, String.valueOf(useTrayNotificationsOnExportCompletion.isSelected()));
 
         GinjTool ovalTool = GinjTool.getMap().get(OvalTool.NAME);
         Set<GinjTool> toolSet = Prefs.getToolSet();

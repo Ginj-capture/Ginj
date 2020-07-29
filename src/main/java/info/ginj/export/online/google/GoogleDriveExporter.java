@@ -178,9 +178,8 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
 
         // Add file metadata in JSON as body. Something like:
         httpPost.addHeader("Content-Type", "application/json; charset=UTF-8");
-        String filename = getSharedName(capture);
         httpPost.setEntity(new StringEntity(
-                "{\"name\": \"" + filename + "\"}"
+                "{\"name\": \"" + capture.computeUploadFilename() + "\"}"
         ));
 
 
@@ -290,15 +289,6 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
         logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
 
         return fileResource;
-    }
-
-    private String getSharedName(Capture capture) {
-        String filename = capture.getName();
-        String extension = capture.computeExtension();
-        if (!filename.toLowerCase().endsWith(extension)) {
-            filename += extension;
-        }
-        return filename;
     }
 
     /**

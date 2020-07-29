@@ -647,7 +647,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
 
         // Build JSON query:
         JsonObject simpleMediaItem = new JsonObject();
-        simpleMediaItem.addProperty("fileName", capture.getDefaultName());
+        simpleMediaItem.addProperty("fileName", capture.computeUploadFilename());
         simpleMediaItem.addProperty("uploadToken", uploadToken);
 
         JsonObject newMediaItem = new JsonObject();

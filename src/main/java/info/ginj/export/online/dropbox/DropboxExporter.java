@@ -356,7 +356,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         // Step 3: Finish session (optionally with the remaining bytes)
         logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
 
-        final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + capture.computeExtension();
+        final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.computeUploadFilename();
         FileMetadata fileMetadata;
 
         httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/finish");

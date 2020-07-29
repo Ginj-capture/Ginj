@@ -171,7 +171,7 @@ public class Capture implements Cloneable {
     @java.beans.Transient
     public String getDefaultName() {
         if (name == null || name.isBlank()) {
-            return id;
+            return getBaseFilename();
         }
         return name;
     }
@@ -193,5 +193,18 @@ public class Capture implements Cloneable {
                 ", isVideo=" + isVideo +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    /**
+     * Compute the name under which the capture will be shared
+     * @return the name to use
+     */
+    public String computeUploadFilename() {
+        String filename = getDefaultName();
+        String extension = computeExtension();
+        if (!filename.toLowerCase().endsWith(extension)) {
+            filename += extension;
+        }
+        return filename;
     }
 }

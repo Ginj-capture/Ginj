@@ -98,7 +98,7 @@ public class DiskExporter extends Exporter {
             }
         }
         // Default file
-        destinationFile = new File(saveDirName, capture.getDefaultName() + Misc.IMAGE_EXTENSION);
+        destinationFile = new File(saveDirName, capture.computeUploadFilename());
 
         if (!askForLocation) {
             // OK, we're done.

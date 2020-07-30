@@ -28,7 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * Based on com.github.jjYBdx4IL.utils.awt.Desktop
+ * Modified by Vicne to add select() and selectSystemSpecific()
  * @author jjYBdx4IL
  */
 public class Desktop {
@@ -83,6 +84,29 @@ public class Desktop {
     }
 
 
+    /**
+     * This tries to implement "Show in Explorer" or "Reveal in finder".
+     * Note that that feature is not meant to be supported by Java's Desktop
+     * so here we try system-specific first, or default to the "open" behaviour otherwise
+     * @param file the file to show and select
+     * @return
+     */
+    public static boolean select(File file) {
+
+        if (selectSystemSpecific(file.getPath())) {
+            return true;
+        }
+
+        if (openDESKTOP(file)) {
+            return true;
+        }
+
+        LOG.warn(String.format("failed to select %s", file.getAbsolutePath()));
+
+        return false;
+    }
+
+
     private static boolean openSystemSpecific(String what) {
 
         if (SystemUtils.IS_OS_LINUX) {
@@ -117,6 +141,55 @@ public class Desktop {
 
         if (SystemUtils.IS_OS_WINDOWS) {
             if (runCommand("explorer", "%s", what)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    private static boolean selectSystemSpecific(String what) {
+
+        if (SystemUtils.IS_OS_LINUX) {
+            // Blind trying based on https://discuss.pixls.us/t/open-in-explorer-updated-for-macos/16698
+            if (runCommand("busctl", "--user call org.freedesktop.FileManager1 /org/freedesktop/FileManager1 org.freedesktop.FileManager1 ShowItems ass 1 file://\"%s\"", what)) {
+                return true;
+            }
+
+            if (isXDG()) {
+                if (runCommand("xdg-open", "%s", what)) {
+                    return true;
+                }
+            }
+            if (isKDE()) {
+                if (runCommand("kde-open", "%s", what)) {
+                    return true;
+                }
+            }
+            if (isGNOME()) {
+                if (runCommand("gnome-open", "%s", what)) {
+                    return true;
+                }
+            }
+            if (runCommand("kde-open", "%s", what)) {
+                return true;
+            }
+            if (runCommand("gnome-open", "%s", what)) {
+                return true;
+            }
+        }
+
+        else if (SystemUtils.IS_OS_MAC) {
+            // Blind try based on https://scriptingosx.com/2017/02/the-macos-open-command/
+            if (runCommand("open", "-R %s", what)) {
+                return true;
+            }
+        }
+
+        else if (SystemUtils.IS_OS_WINDOWS) {
+            // See https://stackoverflow.com/a/13680458/13551878
+            if (runCommand("explorer", "/select,\"%s\"", what)) {
                 return true;
             }
         }
@@ -197,7 +270,7 @@ public class Desktop {
 
     private static boolean runCommand(String command, String args, String file) {
 
-        LOG.info("Trying to exec:\n   cmd = " + command + "\n   args = " + args + "\n   %s = " + file);
+        LOG.debug("Trying to exec:\n   cmd = " + command + "\n   args = " + args + "\n   %s = " + file);
 
         String[] parts = prepareCommand(command, args, file);
 
@@ -217,7 +290,7 @@ public class Desktop {
                     return false;
                 }
             } catch (IllegalThreadStateException itse) {
-                LOG.error("Process is running.");
+                LOG.info("Process is running.");
                 return true;
             }
         } catch (IOException e) {

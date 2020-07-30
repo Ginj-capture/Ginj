@@ -191,11 +191,12 @@ public class StarWindow extends JWindow {
             trayIcon.addActionListener(e -> {
                 if (lastExport != null && lastExport.isLocationCopied()) {
                     try {
-                        if (lastExport.getLocation().startsWith("http") || lastExport.getLocation().startsWith("ftp")) {
-                            Desktop.browse(new URI(lastExport.getLocation()));
+                        String location = lastExport.getLocation();
+                        if (location.startsWith("http") || location.startsWith("ftp")) {
+                            Desktop.browse(new URI(location));
                         }
                         else {
-                            Desktop.open(new File(lastExport.getLocation()));
+                            Desktop.select(new File(location));
                         }
                     }
                     catch (Exception e1) {

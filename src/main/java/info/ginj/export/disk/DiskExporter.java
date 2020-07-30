@@ -178,7 +178,7 @@ public class DiskExporter extends Exporter {
             Ginj.getTargetPrefs().save();
         }
 
-        Export export = new Export(getExporterName(), destinationFile.getAbsolutePath(), null, false);
+        Export export = new Export(getExporterName(), destinationFile.getAbsolutePath(), destinationFile.getAbsolutePath(), false);
 
         String message = "Export completed successfully.";
         if (target.getSettings().getMustCopyPath()) {

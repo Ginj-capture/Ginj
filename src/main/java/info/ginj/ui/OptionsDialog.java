@@ -1,6 +1,5 @@
 package info.ginj.ui;
 
-import com.tulskiy.keymaster.common.Provider;
 import info.ginj.Ginj;
 import info.ginj.model.Prefs;
 import info.ginj.tool.GinjTool;
@@ -13,6 +12,12 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 
@@ -23,10 +28,16 @@ public class OptionsDialog extends JDialog {
 
     private static final Logger logger = LoggerFactory.getLogger(OptionsDialog.class);
 
-    private static StarWindow starWindow = null;
+    public static final List<Integer> HOTKEY_MODIFIERS = Arrays.asList(KeyEvent.VK_ALT, KeyEvent.VK_CONTROL, KeyEvent.VK_SHIFT, KeyEvent.VK_META, KeyEvent.VK_ALT_GRAPH);
+    public static final String HOTKEY_CLICK_HERE_PLACEHOLDER = "Click here";
+    public static final String HOTKEY_PRESS_KEYS_PLACEHOLDER = "Press desired key(s)";
+
+    private static StarWindow starWindow;
     private final JTextField hotKeyTextField;
     private final JCheckBox useTrayNotificationsOnExportCompletion;
     private final JCheckBox ovalOverlayCheckBox;
+
+    private KeyStroke hotKey;
 
     public OptionsDialog(StarWindow starWindow) {
         super();
@@ -62,14 +73,53 @@ public class OptionsDialog extends JDialog {
         // Prepare hotkey field
         JPanel hotKeyFieldPanel = new JPanel(new FlowLayout());
         hotKeyTextField = new JTextField(15);
-        hotKeyTextField.setEnabled(false);
-        String hotKey = Prefs.get(Prefs.Key.CAPTURE_HOTKEY);
-        if (hotKey != null) {
-            hotKeyTextField.setText(hotKey);
+        hotKeyTextField.setEditable(false);
+        String hotKeyStr = Prefs.get(Prefs.Key.CAPTURE_HOTKEY);
+        if (hotKeyStr != null) {
+            hotKey = KeyStroke.getKeyStroke(hotKeyStr);
+            hotKeyTextField.setText(hotKeyStr);
         }
+        else {
+            hotKey = null;
+            hotKeyTextField.setText(HOTKEY_CLICK_HERE_PLACEHOLDER);
+        }
+        hotKeyTextField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                // This method is called once for each key (e.g. once for ctrl, once for shift and once for P)
+                // e.getKeyCode() is only the last pressed key. If the last pressed key was a modifier, it's not a valid combination.
+                if (HOTKEY_MODIFIERS.contains(e.getKeyCode())) {
+                    hotKey = null;
+                    hotKeyTextField.setText(HOTKEY_PRESS_KEYS_PLACEHOLDER);
+                }
+                else {
+                    // A "non-modifier" key was pressed last. Remember the combination.
+                    hotKey = KeyStroke.getKeyStrokeForEvent(e);
+                    hotKeyTextField.setText(toKeyString(hotKey));
+                }
+            }
+        });
+
+        // Change the message according to the focus (click here / press keys)
+        hotKeyTextField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (hotKey == null) {
+                    hotKeyTextField.setText(HOTKEY_PRESS_KEYS_PLACEHOLDER);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (hotKey == null) {
+                    hotKeyTextField.setText(HOTKEY_CLICK_HERE_PLACEHOLDER);
+                }
+            }
+        });
         hotKeyFieldPanel.add(hotKeyTextField);
-        JButton hotKeyDefineButton = new JButton("...");
-        hotKeyDefineButton.addActionListener((e -> onDefineHotKey()));
+
+        JButton hotKeyDefineButton = new JButton("Clear");
+        hotKeyDefineButton.addActionListener((e -> onClearHotKey()));
         hotKeyFieldPanel.add(hotKeyDefineButton);
 
         useTrayNotificationsOnExportCompletion = new JCheckBox();
@@ -119,32 +169,31 @@ public class OptionsDialog extends JDialog {
         starWindow.centerFrameOnStarIconDisplay(this);
     }
 
-    private void onDefineHotKey() {
-        final Provider provider = starWindow.getHotkeyProvider();
-        if (provider == null) {
-            // This is the first time a user will encounter hotKey code, so warn him in case of provider issue.
-            // Apart from here, a null provider is silently ignored
-            UI.alertError(this, "HotKey error", "Error initializing hotkey provider.");
-        }
-        else {
-            (new HotKeyDefinitionDialog(starWindow, hotKeyTextField)).setVisible(true);
-        }
+    private String toKeyString(KeyStroke keyStroke) {
+        // We're in the "keyPressed" handler, so remove the word "pressed " from the toString() version of the combination
+        return keyStroke.toString().replaceAll("pressed ", "");
+    }
+
+    private void onClearHotKey() {
+        hotKey = null;
+        hotKeyTextField.setText(HOTKEY_CLICK_HERE_PLACEHOLDER);
     }
 
     private void onOK() {
-        String newHotKey = hotKeyTextField.getText();
-        if (newHotKey != null && !newHotKey.equals(Prefs.get(Prefs.Key.CAPTURE_HOTKEY))) {
-            // Hotkey changed
-            if (newHotKey.length() == 0) {
-                logger.info("Removing capture hotkey");
-                Prefs.remove(Prefs.Key.CAPTURE_HOTKEY);
-            }
-            else {
-                Prefs.set(Prefs.Key.CAPTURE_HOTKEY, newHotKey);
-            }
+
+        if (hotKey == null) {
+            logger.info("Removing capture hotkey");
+            Prefs.remove(Prefs.Key.CAPTURE_HOTKEY);
+        }
+        else {
+            String hotKeyString = toKeyString(hotKey);
+            logger.info("Setting capture hotkey to " + hotKeyString);
+            Prefs.set(Prefs.Key.CAPTURE_HOTKEY, hotKeyString);
         }
 
+
         Prefs.set(Prefs.Key.USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION, String.valueOf(useTrayNotificationsOnExportCompletion.isSelected()));
+
 
         GinjTool ovalTool = GinjTool.getMap().get(OvalTool.NAME);
         Set<GinjTool> toolSet = Prefs.getToolSet();

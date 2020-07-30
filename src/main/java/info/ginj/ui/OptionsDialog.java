@@ -184,6 +184,7 @@ public class OptionsDialog extends JDialog {
         if (hotKey == null) {
             logger.info("Removing capture hotkey");
             Prefs.remove(Prefs.Key.CAPTURE_HOTKEY);
+            //Prefs.set(Prefs.Key.CAPTURE_HOTKEY, "ctrl PRINTSCREEN");
         }
         else {
             String hotKeyString = toKeyString(hotKey);

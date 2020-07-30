@@ -141,7 +141,7 @@ public class Prefs {
     }
 
     public static void remove(Key key) {
-        preferences.remove(key);
+        preferences.remove(key.keyString);
     }
 
 

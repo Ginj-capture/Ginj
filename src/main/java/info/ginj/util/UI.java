@@ -263,7 +263,7 @@ public class UI {
                         Desktop.browse(e.getURL().toURI());
                     }
                     else {
-                        Desktop.open(new File(e.getDescription()));
+                        Desktop.select(new File(e.getDescription()));
                     }
                     if (additionalClickListener != null) {
                         additionalClickListener.actionPerformed(new ActionEvent(e.getSource(), 0, "click"));

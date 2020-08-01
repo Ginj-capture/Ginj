@@ -85,16 +85,34 @@ public class Ginj {
     public static File getTempDir() {
         if (tempDir == null) {
             // First invocation, check, clean or create temp dir
-            tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator + getAppName() + "_temp");
-            if (tempDir.exists()) {
-                // Cleanup
-                for (File file : tempDir.listFiles()) {
-                    file.delete();
+            String tempDirName = Prefs.get(Prefs.Key.TEMP_DIR);
+            if (tempDirName != null) {
+                tempDir = new File(tempDirName);
+                if (!tempDir.exists()) {
+                    if (!tempDir.mkdirs()) {
+                        logger.error(tempDirName + " declared as " + Prefs.Key.TEMP_DIR.getKey() + " option cannot be found nor created as a directory. Using a subdir of the system temp dir.");
+                        tempDir = null;
+                    }
+                }
+                else {
+                    if (!tempDir.isDirectory()) {
+                        logger.error(tempDirName + " declared as " + Prefs.Key.TEMP_DIR.getKey() + " option is not a directory. Using a subdir of the system temp dir.");
+                        tempDir = null;
+                    }
                 }
             }
-            else {
-                // Create
-                tempDir.mkdirs();
+            if (tempDir == null) {
+                tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator + getAppName() + "_temp");
+                if (tempDir.exists()) {
+                    // Cleanup
+                    for (File file : Ginj.tempDir.listFiles()) {
+                        file.delete();
+                    }
+                }
+                else {
+                    // Create
+                    tempDir.mkdirs();
+                }
             }
         }
         // And return it

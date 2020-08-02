@@ -29,7 +29,7 @@ import java.util.Map;
  * It takes up the full screen, captures the screen on startup and uses it as background, then paints the selection box
  * above it.
  * Note: an undecorated JFrame is required instead of a JWindow, otherwise keyboard events (ESC) are not captured
- *
+ * <p>
  * Note about multiscreen systems and coordinates:
  * The "main display" always has (0,0) at the top left of the "client area" (where normal windows should be drawn).
  * If secondary displays are positioned to the right and/or below it, all their points are in the (+,+) quadrant,
@@ -144,7 +144,7 @@ public class CaptureSelectionFrame extends JFrame {
         public CaptureMainPane() {
             try {
                 Robot robot = new Robot();
-                Rectangle2D areaToCapture = new Rectangle2D.Double(0,0,-1,-1);
+                Rectangle2D areaToCapture = new Rectangle2D.Double(0, 0, -1, -1);
                 GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
                 for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
                     GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
@@ -492,7 +492,7 @@ public class CaptureSelectionFrame extends JFrame {
             // In that case, we keep the selection unchanged (in case we want to move it back on screen),
             // but the actual capture would be cropped to the dimensions of the mega-window of course.
             // Use that size here
-            final Rectangle croppedSelection = selection.intersection(new Rectangle(0, 0, capturedArea.width, capturedArea.height));
+            final Rectangle croppedSelection = getCroppedSelection();
             captureSizeLabel.setText(croppedSelection.width + " x " + croppedSelection.height);
             boolean isValidArea = (croppedSelection.width > 5) && (croppedSelection.height > 5);
             imageButton.setEnabled(isValidArea);
@@ -523,7 +523,7 @@ public class CaptureSelectionFrame extends JFrame {
                 new Point(selection.x, selection.y), // Over, at top left of selection
                 new Point(0, capturedArea.height - barHeight), // Over, at bottom left of captured area
                 new Point(0, capturedArea.height - barHeight), // Over, at top left of 1st screen
-                new Point((int) (-capturedArea.x + (visibleAreas.get(0).getWidth() - barWidth)/2), (int)(-capturedArea.y + (visibleAreas.get(0).getHeight() - barHeight)/2)) // Last resort: at center of main screen
+                new Point((int) (-capturedArea.x + (visibleAreas.get(0).getWidth() - barWidth) / 2), (int) (-capturedArea.y + (visibleAreas.get(0).getHeight() - barHeight) / 2)) // Last resort: at center of main screen
         };
         Point bestPosition = null;
         for (Point candidatePosition : candidatePositions) {
@@ -568,6 +568,10 @@ public class CaptureSelectionFrame extends JFrame {
         repaint();
     }
 
+    private Rectangle getCroppedSelection() {
+        return selection.intersection(new Rectangle(0, 0, capturedArea.width, capturedArea.height));
+    }
+
     private void positionWindowOnStartup() {
         setLocation(capturedArea.x, capturedArea.y);
     }
@@ -577,8 +581,7 @@ public class CaptureSelectionFrame extends JFrame {
 
 
     private void onCaptureImage() {
-        // Crop image
-        final Rectangle croppedSelection = selection.intersection(new Rectangle(0, 0, capturedArea.width, capturedArea.height));
+        final Rectangle croppedSelection = getCroppedSelection();
         final BufferedImage capturedImg = capturedScreenImg.getSubimage(croppedSelection.x, croppedSelection.y, croppedSelection.width, croppedSelection.height);
         final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capturedImg);
         captureEditingFrame.setVisible(true);
@@ -586,8 +589,9 @@ public class CaptureSelectionFrame extends JFrame {
     }
 
     private void onCaptureVideo() {
-        UI.featureNotImplementedDialog(this);
-        // TODO
+        final VideoControlFrame videoControlFrame = new VideoControlFrame(starWindow, getCroppedSelection());
+        dispose();
+        videoControlFrame.setVisible(true);
     }
 
     private void onRedo() {

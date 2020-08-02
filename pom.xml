@@ -44,11 +44,16 @@
             <artifactId>slf4j-jdk14</artifactId>
             <version>1.8.0-beta4</version>
         </dependency>
-            <dependency>
-                <groupId>com.github.tulskiy</groupId>
-                <artifactId>jkeymaster</artifactId>
-                <version>1.3</version>
-            </dependency>
+        <dependency>
+            <groupId>com.github.tulskiy</groupId>
+            <artifactId>jkeymaster</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.kokorin.jaffree</groupId>
+            <artifactId>jaffree</artifactId>
+            <version>0.9.6</version>
+        </dependency>
     </dependencies>
 
     <repositories>
@@ -69,15 +74,15 @@
                     <target>14</target>
                 </configuration>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-jar-plugin</artifactId>-->
-<!--                <configuration>-->
-<!--                    <archive>-->
-<!--                        <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>-->
-<!--                    </archive>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-jar-plugin</artifactId>-->
+            <!--                <configuration>-->
+            <!--                    <archive>-->
+            <!--                        <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>-->
+            <!--                    </archive>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>

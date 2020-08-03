@@ -33,7 +33,7 @@ import java.util.Map;
  * Note about multiscreen systems and coordinates:
  * The "main display" always has (0,0) at the top left of the "client area" (where normal windows should be drawn).
  * If secondary displays are positioned to the right and/or below it, all their points are in the (+,+) quadrant,
- * but if a secondary display is above or to the left, its coordinates will be negative.
+ * but if a secondary display is above or to the left, one or both of its coordinates will be negative.
  * The logic is that all physical displays' bounds are first union'ed to create a mega-rectangle encompassing all displays.
  * Then, that mega-rectangle is captured to create a mega-image.
  * Finally, a mega-window is created and displayed at the top-left corner of the mega-rectangle (maybe in negative space)

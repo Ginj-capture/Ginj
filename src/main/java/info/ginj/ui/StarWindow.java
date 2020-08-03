@@ -593,7 +593,19 @@ public class StarWindow extends JWindow {
 
         try {
             Border border = Border.valueOf(Prefs.get(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER));
-            int distanceFromCorner = Integer.parseInt(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER));
+            int distanceFromCorner;
+            try {
+                // New way, store relative value
+                double distanceFromCornerPercent = Double.parseDouble(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER_PERCENT));
+                distanceFromCorner = switch (border) {
+                    case TOP,BOTTOM -> (int)(currentDisplayBounds.width * distanceFromCornerPercent /100);
+                    case LEFT,RIGHT -> (int)(currentDisplayBounds.height * distanceFromCornerPercent/100);
+                };
+            }
+            catch (NumberFormatException e) {
+                // Old way, store absolute value
+                distanceFromCorner = Integer.parseInt(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER));
+            }
             switch (border) {
                 case TOP -> centerLocation = new Point(
                         currentDisplayBounds.x + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), currentDisplayBounds.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS),
@@ -703,27 +715,28 @@ public class StarWindow extends JWindow {
             }
         }
 
-        int targetX, targetY, distanceFromCorner;
+        int targetX, targetY;
+        double distanceFromCornerPercent;
         switch (bestBorder) {
             case TOP -> {
                 targetX = bestDisplay.x + Math.min(Math.max(center.x - bestDisplay.x, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.width - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
                 targetY = bestDisplay.y;
-                distanceFromCorner = targetX - bestDisplay.x;
+                distanceFromCornerPercent = (100.0 * (targetX - bestDisplay.x))/bestDisplay.width;
             }
             case BOTTOM -> {
                 targetX = bestDisplay.x + Math.min(Math.max(center.x - bestDisplay.x, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.width - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
                 targetY = bestDisplay.y + bestDisplay.height - 1;
-                distanceFromCorner = targetX - bestDisplay.x;
+                distanceFromCornerPercent = (100.0 * (targetX - bestDisplay.x))/bestDisplay.width;
             }
             case LEFT -> {
                 targetX = bestDisplay.x;
                 targetY = bestDisplay.y + Math.min(Math.max(center.y - bestDisplay.y, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
-                distanceFromCorner = targetY - bestDisplay.y;
+                distanceFromCornerPercent = (100.0 * (targetY - bestDisplay.y))/bestDisplay.height;
             }
             case RIGHT -> {
                 targetX = bestDisplay.x + bestDisplay.width - 1;
                 targetY = bestDisplay.y + Math.min(Math.max(center.y - bestDisplay.y, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
-                distanceFromCorner = targetY - bestDisplay.y;
+                distanceFromCornerPercent = (100.0 * (targetY - bestDisplay.y))/bestDisplay.height;
             }
             default -> throw new IllegalStateException("Unexpected value: " + bestBorder);
         }
@@ -734,7 +747,8 @@ public class StarWindow extends JWindow {
 
         Prefs.set(Prefs.Key.STAR_WINDOW_DISPLAY_NUMBER, String.valueOf(bestDisplayNumber));
         Prefs.set(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER, bestBorder.name());
-        Prefs.set(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER, String.valueOf(distanceFromCorner));
+        Prefs.set(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER_PERCENT, String.valueOf(distanceFromCornerPercent));
+        Prefs.remove(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER);
         Prefs.save();
         return new Point(targetX, targetY);
     }

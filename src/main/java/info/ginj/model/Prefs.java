@@ -40,7 +40,7 @@ public class Prefs {
         CAPTURE_HOTKEY("capture.hotkey", "This is the combination to type to trigger a new capture", false),
         FFMPEG_BIN_DIR("ffmpeg.bin.dir", "Folder where the ffmpeg binary executable can be founs", true),
         VIDEO_FRAMERATE("video.framerate", "The framerate of the video captures" , true),
-        VIDEO_CAPTURE_CURSOR("video.capture.cursor", "If true, the mouse cursor is captured in the video", true),
+        VIDEO_CAPTURE_MOUSE_CURSOR("video.capture.mouse.cursor", "If true, the mouse cursor is captured in the video", true),
         USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION("use.tray.notification.on.export.completion", "If enabled, the 'end of export' window is replaced by an OS tray notification", true);
 
         private final String keyString;

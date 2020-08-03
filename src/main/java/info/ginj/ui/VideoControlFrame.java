@@ -2,6 +2,7 @@ package info.ginj.ui;
 
 import com.github.kokorin.jaffree.StreamType;
 import com.github.kokorin.jaffree.ffmpeg.*;
+import com.tulskiy.keymaster.common.Provider;
 import info.ginj.Ginj;
 import info.ginj.model.Prefs;
 import info.ginj.ui.component.DoubleBorderedPanel;
@@ -23,54 +24,79 @@ import java.time.Duration;
 public class VideoControlFrame extends JFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(VideoControlFrame.class);
+    public static final int BORDER_WIDTH = 4;
 
     private final StarWindow starWindow;
+
     private final JLabel captureDurationLabel;
+
+    private FFmpegResultFuture ffmpegFutureResult = null;
 
     public VideoControlFrame(StarWindow starWindow, Rectangle croppedSelection) {
         super();
         this.starWindow = starWindow;
+        // Hide the widget
+        starWindow.setVisible(false);
+
+        // Start recording right away
+        startRecording(croppedSelection);
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " recording");
         this.setIconImage(StarWindow.getAppIcon());
 
-
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
         setUndecorated(true);
 
-        final JPanel contentPane = new DoubleBorderedPanel();
-        setContentPane(contentPane);
-        contentPane.setLayout(new FlowLayout());
-        contentPane.setBorder(new EmptyBorder(new Insets(20, 20, 20, 20)));
+        // The window itself is transparent
+        setBackground(new Color(0, 0, 0, 0));
+        // And must be always on top
+        setAlwaysOnTop(true);
+
+        // Prepare the control panel
+        final JPanel controlPanel = new DoubleBorderedPanel();
+        controlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        controlPanel.setBorder(new EmptyBorder(new Insets(20, 20, 20, 20)));
         final JButton stopButton = new JButton("Stop");
         stopButton.addActionListener(e -> onStop());
-        contentPane.add(stopButton);
+        controlPanel.add(stopButton);
+        captureDurationLabel = new JLabel("00:00:00");
+        controlPanel.add(captureDurationLabel);
+        Dimension controlPanelSize = UI.packPanel(controlPanel);
 
-        captureDurationLabel = new JLabel("000000");
-        contentPane.add(captureDurationLabel);
+        // Prepare the main panel to contain the capture area, a border around it, and the control panel
+        JPanel contentPane = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setColor(UI.AREA_SELECTION_COLOR);
+                g2d.setStroke(new BasicStroke(BORDER_WIDTH, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[]{10,10}, 0.0f));
+                g2d.drawRect(BORDER_WIDTH / 2,BORDER_WIDTH / 2, croppedSelection.width + BORDER_WIDTH, croppedSelection.height + BORDER_WIDTH);
+            }
+        };
+        setContentPane(contentPane);
+        contentPane.setOpaque(false);
+        contentPane.setLayout(null);
+        // Position it so that it encloses the area to record (relative to the display)
+        Rectangle windowBounds = new Rectangle(croppedSelection.x - BORDER_WIDTH, croppedSelection.y - BORDER_WIDTH, croppedSelection.width + 2 * BORDER_WIDTH, croppedSelection.height + 2 * BORDER_WIDTH + controlPanelSize.height);
+        setBounds(windowBounds);
 
-        // Lay out components again
-        pack();
 
-        UI.addEscKeyShortcut(this, e -> onCancel());
-
-        // Center window TODO change
-        starWindow.centerFrameOnStarIconDisplay(this);
-
-        startRecording(croppedSelection);
+        // Position the control panel under the area to record (relative to the contentPane)
+        contentPane.add(controlPanel);
+        controlPanel.setBounds(BORDER_WIDTH, BORDER_WIDTH * 2 + croppedSelection.height, controlPanelSize.width, controlPanelSize.height);
     }
 
-    FFmpegResultFuture futureResult = null;
-
     private void startRecording(Rectangle croppedSelection) {
-        FFmpeg ffmpeg;
         String ffmpegDir = Prefs.get(Prefs.Key.FFMPEG_BIN_DIR);
+        FFmpeg ffmpeg;
         if (ffmpegDir != null) {
             ffmpeg = FFmpeg.atPath(Paths.get(ffmpegDir));
         }
         else {
+            // Suppose it's on the path
             ffmpeg = FFmpeg.atPath();
         }
 
@@ -82,19 +108,23 @@ public class VideoControlFrame extends JFrame {
             frameRate = 10;
         }
 
-        boolean captureMouseCursor = Prefs.isTrue(Prefs.Key.VIDEO_CAPTURE_CURSOR);
+        boolean captureMouseCursor = Prefs.isTrue(Prefs.Key.VIDEO_CAPTURE_MOUSE_CURSOR);
 
-        ProgressListener progressListener = new ProgressListener() {
-            @Override
-            public void onProgress(FFmpegProgress progress) {
-                Duration elapsed = Duration.ofMillis(progress.getTimeMillis());
-                captureDurationLabel.setText(String.format("%02d:%02d:%02d", elapsed.toHours(), elapsed.toMinutesPart(), elapsed.toSecondsPart()));
-            }
+        int finalFrameRate = frameRate;
+        ProgressListener progressListener = progress -> {
+            // Notes:
+            // progress.getTime() is about encoding and has an offset of 5-10 sec compared to actual capture time
+            // progress.getFrame() is accurate
+            // progress.getFps() can be irrelevant at startup before it settles
+            // So using requested frameRate to convert frames to seconds.
+            // TODO what if fps setting is too high and encoding can't keep up. Can we detect it with a drop in progress.getFps() compared to frameRate ?
+            Duration elapsed = Duration.ofMillis(1000 * progress.getFrame() / finalFrameRate);
+            captureDurationLabel.setText(String.format("%02d:%02d:%02d", elapsed.toHours(), elapsed.toMinutesPart(), elapsed.toSecondsPart()));
         };
 
         if (SystemUtils.IS_OS_MAC) {
             // avfoundation on mac supports a crop width/height but no offset (silly isn't it), so ffmpeg has to capture the full desktop and crop in a separate step:
-            futureResult = ffmpeg
+            ffmpegFutureResult = ffmpeg
                     .addInput(CaptureInput
                             .captureDesktop()
                             .setCaptureFrameRate(frameRate)
@@ -108,7 +138,7 @@ public class VideoControlFrame extends JFrame {
         }
         else {
             // OTOH on Windows' GDIGrab and Linux' X11Grab, cropping is supported at the input level :
-            futureResult = ffmpeg
+            ffmpegFutureResult = ffmpeg
                     .addInput(CaptureInput
                             .captureDesktop()
                             .setCaptureFrameRate(frameRate)
@@ -121,6 +151,10 @@ public class VideoControlFrame extends JFrame {
                     .setOverwriteOutput(true)
                     .executeAsync();
         }
+
+        // The capture window will lose focus during recording as user interacts with his apps.
+        // Make sure we detect CTRL-S for Stop and ESC for Cancel
+        addGlobalRecordingHotkeys();
     }
 
     private String getTempVideoFilename() {
@@ -128,14 +162,32 @@ public class VideoControlFrame extends JFrame {
     }
 
     private void stopRecording() {
-        futureResult.graceStop();
+        ffmpegFutureResult.graceStop();
+        removeGlobalRecordingHotkeys();
+        starWindow.registerHotKey();
     }
 
-    private void onStop() {
-        stopRecording();
-        // TODO send to capture editing
-        dispose();
+    private void addGlobalRecordingHotkeys() {
+        Provider provider = Provider.getCurrentProvider(true);
+        provider.register(KeyStroke.getKeyStroke("ctrl S"), hotKey -> onStop());
+        provider.register(KeyStroke.getKeyStroke("ESCAPE"), hotKey -> onCancel());
     }
+
+    private void removeGlobalRecordingHotkeys() {
+        Provider provider = Provider.getCurrentProvider(true);
+        provider.reset();
+    }
+
+    @Override
+    public void dispose() {
+        // Restore Widget
+        starWindow.setVisible(true);
+        super.dispose();
+    }
+
+
+    ///////////////////////
+    // Event handlers
 
     private void onCancel() {
         stopRecording();
@@ -159,5 +211,12 @@ public class VideoControlFrame extends JFrame {
         }
         dispose();
     }
+
+    private void onStop() {
+        stopRecording();
+        // TODO open capture editing
+        dispose();
+    }
+
 
 }

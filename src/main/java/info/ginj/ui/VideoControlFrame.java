@@ -5,88 +5,120 @@ import com.github.kokorin.jaffree.ffmpeg.*;
 import com.tulskiy.keymaster.common.Provider;
 import info.ginj.Ginj;
 import info.ginj.model.Prefs;
+import info.ginj.ui.component.BorderedLabel;
 import info.ginj.ui.component.DoubleBorderedPanel;
+import info.ginj.ui.component.LowerButton;
+import info.ginj.ui.component.LowerButtonBar;
 import info.ginj.util.UI;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
 import java.nio.file.Paths;
 import java.time.Duration;
 
 /**
- * This frame immediately starts the video capture and shows stop/restart/etc for Video Recording
+ * This frame immediately starts the video recording and shows a frame around the recorded area,
+ * plus stop/cancel/etc controls.
+ * Note that for simplicity, this frame covers the full display and is fully transparent, except for the frame and controls.
+ * Using this trick, we can freely move the control area where there is space, using the same strategy as when adjusting the
+ * capture selection
  */
-public class VideoControlFrame extends JFrame {
+public class VideoControlFrame extends AbstractAllDisplaysFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(VideoControlFrame.class);
-    public static final int BORDER_WIDTH = 4;
 
-    private final StarWindow starWindow;
+    public static final int SELECTED_AREA_STROKE_WIDTH = 4;
+    public static final BasicStroke SELECTED_AREA_STROKE = new BasicStroke(SELECTED_AREA_STROKE_WIDTH, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[]{10, 10}, 0.0f);
 
-    private final JLabel captureDurationLabel;
+
+    private JLabel captureDurationLabel;
 
     private FFmpegResultFuture ffmpegFutureResult = null;
 
-    public VideoControlFrame(StarWindow starWindow, Rectangle croppedSelection) {
-        super();
-        this.starWindow = starWindow;
+    public VideoControlFrame(StarWindow starWindow, Rectangle selection) {
+        super(starWindow, Ginj.getAppName() + " recording");
+        this.selection = selection;
+
         // Hide the widget
         starWindow.setVisible(false);
 
         // Start recording right away
-        startRecording(croppedSelection);
-
-        // For Alt+Tab behaviour
-        this.setTitle(Ginj.getAppName() + " recording");
-        this.setIconImage(StarWindow.getAppIcon());
-
-        // No window title bar or border.
-        // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
-        setUndecorated(true);
+        startRecording(this.selection);
 
         // The window itself is transparent
         setBackground(new Color(0, 0, 0, 0));
-        // And must be always on top
-        setAlwaysOnTop(true);
 
+        positionActionPanel();
+        actionPanel.setVisible(true);
+        captureDurationLabel.setText("00:00:00");
+    }
+
+    @Override
+    protected JComponent createContentPane() {
+        return new RecordingMainPane();
+    }
+
+    public class RecordingMainPane extends JPanel {
+        public RecordingMainPane() {
+            super();
+            setOpaque(false);
+            setLayout(null);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+            g2d.setColor(UI.AREA_SELECTION_COLOR);
+            g2d.setStroke(SELECTED_AREA_STROKE);
+            g2d.drawRect(selection.x - SELECTED_AREA_STROKE_WIDTH / 2, selection.y - SELECTED_AREA_STROKE_WIDTH / 2, selection.width + SELECTED_AREA_STROKE_WIDTH, selection.height + SELECTED_AREA_STROKE_WIDTH);
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            return new Dimension(allDisplaysBounds.width, allDisplaysBounds.height);
+        }
+
+    }
+
+    @Override
+    protected JPanel createActionPanel() {
         // Prepare the control panel
-        final JPanel controlPanel = new DoubleBorderedPanel();
-        controlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        controlPanel.setBorder(new EmptyBorder(new Insets(20, 20, 20, 20)));
-        final JButton stopButton = new JButton("Stop");
+        JPanel actionPanel = new DoubleBorderedPanel(); // To add a margin around buttonBar
+        actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 2));
+        JPanel buttonBar = new LowerButtonBar();
+
+        final JButton stopButton = new LowerButton("Finish", UI.createIcon(getClass().getResource("/img/icon/stop.png"), 16, 16, UI.ICON_ENABLED_COLOR));
         stopButton.addActionListener(e -> onStop());
-        controlPanel.add(stopButton);
-        captureDurationLabel = new JLabel("00:00:00");
-        controlPanel.add(captureDurationLabel);
-        Dimension controlPanelSize = UI.packPanel(controlPanel);
+        buttonBar.add(stopButton);
+//        final JButton pauseButton = new LowerButton("Pause", UI.createIcon(getClass().getResource("/img/icon/pause.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+//        pauseButton.addActionListener(e -> onPause());
+//        buttonBar.add(pauseButton);
+//        final JButton unmuteButton = new LowerButton("Unmute", UI.createIcon(getClass().getResource("/img/icon/unmute.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+//        pauseButton.addActionListener(e -> onUnmute());
+//        buttonBar.add(pauseButton);
+//        final JButton redoButton = new LowerButton("Restart", UI.createIcon(getClass().getResource("/img/icon/redo_selection.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+//        redoButton.addActionListener(e -> onRestart());
+//        buttonBar.add(redoButton);
+        final JButton cancelButton = new LowerButton("Cancel", UI.createIcon(getClass().getResource("/img/icon/cancel.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+        cancelButton.addActionListener(e -> onCancel());
+        buttonBar.add(cancelButton);
+        captureDurationLabel = new BorderedLabel("000:00:00");
+        Font font = captureDurationLabel.getFont();
+        captureDurationLabel.setFont(new Font(font.getName(), font.getStyle(), 18));
+        buttonBar.add(captureDurationLabel);
 
-        // Prepare the main panel to contain the capture area, a border around it, and the control panel
-        JPanel contentPane = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setColor(UI.AREA_SELECTION_COLOR);
-                g2d.setStroke(new BasicStroke(BORDER_WIDTH, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[]{10,10}, 0.0f));
-                g2d.drawRect(BORDER_WIDTH / 2,BORDER_WIDTH / 2, croppedSelection.width + BORDER_WIDTH, croppedSelection.height + BORDER_WIDTH);
-            }
-        };
-        setContentPane(contentPane);
-        contentPane.setOpaque(false);
-        contentPane.setLayout(null);
-        // Position it so that it encloses the area to record (relative to the display)
-        Rectangle windowBounds = new Rectangle(croppedSelection.x - BORDER_WIDTH, croppedSelection.y - BORDER_WIDTH, croppedSelection.width + 2 * BORDER_WIDTH, croppedSelection.height + 2 * BORDER_WIDTH + controlPanelSize.height);
-        setBounds(windowBounds);
+        actionPanel.add(buttonBar);
+        return actionPanel;
+    }
 
-
-        // Position the control panel under the area to record (relative to the contentPane)
-        contentPane.add(controlPanel);
-        controlPanel.setBounds(BORDER_WIDTH, BORDER_WIDTH * 2 + croppedSelection.height, controlPanelSize.width, controlPanelSize.height);
+    @Override
+    protected int getSelectedAreaStrokeWidth() {
+        return SELECTED_AREA_STROKE_WIDTH;
     }
 
     private void startRecording(Rectangle croppedSelection) {

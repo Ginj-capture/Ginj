@@ -168,14 +168,14 @@ public class VideoControlFrame extends JFrame {
     }
 
     private void addGlobalRecordingHotkeys() {
-        Provider provider = Provider.getCurrentProvider(true);
+        Provider provider = starWindow.getHotkeyProvider();
+        provider.reset();
         provider.register(KeyStroke.getKeyStroke("ctrl S"), hotKey -> onStop());
         provider.register(KeyStroke.getKeyStroke("ESCAPE"), hotKey -> onCancel());
     }
 
     private void removeGlobalRecordingHotkeys() {
-        Provider provider = Provider.getCurrentProvider(true);
-        provider.reset();
+        starWindow.getHotkeyProvider().reset();
     }
 
     @Override

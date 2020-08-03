@@ -170,6 +170,7 @@ public class VideoControlFrame extends JFrame {
     private void addGlobalRecordingHotkeys() {
         Provider provider = starWindow.getHotkeyProvider();
         provider.reset();
+        // TODO add these hotkeys to the Prefs and Options dialog
         provider.register(KeyStroke.getKeyStroke("ctrl S"), hotKey -> onStop());
         provider.register(KeyStroke.getKeyStroke("ESCAPE"), hotKey -> onCancel());
     }

@@ -35,6 +35,7 @@ import java.util.Set;
 public class StarWindow extends JWindow {
 
     private static final Logger logger = LoggerFactory.getLogger(StarWindow.class);
+    public static final BasicStroke STAR_RAY_STROKE = new BasicStroke(7, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 
     private Provider hotKeyProvider;
     private TrayIcon trayIcon;
@@ -56,7 +57,10 @@ public class StarWindow extends JWindow {
     public static final float OPACITY_HALF = 0.5f;
     public static final float OPACITY_FULL = 1.0f;
 
+    public static final int STAR_INTERNAL_RADIUS = 17;
     public static final int STAR_ONLY_RADIUS = 25;
+    public static final int STAR_RAY_START_RADIUS = 36;
+    public static final int STAR_RAY_END_RADIUS = 48;
 
     // Button sizes
     public static final int LARGE_SIZE_PIXELS = 40;
@@ -83,10 +87,10 @@ public class StarWindow extends JWindow {
     private static final int SMALL_RADIUS_PIXELS_DIAG = (int) Math.round((SMALL_RADIUS_PIXELS * Math.sqrt(2)) / 2);
     private static final int MEDIUM_RADIUS_PIXELS_DIAG = (int) Math.round((MEDIUM_RADIUS_PIXELS * Math.sqrt(2)) / 2);
     private static final int LARGE_RADIUS_PIXELS_DIAG = (int) Math.round((LARGE_RADIUS_PIXELS * Math.sqrt(2)) / 2);
+    private static final int STAR_RAY_START_RADIUS_DIAG = (int) Math.round((STAR_RAY_START_RADIUS * Math.sqrt(2)) / 2);
+    private static final int STAR_RAY_END_RADIUS_DIAG = (int) Math.round((STAR_RAY_END_RADIUS * Math.sqrt(2)) / 2);
 
     // Caching
-    private Image starOnlyImg;
-    private Image starRaysImg;
     // Array of images for the buttons.
     private final Image[][] buttonImg = new Image[3][3]; // 3 buttons x 3 sizes
     // This array contains the offset position between top left corner of the window and the top left corner of the button
@@ -320,9 +324,6 @@ public class StarWindow extends JWindow {
 
         public MainPane() {
             try {
-                starOnlyImg = ImageIO.read(getClass().getResource("/img/star-only.png")).getScaledInstance(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS, Image.SCALE_SMOOTH);
-                starRaysImg = ImageIO.read(getClass().getResource("/img/star-rays.png")).getScaledInstance(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS, Image.SCALE_SMOOTH);
-
                 Image originalImg = ImageIO.read(getClass().getResource("/img/capture.png"));
                 buttonImg[BTN_CAPTURE][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_SMOOTH);
                 buttonImg[BTN_CAPTURE][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_SMOOTH);
@@ -358,17 +359,18 @@ public class StarWindow extends JWindow {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHints(UI.ANTI_ALIASING_ON);
             if (isDragging) {
                 // Full image with rays
-                g2d.drawImage(starRaysImg, 0, 0, this);
+                drawCirclesAndRays(g2d, STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
             }
             else {
                 if (isWindowDeployed) {
                     // Half image with rays
                     switch (currentBorder) {
-                        case TOP -> g2d.drawImage(starRaysImg, 0, -STAR_HEIGHT_PIXELS / 2, this);
-                        case LEFT -> g2d.drawImage(starRaysImg, -STAR_WIDTH_PIXELS / 2, 0, this);
-                        case BOTTOM, RIGHT -> g2d.drawImage(starRaysImg, 0, 0, this);
+                        case TOP -> drawCirclesAndRays(g2d, STAR_WIDTH_PIXELS / 2, 0);
+                        case LEFT -> drawCirclesAndRays(g2d, 0, STAR_HEIGHT_PIXELS / 2);
+                        case BOTTOM, RIGHT -> drawCirclesAndRays(g2d, STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
                     }
                     // Draw 3 action icons, with size and position depending on highlight state
                     for (int button = 0; button < 3; button++) {
@@ -388,14 +390,38 @@ public class StarWindow extends JWindow {
                 else {
                     // Half image without rays
                     switch (currentBorder) {
-                        case TOP -> g2d.drawImage(starOnlyImg, 0, -STAR_HEIGHT_PIXELS / 2, this);
-                        case LEFT -> g2d.drawImage(starOnlyImg, -STAR_WIDTH_PIXELS / 2, 0, this);
-                        case BOTTOM, RIGHT -> g2d.drawImage(starOnlyImg, 0, 0, this);
+                        case TOP -> drawCircles(g2d, STAR_WIDTH_PIXELS / 2, 0);
+                        case LEFT -> drawCircles(g2d, 0, STAR_HEIGHT_PIXELS / 2);
+                        case BOTTOM, RIGHT -> drawCircles(g2d, STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
                     }
+
                 }
             }
             g2d.dispose();
         }
+
+        private void drawCircles(Graphics2D g2d, int centerX, int centerY) {
+            g2d.setColor(UI.WIDGET_EXTERNAL_COLOR);
+            g2d.fillOval(centerX - STAR_ONLY_RADIUS, centerY - STAR_ONLY_RADIUS, 2 * STAR_ONLY_RADIUS, 2 * STAR_ONLY_RADIUS);
+            g2d.setColor(UI.WIDGET_INTERNAL_COLOR);
+            g2d.fillOval(centerX - STAR_INTERNAL_RADIUS, centerY - STAR_INTERNAL_RADIUS, 2 * STAR_INTERNAL_RADIUS, 2 * STAR_INTERNAL_RADIUS);
+        }
+
+        private void drawCirclesAndRays(Graphics2D g2d, int centerX, int centerY) {
+            drawCircles(g2d, centerX, centerY);
+            g2d.setColor(UI.WIDGET_EXTERNAL_COLOR);
+            g2d.setStroke(STAR_RAY_STROKE);
+            /*east*/g2d.drawLine(centerX + STAR_RAY_START_RADIUS, centerY, centerX + STAR_RAY_END_RADIUS, centerY);
+            /*west*/g2d.drawLine(centerX - STAR_RAY_START_RADIUS, centerY, centerX - STAR_RAY_END_RADIUS, centerY);
+            /*south*/g2d.drawLine(centerX, centerY + STAR_RAY_START_RADIUS, centerX, centerY + STAR_RAY_END_RADIUS);
+            /*north*/g2d.drawLine(centerX, centerY - STAR_RAY_START_RADIUS, centerX, centerY - STAR_RAY_END_RADIUS);
+            /*s-e*/g2d.drawLine(centerX + STAR_RAY_START_RADIUS_DIAG, centerY + STAR_RAY_START_RADIUS_DIAG, centerX + STAR_RAY_END_RADIUS_DIAG, centerY + STAR_RAY_END_RADIUS_DIAG);
+            /*s-w*/g2d.drawLine(centerX - STAR_RAY_START_RADIUS_DIAG, centerY + STAR_RAY_START_RADIUS_DIAG, centerX - STAR_RAY_END_RADIUS_DIAG, centerY + STAR_RAY_END_RADIUS_DIAG);
+            /*n-e*/g2d.drawLine(centerX + STAR_RAY_START_RADIUS_DIAG, centerY - STAR_RAY_START_RADIUS_DIAG, centerX + STAR_RAY_END_RADIUS_DIAG, centerY - STAR_RAY_END_RADIUS_DIAG);
+            /*n-w*/g2d.drawLine(centerX - STAR_RAY_START_RADIUS_DIAG, centerY - STAR_RAY_START_RADIUS_DIAG, centerX - STAR_RAY_END_RADIUS_DIAG, centerY - STAR_RAY_END_RADIUS_DIAG);
+
+        }
+
     }
 
 
@@ -598,8 +624,8 @@ public class StarWindow extends JWindow {
                 // New way, store relative value
                 double distanceFromCornerPercent = Double.parseDouble(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER_PERCENT));
                 distanceFromCorner = switch (border) {
-                    case TOP,BOTTOM -> (int)(currentDisplayBounds.width * distanceFromCornerPercent /100);
-                    case LEFT,RIGHT -> (int)(currentDisplayBounds.height * distanceFromCornerPercent/100);
+                    case TOP, BOTTOM -> (int) (currentDisplayBounds.width * distanceFromCornerPercent / 100);
+                    case LEFT, RIGHT -> (int) (currentDisplayBounds.height * distanceFromCornerPercent / 100);
                 };
             }
             catch (NumberFormatException e) {
@@ -721,22 +747,22 @@ public class StarWindow extends JWindow {
             case TOP -> {
                 targetX = bestDisplay.x + Math.min(Math.max(center.x - bestDisplay.x, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.width - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
                 targetY = bestDisplay.y;
-                distanceFromCornerPercent = (100.0 * (targetX - bestDisplay.x))/bestDisplay.width;
+                distanceFromCornerPercent = (100.0 * (targetX - bestDisplay.x)) / bestDisplay.width;
             }
             case BOTTOM -> {
                 targetX = bestDisplay.x + Math.min(Math.max(center.x - bestDisplay.x, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.width - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
                 targetY = bestDisplay.y + bestDisplay.height - 1;
-                distanceFromCornerPercent = (100.0 * (targetX - bestDisplay.x))/bestDisplay.width;
+                distanceFromCornerPercent = (100.0 * (targetX - bestDisplay.x)) / bestDisplay.width;
             }
             case LEFT -> {
                 targetX = bestDisplay.x;
                 targetY = bestDisplay.y + Math.min(Math.max(center.y - bestDisplay.y, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
-                distanceFromCornerPercent = (100.0 * (targetY - bestDisplay.y))/bestDisplay.height;
+                distanceFromCornerPercent = (100.0 * (targetY - bestDisplay.y)) / bestDisplay.height;
             }
             case RIGHT -> {
                 targetX = bestDisplay.x + bestDisplay.width - 1;
                 targetY = bestDisplay.y + Math.min(Math.max(center.y - bestDisplay.y, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
-                distanceFromCornerPercent = (100.0 * (targetY - bestDisplay.y))/bestDisplay.height;
+                distanceFromCornerPercent = (100.0 * (targetY - bestDisplay.y)) / bestDisplay.height;
             }
             default -> throw new IllegalStateException("Unexpected value: " + bestBorder);
         }

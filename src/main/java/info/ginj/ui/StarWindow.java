@@ -580,8 +580,14 @@ public class StarWindow extends JWindow {
             // TODO: this does not work on Linux where such a low opacity is not supported, so square is visible
             // TODO: replace transparency by a screenshot of the desktop below and printing it as an opaque background
             //       before drawing the star icon
-            contentPane.setOpaque(true);
-            contentPane.setBackground(new Color(0, 0, 0, 1)); // 1/255 opacity
+            if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_FAKE_TRANSPARENCY)) {
+                contentPane.setOpaque(true);
+                contentPane.setBackground(new Color(0, 0, 0, 1)); // 1/255 opacity
+            }
+            else {
+                contentPane.setOpaque(false);
+                contentPane.setBackground(defaultPaneBackground); // Strangely enough, setting it to a transparent color break things up
+            }
         }
         else {
             // Show the handle as semi-transparent

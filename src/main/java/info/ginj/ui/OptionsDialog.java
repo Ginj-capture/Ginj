@@ -88,6 +88,12 @@ public class OptionsDialog extends JDialog {
             public void keyPressed(KeyEvent e) {
                 // This method is called once for each key (e.g. once for ctrl, once for shift and once for P)
                 // e.getKeyCode() is only the last pressed key. If the last pressed key was a modifier, it's not a valid combination.
+                // TODO find a way to capture all keys, e.g. PRINTSCREEN.
+                //  A full list of keys is at https://docs.oracle.com/javase/8/docs/api/index.html?java/awt/event/KeyEvent.html
+                //  Maybe have an advanced editor with checkboxes for modifiers and drop-down for keys ?
+                //  Or 2 radios :
+                //  o PRINTSCREEN (+ optional modifiers in checkboxes
+                //  o Custom (+ the current box to enter anything except PrintScreen)
                 if (HOTKEY_MODIFIERS.contains(e.getKeyCode())) {
                     hotKey = null;
                     hotKeyTextField.setText(HOTKEY_PRESS_KEYS_PLACEHOLDER);

@@ -42,6 +42,7 @@ public class Prefs {
         CAPTURE_HOTKEY("capture.hotkey", "This is the combination to type to trigger a new capture", false),
         USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION("use.tray.notification.on.export.completion", "If enabled, the 'end of export' window is replaced by an OS tray notification", true),
         TEMP_DIR("temp.dir", "The directory to store temporary captures", true),
+        DEBUG_NO_OPACITY_CHANGE("debug.no.opacity.change", "Debug param to try to avoid the transparent grey background", true),
         DEBUG_NO_FAKE_TRANSPARENCY("debug.no.fake.transparency", "Debug param to avoid the slight opacity of the deployed widget" , true),
         DEBUG_NO_SETVISIBLE_FALSE_IN_RECOVERY("debug.no.setvisible.false.in.recovery", "Debug param to see what part really recovers the widget", true),
         DEBUG_NO_SETVISIBLE_TRUE_IN_RECOVERY("debug.no.setvisible.true.in.recovery", "Debug param to see what part really recovers the widget", true),

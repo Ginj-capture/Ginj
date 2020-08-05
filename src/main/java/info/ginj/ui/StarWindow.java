@@ -122,7 +122,7 @@ public class StarWindow extends JWindow {
 
         // Background is transparent. Only the "star icon" is visible, and even then, it has half opacity
         setBackground(new Color(0, 0, 0, 0));
-        setOpacity(OPACITY_HALF);
+        if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_OPACITY_CHANGE)) setOpacity(OPACITY_HALF);
 
         // Prepare the main pane to paint and receive event
         JComponent contentPane = new MainPane();
@@ -598,7 +598,7 @@ public class StarWindow extends JWindow {
         isWindowDeployed = deployed;
         if (deployed) {
             // Show the handle as opaque
-            setOpacity(OPACITY_FULL);
+            if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_OPACITY_CHANGE)) setOpacity(OPACITY_FULL);
             // And make the background of the window "visible", but filled with an almost transparent color
             // This has the effect of capturing mouse events on the full rectangular Window once it is deployed,
             // which is necessary so that mouse doesn't "fall in the transparent holes" causing MouseExited events that
@@ -607,20 +607,18 @@ public class StarWindow extends JWindow {
             // TODO: replace transparency by a screenshot of the desktop below and printing it as an opaque background
             //       before drawing the star icon
             if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_FAKE_TRANSPARENCY)) {
-                contentPane.setOpaque(true);
                 contentPane.setBackground(new Color(0, 0, 0, 1)); // 1/255 opacity
-            }
-            else {
-                contentPane.setOpaque(false);
-                contentPane.setBackground(defaultPaneBackground); // Strangely enough, setting it to a transparent color break things up
+                contentPane.setOpaque(true);
             }
         }
         else {
             // Show the handle as semi-transparent
-            setOpacity(OPACITY_HALF);
+            if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_OPACITY_CHANGE)) setOpacity(OPACITY_HALF);
             // And make the background of the window invisible, so that all mouse events and clicks "pass through"
-            contentPane.setOpaque(false);
-            contentPane.setBackground(defaultPaneBackground); // Strangely enough, setting it to a transparent color break things up
+            if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_FAKE_TRANSPARENCY)) {
+                contentPane.setBackground(defaultPaneBackground); // Strangely enough, setting it to a transparent color break things up
+                contentPane.setOpaque(false);
+            }
         }
     }
 

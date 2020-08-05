@@ -35,7 +35,6 @@ import java.util.Set;
 public class StarWindow extends JWindow {
 
     private static final Logger logger = LoggerFactory.getLogger(StarWindow.class);
-    public static final BasicStroke STAR_RAY_STROKE = new BasicStroke(7, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 
     private Provider hotKeyProvider;
     private TrayIcon trayIcon;
@@ -61,6 +60,8 @@ public class StarWindow extends JWindow {
     public static final int STAR_ONLY_RADIUS = 25;
     public static final int STAR_RAY_START_RADIUS = 36;
     public static final int STAR_RAY_END_RADIUS = 48;
+
+    private static final BasicStroke STAR_RAY_STROKE = new BasicStroke(7, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 
     // Button sizes
     public static final int LARGE_SIZE_PIXELS = 40;

@@ -227,12 +227,37 @@ public class StarWindow extends JWindow {
                         //noop
                     }
                 }
+                moveWidgetHere();
                 onCapture();
             });
-            historyItem.addActionListener(e -> onHistory());
-            moreItem.addActionListener(e -> onMore());
-            checkForUpdatesItem.addActionListener(e -> onCheckForUpdates());
-            exitItem.addActionListener(e -> onExit(this));
+            historyItem.addActionListener(e -> {
+                moveWidgetHere();
+                onHistory();
+            });
+            moreItem.addActionListener(e -> {
+                moveWidgetHere();
+                onMore();
+            });
+            checkForUpdatesItem.addActionListener(e -> {
+                moveWidgetHere();
+                onCheckForUpdates();
+            });
+            exitItem.addActionListener(e -> {
+                moveWidgetHere();
+                onExit(this);
+            });
+        }
+    }
+
+    /*
+     * On Mac, if the widget is not on the desktop where the action menu is called,
+     * many issues occur regarding the opened window's focus and position in stack (toFront, toBack).
+     * This code tries to move the widget here before opening those windows.
+     */
+    private void moveWidgetHere() {
+        if (SystemUtils.IS_OS_MAC) {
+            setVisible(false);
+            setVisible(true);
         }
     }
 

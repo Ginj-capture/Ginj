@@ -1033,7 +1033,7 @@ return true;</property>
       <jreBundle jreBundleSource="generated" />
     </unixInstaller>
   </mediaSets>
-  <buildIds>
+  <buildIds buildAll="false">
     <mediaSet refId="61" />
   </buildIds>
   <buildOptions verbose="true" />

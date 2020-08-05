@@ -145,8 +145,7 @@ public class StarWindow extends JWindow {
             @Override
             public void windowDeactivated(WindowEvent e) {
                 logger.warn("Window got deactivated. Trying to recover...");
-                setVisible(true);
-                toFront();
+                recoverWidget();
             }
         });
 
@@ -227,23 +226,23 @@ public class StarWindow extends JWindow {
                         //noop
                     }
                 }
-                moveWidgetHere();
+                if (SystemUtils.IS_OS_MAC) recoverWidget();
                 onCapture();
             });
             historyItem.addActionListener(e -> {
-                moveWidgetHere();
+                if (SystemUtils.IS_OS_MAC) recoverWidget();
                 onHistory();
             });
             moreItem.addActionListener(e -> {
-                moveWidgetHere();
+                if (SystemUtils.IS_OS_MAC) recoverWidget();
                 onMore();
             });
             checkForUpdatesItem.addActionListener(e -> {
-                moveWidgetHere();
+                if (SystemUtils.IS_OS_MAC) recoverWidget();
                 onCheckForUpdates();
             });
             exitItem.addActionListener(e -> {
-                moveWidgetHere();
+                if (SystemUtils.IS_OS_MAC) recoverWidget();
                 onExit(this);
             });
         }
@@ -252,13 +251,14 @@ public class StarWindow extends JWindow {
     /*
      * On Mac, if the widget is not on the desktop where the action menu is called,
      * many issues occur regarding the opened window's focus and position in stack (toFront, toBack).
+     * On other platforms, this should be called when the window detects it  has been "deactivated"
      * This code tries to move the widget here before opening those windows.
      */
-    private void moveWidgetHere() {
-        if (SystemUtils.IS_OS_MAC) {
-            setVisible(false);
-            setVisible(true);
-        }
+    private void recoverWidget() {
+        if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_SETVISIBLE_FALSE_IN_RECOVERY)) setVisible(false);
+        if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_SETVISIBLE_TRUE_IN_RECOVERY)) setVisible(true);
+        if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_TO_FRONT_IN_RECOVERY)) toFront();
+        if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_REQUEST_FOCUS_IN_RECOVERY)) requestFocus();
     }
 
     public boolean isTrayAvailable() {

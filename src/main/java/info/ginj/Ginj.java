@@ -73,7 +73,8 @@ public class Ginj {
 
         javax.swing.SwingUtilities.invokeLater(() -> {
             starWindow = new StarWindow();
-            starWindow.setVisible(true);});
+            starWindow.setVisible(true);
+        });
 
     }
 

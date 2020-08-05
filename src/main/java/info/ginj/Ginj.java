@@ -120,12 +120,22 @@ public class Ginj {
         return tempDir;
     }
 
+    private static File getAppFolder() {
+        File folder = new File(System.getProperty("user.home") + File.separator + "." + getAppName());
+        if (!folder.exists()) {
+            if (!folder.mkdirs()) {
+                logger.error("Could not create app folder ." + Ginj.getAppName());
+            }
+        }
+        return folder;
+    }
+
     public static File getHistoryFolder() {
         String historyPath = Prefs.get(Prefs.Key.CAPTURE_HISTORY_PATH);
         if (historyPath == null || historyPath.isBlank() || !new File(historyPath).exists()) {
-            historyPath = System.getProperty("user.home") + File.separator + "." + getAppName() + File.separator + "history";
-            //noinspection ResultOfMethodCallIgnored
-            new File(historyPath).mkdirs();
+            File historyFolder = new File(getAppFolder(), "history");
+            historyFolder.mkdirs();
+            historyPath = historyFolder.getAbsolutePath();
             Prefs.set(Prefs.Key.CAPTURE_HISTORY_PATH, historyPath);
             Prefs.save();
         }
@@ -133,11 +143,11 @@ public class Ginj {
     }
 
     public static File getPrefsFile() {
-        return new File(System.getProperty("user.home") + File.separator + "." + getAppName() + File.separator + "settings.properties");
+        return new File(getAppFolder(), "settings.properties");
     }
 
     public static File getTargetPrefsFile() {
-        return new File(System.getProperty("user.home") + File.separator + "." + getAppName() + File.separator + "targetPrefs.xml");
+        return new File(getAppFolder(), "targetPrefs.xml");
     }
 
     public static TargetPrefs getTargetPrefs() {

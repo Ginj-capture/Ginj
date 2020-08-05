@@ -1,11 +1,13 @@
 package info.ginj.ui;
 
 import info.ginj.Ginj;
+import info.ginj.model.Capture;
 import info.ginj.ui.component.BorderedLabel;
 import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.ui.component.LowerButton;
 import info.ginj.ui.component.LowerButtonBar;
 import info.ginj.util.Coords;
+import info.ginj.util.Misc;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +20,8 @@ import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -500,7 +504,8 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     private void onCaptureImage() {
         final Rectangle croppedSelection = getCroppedSelection();
         final BufferedImage capturedImg = capturedScreenImg.getSubimage(croppedSelection.x, croppedSelection.y, croppedSelection.width, croppedSelection.height);
-        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capturedImg);
+        final Capture capture = new Capture(new SimpleDateFormat(Misc.DATETIME_FORMAT_PATTERN).format(new Date()), capturedImg);
+        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
         captureEditingFrame.setVisible(true);
         dispose();
     }

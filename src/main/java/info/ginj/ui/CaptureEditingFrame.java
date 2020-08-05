@@ -9,7 +9,6 @@ import info.ginj.model.Target;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
 import info.ginj.ui.component.*;
-import info.ginj.util.Misc;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +24,7 @@ import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -55,14 +52,6 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     GinjTool currentTool;
     private final JPanel actionPanel;
 
-
-    public CaptureEditingFrame(StarWindow starWindow, BufferedImage capturedImg) {
-        this(starWindow, new Capture(new SimpleDateFormat(Misc.DATETIME_FORMAT_PATTERN).format(new Date()), capturedImg)); // ENHANCEMENT: seconds
-    }
-
-    public CaptureEditingFrame(StarWindow starWindow, BufferedImage capturedImg, String captureId) {
-        this(starWindow, new Capture(captureId, capturedImg));
-    }
 
     public CaptureEditingFrame(StarWindow starWindow, Capture capture) {
         super();

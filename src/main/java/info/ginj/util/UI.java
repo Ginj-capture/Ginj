@@ -32,6 +32,9 @@ public class UI {
 
     private static final Logger logger = LoggerFactory.getLogger(UI.class);
 
+    public static final Color WIDGET_EXTERNAL_COLOR = new Color(255, 194, 0);
+    public static final Color WIDGET_INTERNAL_COLOR = new Color(255, 236, 0);
+
     public static final Color AREA_SELECTION_COLOR = new Color(251, 185, 1);
     public static final Color SELECTION_SIZE_BOX_COLOR = new Color(0, 0, 0, 128);
     public static final Color UNSELECTED_AREA_DIMMED_COLOR = new Color(144, 144, 144, 112);
@@ -53,6 +56,9 @@ public class UI {
     public static final Color LABEL_FOREGROUND_COLOR = new Color(222, 165, 5);
 
     public static final String[] SIZE_UNITS = {" KiB", " MiB", " GiB", " TiB", " PiB"};
+
+    public static final RenderingHints ANTI_ALIASING_ON = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    public static final RenderingHints ANTI_ALIASING_OFF = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
     /**
      * Lay out components of a Panel and compute its size, like pack() for a Window.

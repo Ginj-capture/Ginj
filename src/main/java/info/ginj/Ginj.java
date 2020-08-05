@@ -24,7 +24,7 @@ public class Ginj {
 
     private static final Logger logger = LoggerFactory.getLogger(Ginj.class);
 
-    public static final String APP_VERSION = "0.3.9";
+    public static final String APP_VERSION = "0.3.10-pre2";
 
     public static final String LAF_XML = "/synth.xml";
 
@@ -73,7 +73,8 @@ public class Ginj {
 
         javax.swing.SwingUtilities.invokeLater(() -> {
             starWindow = new StarWindow();
-            starWindow.setVisible(true);});
+            starWindow.setVisible(true);
+        });
 
     }
 

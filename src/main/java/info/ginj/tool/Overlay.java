@@ -14,9 +14,6 @@ public abstract class Overlay extends JPanel {
 
     private static final Logger logger = LoggerFactory.getLogger(Overlay.class);
 
-    public static final RenderingHints ANTI_ALIASING_ON = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    public static final RenderingHints ANTI_ALIASING_OFF = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-
     public static final int HANDLE_WIDTH = 8;
     public static final int HANDLE_HEIGHT = 8;
     public static final int NO_INDEX = -1;
@@ -89,7 +86,7 @@ public abstract class Overlay extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
-        g2d.setRenderingHints(ANTI_ALIASING_ON);
+        g2d.setRenderingHints(UI.ANTI_ALIASING_ON);
 
         // Draw shadow
         if (!isEditInProgress() && mustDrawShadow()) {
@@ -114,7 +111,7 @@ public abstract class Overlay extends JPanel {
             // Compute and cache handle graphics
             handleImg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
             final Graphics2D g2d = handleImg.createGraphics();
-            g2d.setRenderingHints(ANTI_ALIASING_OFF);
+            g2d.setRenderingHints(UI.ANTI_ALIASING_OFF);
             // Blueish center square
             g2d.setColor(UI.HANDLE_CENTER_COLOR);
             g2d.fillRect(2, 2, 6,6);

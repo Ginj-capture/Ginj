@@ -25,6 +25,7 @@ import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -42,7 +43,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
     // State
     private final StarWindow starWindow;
-    private final Capture capture;
+    final Capture capture;
     private final ImageEditorPane imagePane;
     private final MiniToolButton undoButton;
     private final MiniToolButton redoButton;
@@ -79,6 +80,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         if (capture.isVideo()) {
             originalImage = Jaffree.grabImage(capture.getOriginalFile(), 0);
 
+            // For video playback, JaxaFX this could be an option...:
 //            final JFXPanel VFXPanel = new JFXPanel();
 //
 //            File video_source = new File("tutorial.mp4");
@@ -163,7 +165,6 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         toolBar.add(colorToolButton);
         toolBar.add(Box.createRigidArea(new Dimension(0, 8)));
 
-        // TODO implement undo
         JPanel undoRedoPanel = new JPanel();
         undoRedoPanel.setAlignmentX(0); // Otherwise the panel adds horizontal space...
         undoRedoPanel.setLayout(new BoxLayout(undoRedoPanel, BoxLayout.X_AXIS));
@@ -180,13 +181,15 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         undoRedoPanel.add(redoButton);
         toolBar.add(undoRedoPanel);
 
-        c = new GridBagConstraints();
-        c.gridx = 0;
-        c.gridy = 1;
-        c.gridwidth = 1;
-        c.gridheight = 1;
-        contentPane.add(toolBar, c);
-
+        if (!capture.isVideo()) {
+            // TODO enable overlays on video
+            c = new GridBagConstraints();
+            c.gridx = 0;
+            c.gridy = 1;
+            c.gridwidth = 1;
+            c.gridheight = 1;
+            contentPane.add(toolBar, c);
+        }
 
         // Prepare an opaque panel which will fill the main display area and host the image scrollpane
         // (the scrollpane will only occupy the center if image is smaller than the toolbars)
@@ -214,6 +217,48 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         c.fill = GridBagConstraints.BOTH;
         contentPane.add(mainPanel, c);
 
+        JPanel lowerPanel = new JPanel();
+        lowerPanel.setLayout(new GridBagLayout());
+
+        // If video, prepare "transport" panel
+        if (capture.isVideo()) {
+            JPanel transportPanel = new JPanel();
+            transportPanel.setLayout(new BorderLayout());
+            final BorderedLabel positionLabel = new BorderedLabel("00:00:00");
+            transportPanel.add(positionLabel, BorderLayout.WEST);
+
+            final JSlider positionSlider = new JSlider(JSlider.HORIZONTAL, 0, (int) capture.getVideoDurationMs(), 0); // Note: this typecast limits videos to 600 hours :-)
+            positionSlider.setMajorTickSpacing(1000);
+            transportPanel.add(positionSlider, BorderLayout.CENTER);
+            positionSlider.addChangeListener(e -> {
+                JSlider source = (JSlider)e.getSource();
+                Duration position = Duration.ofMillis(positionSlider.getValue());
+                positionLabel.setText(String.format("%02d:%02d:%02d", position.toHours(), position.toMinutesPart(), position.toSecondsPart()));
+                if (source.getValueIsAdjusting()) {
+                    // During drag, wait for value to settle
+                }
+                else {
+                    // update image
+                    imagePane.setCapturedImg(Jaffree.grabImage(capture.getOriginalFile(), positionSlider.getValue()));
+                    imagePane.invalidate();
+                    imagePane.repaint();
+                }
+            });
+
+            Duration totalDuration = Duration.ofMillis(capture.getVideoDurationMs());
+            final BorderedLabel durationLabel = new BorderedLabel(String.format("%02d:%02d:%02d", totalDuration.toHours(), totalDuration.toMinutesPart(), totalDuration.toSecondsPart()));
+            transportPanel.add(durationLabel, BorderLayout.EAST);
+            c = new GridBagConstraints();
+            c.gridx = 0;
+            c.gridy = GridBagConstraints.RELATIVE;
+            c.gridwidth = 1;
+            c.gridheight = 1;
+            c.insets = new Insets(8, 17, 8, 17);
+            c.fill = GridBagConstraints.BOTH;
+            c.weightx = 1;
+            c.weighty = 1;
+            lowerPanel.add(transportPanel, c);
+        }
 
         // Prepare name editing panel
         JPanel editPanel = new JPanel();
@@ -222,15 +267,17 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         editPanel.add(nameLabel, BorderLayout.WEST);
         nameTextField = new JTextField();
         editPanel.add(nameTextField, BorderLayout.CENTER);
-
-        JPanel lowerPanel = new JPanel();
-        lowerPanel.setLayout(new GridBagLayout());
         c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = GridBagConstraints.RELATIVE;
+        c.gridwidth = 1;
+        c.gridheight = 1;
         c.insets = new Insets(4, 17, 12, 17);
         c.fill = GridBagConstraints.BOTH;
         c.weightx = 1;
         c.weighty = 1;
         lowerPanel.add(editPanel, c);
+
 
         c = new GridBagConstraints();
         c.gridx = 1;

@@ -45,6 +45,8 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
         this.selection = selection;
         this.capture = capture;
 
+        capture.setOriginalFile(new File(getTempVideoFilename()));
+
         // Hide the widget
         starWindow.setVisible(false);
 
@@ -152,7 +154,7 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
         setGlobalRecordingHotkeys();
 
         // Start actual recording
-        ffmpegFutureResult = Jaffree.startRecording(croppedSelection, frameRate, captureMouseCursor, progressListener, getTempVideoFilename());
+        ffmpegFutureResult = Jaffree.startRecording(croppedSelection, frameRate, captureMouseCursor, progressListener, capture.getOriginalFile().getAbsolutePath());
     }
 
     private String getTempVideoFilename() {
@@ -166,8 +168,6 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
 
         // Wait and make sure the process has ended
         Jaffree.stopRecording(ffmpegFutureResult, logger);
-
-        capture.setVideoDurationMs(Jaffree.getDuration(capture.getOriginalFile()));
     }
 
     private void setGlobalRecordingHotkeys() {
@@ -194,8 +194,10 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     // Event handlers
 
     private void onCancel() {
+        this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         stopRecording();
-        File videoFile = new File(getTempVideoFilename());
+        this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        File videoFile = capture.getOriginalFile();
         if (videoFile.exists()) {
             if (!videoFile.delete()) {
                 logger.trace("Could not delete video file '" + videoFile.getAbsolutePath() + "'.");
@@ -205,8 +207,10 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     }
 
     private void onStop() {
+        this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         stopRecording();
-        capture.setOriginalFile(new File(getTempVideoFilename()));
+        capture.setVideoDurationMs(Jaffree.getDuration(capture.getOriginalFile()));
+        this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         // Open capture editing
         final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
         captureEditingFrame.setVisible(true);

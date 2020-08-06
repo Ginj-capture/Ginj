@@ -20,18 +20,25 @@ public class ImageEditorPane extends JLayeredPane {
     private static final Logger logger = LoggerFactory.getLogger(ImageEditorPane.class);
 
     private final CaptureEditingFrame frame;
-    private final BufferedImage capturedImg;
-    private final Dimension capturedImgSize;
+    private BufferedImage capturedImg;
+    private Dimension capturedImgSize;
 
     private Overlay selectedOverlay;
 
     public ImageEditorPane(CaptureEditingFrame frame, BufferedImage capturedImg) {
         super();
         this.frame = frame;
+        setCapturedImg(capturedImg);
+        if (!frame.capture.isVideo()) {
+            // TODO enable overlays on video
+            addMouseEditingBehaviour();
+        }
+        addKeyboardShortcuts(this);
+    }
+
+    public void setCapturedImg(BufferedImage capturedImg) {
         this.capturedImg = capturedImg;
         capturedImgSize = new Dimension(capturedImg.getWidth(), capturedImg.getHeight());
-        addMouseEditingBehaviour();
-        addKeyboardShortcuts(this);
     }
 
     @Override

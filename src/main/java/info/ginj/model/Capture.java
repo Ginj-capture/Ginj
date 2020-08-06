@@ -6,6 +6,7 @@ import info.ginj.util.Misc;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.beans.Transient;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class Capture implements Cloneable {
     BufferedImage originalImage;
     File renderedFile;
     BufferedImage renderedImage;
+    long videoDurationMs;
 
     public Capture() {
     }
@@ -92,44 +94,54 @@ public class Capture implements Cloneable {
         exports.add(export);
     }
 
+
+    public void setVideoDurationMs(long videoDurationMs) {
+        this.videoDurationMs = videoDurationMs;
+    }
+
+    public long getVideoDurationMs() {
+        return videoDurationMs;
+    }
+
+
     // Note: Transient to prevent being saved to disk
 
-    @java.beans.Transient
+    @Transient
     public File getOriginalFile() {
         return originalFile;
     }
 
-    @java.beans.Transient
+    @Transient
     public void setOriginalFile(File originalFile) {
         this.originalFile = originalFile;
     }
 
-    @java.beans.Transient
+    @Transient
     public BufferedImage getOriginalImage() {
         return originalImage;
     }
 
-    @java.beans.Transient
+    @Transient
     public void setOriginalImage(BufferedImage originalImage) {
         this.originalImage = originalImage;
     }
 
-    @java.beans.Transient
+    @Transient
     public File getRenderedFile() {
         return renderedFile;
     }
 
-    @java.beans.Transient
+    @Transient
     public void setRenderedFile(File renderedFile) {
         this.renderedFile = renderedFile;
     }
 
-    @java.beans.Transient
+    @Transient
     public BufferedImage getRenderedImage() {
         return renderedImage;
     }
 
-    @java.beans.Transient
+    @Transient
     public void setRenderedImage(BufferedImage renderedImage) {
         this.renderedImage = renderedImage;
     }
@@ -162,7 +174,7 @@ public class Capture implements Cloneable {
         return renderedFile;
     }
 
-    @java.beans.Transient
+    @Transient
     public String getType() {
         return isVideo ? "Video" : "Image";
     }
@@ -172,7 +184,7 @@ public class Capture implements Cloneable {
      *
      * @return
      */
-    @java.beans.Transient
+    @Transient
     public String getDefaultName() {
         if (name == null || name.isBlank()) {
             return getBaseFilename();
@@ -180,7 +192,7 @@ public class Capture implements Cloneable {
         return name;
     }
 
-    @java.beans.Transient
+    @Transient
     public String getBaseFilename() {
         String baseFilename = getId();
         if (getVersion() > 1) {

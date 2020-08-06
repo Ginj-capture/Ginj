@@ -166,6 +166,8 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
 
         // Wait and make sure the process has ended
         Jaffree.stopRecording(ffmpegFutureResult, logger);
+
+        capture.setVideoDurationMs(Jaffree.getDuration(capture.getOriginalFile()));
     }
 
     private void setGlobalRecordingHotkeys() {

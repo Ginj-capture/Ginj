@@ -138,4 +138,17 @@ public class Jaffree {
 
         return images[0];
     }
+
+    public static long getDuration(File file) {
+        final AtomicLong durationMillis = new AtomicLong();
+        getFFmpeg()
+                .addInput(UrlInput.fromPath(file.toPath()))
+                .addOutput(new NullOutput())
+                .setProgressListener(progress -> {
+                    System.out.println("hello");
+                    durationMillis.set(progress.getTimeMillis());
+                })
+                .execute();
+        return durationMillis.get();
+    }
 }

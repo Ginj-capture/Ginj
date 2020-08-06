@@ -31,6 +31,10 @@ public class Capture implements Cloneable {
     public Capture() {
     }
 
+    public Capture(String id) {
+        this.id = id;
+    }
+
     public Capture(String id, BufferedImage image) {
         this.id = id;
         this.originalImage = image;

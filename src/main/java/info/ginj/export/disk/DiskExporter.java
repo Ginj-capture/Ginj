@@ -153,17 +153,12 @@ public class DiskExporter extends Exporter {
     public void exportCapture(Capture capture, Target target) {
         try {
             logProgress("Saving capture", PROGRESS_SAVE);
-            if (capture.isVideo()) {
-                throw new RuntimeException("TODO video");
+            if (capture.isVideo() || capture.getRenderedImage() == null) {
+                // TODO make this a block copy loop that it can be cancelled (and doesn't freeze the UI) for large files
+                Files.copy(capture.getRenderedFile().toPath(), destinationFile.toPath());
             }
             else {
-                if (capture.getRenderedImage() != null) {
-                    ImageIO.write(capture.getRenderedImage(), Misc.IMAGE_FORMAT_PNG, destinationFile);
-                }
-                else {
-                    // TODO make this a block copy loop that it can be cancelled (and doesn't freeze the UI) for large files
-                    Files.copy(capture.getRenderedFile().toPath(), destinationFile.toPath());
-                }
+                ImageIO.write(capture.getRenderedImage(), Misc.IMAGE_FORMAT_PNG, destinationFile);
             }
         }
         catch (IOException e) {

@@ -496,6 +496,11 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
         return selection.intersection(new Rectangle(0, 0, allDisplaysBounds.width, allDisplaysBounds.height));
     }
 
+    private Capture createNewCapture(boolean isVideo) {
+        Capture capture = new Capture(new SimpleDateFormat(Misc.DATETIME_FORMAT_PATTERN).format(new Date()));
+        capture.setVideo(isVideo);
+        return capture;
+    }
 
     ////////////////////////////
     // EVENT HANDLERS
@@ -504,14 +509,15 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     private void onCaptureImage() {
         final Rectangle croppedSelection = getCroppedSelection();
         final BufferedImage capturedImg = capturedScreenImg.getSubimage(croppedSelection.x, croppedSelection.y, croppedSelection.width, croppedSelection.height);
-        final Capture capture = new Capture(new SimpleDateFormat(Misc.DATETIME_FORMAT_PATTERN).format(new Date()), capturedImg);
+        final Capture capture = createNewCapture(false);
+        capture.setOriginalImage(capturedImg);
         final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
         captureEditingFrame.setVisible(true);
         dispose();
     }
 
     private void onCaptureVideo() {
-        final VideoControlFrame videoControlFrame = new VideoControlFrame(starWindow, getCroppedSelection());
+        final VideoControlFrame videoControlFrame = new VideoControlFrame(starWindow, getCroppedSelection(), createNewCapture(true));
         dispose();
         videoControlFrame.setVisible(true);
     }

@@ -1,23 +1,23 @@
 package info.ginj.ui;
 
-import com.github.kokorin.jaffree.StreamType;
-import com.github.kokorin.jaffree.ffmpeg.*;
+import com.github.kokorin.jaffree.ffmpeg.FFmpegResultFuture;
+import com.github.kokorin.jaffree.ffmpeg.ProgressListener;
 import com.tulskiy.keymaster.common.Provider;
 import info.ginj.Ginj;
+import info.ginj.model.Capture;
 import info.ginj.model.Prefs;
 import info.ginj.ui.component.BorderedLabel;
 import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.ui.component.LowerButton;
 import info.ginj.ui.component.LowerButtonBar;
+import info.ginj.util.Jaffree;
 import info.ginj.util.UI;
-import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.nio.file.Paths;
 import java.time.Duration;
 
 /**
@@ -38,10 +38,12 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     private JLabel captureDurationLabel;
 
     private FFmpegResultFuture ffmpegFutureResult = null;
+    private final Capture capture;
 
-    public VideoControlFrame(StarWindow starWindow, Rectangle selection) {
+    public VideoControlFrame(StarWindow starWindow, Rectangle selection, Capture capture) {
         super(starWindow, Ginj.getAppName() + " recording");
         this.selection = selection;
+        this.capture = capture;
 
         // Hide the widget
         starWindow.setVisible(false);
@@ -122,15 +124,6 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     }
 
     private void startRecording(Rectangle croppedSelection) {
-        String ffmpegDir = Prefs.get(Prefs.Key.FFMPEG_BIN_DIR);
-        FFmpeg ffmpeg;
-        if (ffmpegDir != null) {
-            ffmpeg = FFmpeg.atPath(Paths.get(ffmpegDir));
-        }
-        else {
-            // Suppose it's on the path
-            ffmpeg = FFmpeg.atPath();
-        }
 
         int frameRate;
         try {
@@ -154,52 +147,28 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
             captureDurationLabel.setText(String.format("%02d:%02d:%02d", elapsed.toHours(), elapsed.toMinutesPart(), elapsed.toSecondsPart()));
         };
 
-        if (SystemUtils.IS_OS_MAC) {
-            // avfoundation on mac supports a crop width/height but no offset (silly isn't it), so ffmpeg has to capture the full desktop and crop in a separate step:
-            ffmpegFutureResult = ffmpeg
-                    .addInput(CaptureInput
-                            .captureDesktop()
-                            .setCaptureFrameRate(frameRate)
-                            .setCaptureCursor(captureMouseCursor)
-                    )
-                    .setFilter(StreamType.VIDEO, "crop=" + croppedSelection.width + ":" + croppedSelection.height + ":" + croppedSelection.x + ":" + croppedSelection.y)
-                    .setProgressListener(progressListener)
-                    .addOutput(UrlOutput.toPath(Paths.get(getTempVideoFilename())))
-                    .setOverwriteOutput(true)
-                    .executeAsync();
-        }
-        else {
-            // OTOH on Windows' GDIGrab and Linux' X11Grab, cropping is supported at the input level :
-            ffmpegFutureResult = ffmpeg
-                    .addInput(CaptureInput
-                            .captureDesktop()
-                            .setCaptureFrameRate(frameRate)
-                            .setCaptureCursor(captureMouseCursor)
-                            .setCaptureVideoOffset(croppedSelection.x, croppedSelection.y)
-                            .setCaptureVideoSize(croppedSelection.width, croppedSelection.height)
-                    )
-                    .setProgressListener(progressListener)
-                    .addOutput(UrlOutput.toPath(Paths.get(getTempVideoFilename())))
-                    .setOverwriteOutput(true)
-                    .executeAsync();
-        }
-
-        // The capture window will lose focus during recording as user interacts with his apps.
+        // The capture window will lose focus during recording as user interacts with the desktop and apps.
         // Make sure we detect CTRL-S for Stop and ESC for Cancel
-        addGlobalRecordingHotkeys();
+        setGlobalRecordingHotkeys();
+
+        // Start actual recording
+        ffmpegFutureResult = Jaffree.startRecording(croppedSelection, frameRate, captureMouseCursor, progressListener, getTempVideoFilename());
     }
 
     private String getTempVideoFilename() {
-        return Ginj.getTempDir().getAbsolutePath() + File.separator + "capture.mp4";
+        return Ginj.getTempDir().getAbsolutePath() + File.separator + capture.getId() + ".mp4";
     }
 
     private void stopRecording() {
-        ffmpegFutureResult.graceStop();
+        // Restore hotkey handling
         removeGlobalRecordingHotkeys();
         starWindow.registerHotKey();
+
+        // Wait and make sure the process has ended
+        Jaffree.stopRecording(ffmpegFutureResult, logger);
     }
 
-    private void addGlobalRecordingHotkeys() {
+    private void setGlobalRecordingHotkeys() {
         Provider provider = starWindow.getHotkeyProvider();
         provider.reset();
         // TODO add these hotkeys to the Prefs and Options dialog
@@ -226,20 +195,8 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
         stopRecording();
         File videoFile = new File(getTempVideoFilename());
         if (videoFile.exists()) {
-            boolean deleted = false;
-            int numTries = 0;
-            while (!deleted && numTries < 5) {
-                deleted = videoFile.delete();
-                if (!deleted) {
-                    logger.trace("Could not delete video file '" + videoFile.getAbsolutePath() + "' at try " + numTries);
-                    numTries++;
-                    try {
-                        Thread.sleep(1000);
-                    }
-                    catch (InterruptedException e) {
-                        // noop;
-                    }
-                }
+            if (!videoFile.delete()) {
+                logger.trace("Could not delete video file '" + videoFile.getAbsolutePath() + "'.");
             }
         }
         dispose();
@@ -247,9 +204,11 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
 
     private void onStop() {
         stopRecording();
-        // TODO open capture editing
+        capture.setOriginalFile(new File(getTempVideoFilename()));
+        // Open capture editing
+        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
+        captureEditingFrame.setVisible(true);
         dispose();
     }
-
 
 }

@@ -9,6 +9,7 @@ import info.ginj.model.Target;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
 import info.ginj.ui.component.*;
+import info.ginj.util.Jaffree;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +77,38 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         // Prepare main image panel first because it will be needed in ActionHandlers
         BufferedImage originalImage;
         if (capture.isVideo()) {
-            throw new RuntimeException("TODO Video");
+            originalImage = Jaffree.grabImage(capture.getOriginalFile(), 0);
+
+//            final JFXPanel VFXPanel = new JFXPanel();
+//
+//            File video_source = new File("tutorial.mp4");
+//            Media m = new Media(video_source.toURI().toString());
+//            MediaPlayer player = new MediaPlayer(m);
+//            MediaView viewer = new MediaView(player);
+//
+//            StackPane root = new StackPane();
+//            Scene scene = new Scene(root);
+//
+//            // center video position
+//            javafx.geometry.Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+//            viewer.setX((screen.getWidth() - videoPanel.getWidth()) / 2);
+//            viewer.setY((screen.getHeight() - videoPanel.getHeight()) / 2);
+//
+//            // resize video based on screen size
+//            DoubleProperty width = viewer.fitWidthProperty();
+//            DoubleProperty height = viewer.fitHeightProperty();
+//            width.bind(Bindings.selectDouble(viewer.sceneProperty(), "width"));
+//            height.bind(Bindings.selectDouble(viewer.sceneProperty(), "height"));
+//            viewer.setPreserveRatio(true);
+//
+//            // add video to stackpane
+//            root.getChildren().add(viewer);
+//
+//            VFXPanel.setScene(scene);
+//            videoPanel.setLayout(new BorderLayout());
+//            videoPanel.add(VFXPanel, BorderLayout.CENTER);
+//            player.play();
+
         }
         else {
             originalImage = capture.getOriginalImage();
@@ -292,13 +324,18 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     private JPanel createExportButtonBar() {
         JPanel buttonBar = new LowerButtonBar();
 
-        LowerButton shareButton = new LowerButton("Share...", UI.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, UI.ICON_ENABLED_COLOR));
-        shareButton.addActionListener(e -> onShare(shareButton));
-        buttonBar.add(shareButton);
+        if (!Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS)) {
+            LowerButton shareButton = new LowerButton("Share...", UI.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+            shareButton.addActionListener(e -> onShare(shareButton));
+            buttonBar.add(shareButton);
+        }
 
         for (Target target : Ginj.getTargetPrefs().getTargetList()) {
             Exporter exporter = target.getExporter();
-            if (exporter.isImageSupported() && (!exporter.isOnlineService() || Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS))) {
+            if (
+                    ((capture.isVideo() && exporter.isVideoSupported()) || (!capture.isVideo() && exporter.isImageSupported()))
+                    && (!exporter.isOnlineService() || Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS))
+            ) {
                 LowerButton targetButton = new LowerButton(target.getDisplayName(), exporter.getButtonIcon(16));
                 targetButton.addActionListener(e -> onExport(target));
                 buttonBar.add(targetButton);
@@ -434,11 +471,20 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     private void onExport(Target target) {
         // 1. Render image and overlays, but no handles
         imagePane.setSelectedOverlay(null);
-        BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
-        Graphics g = renderedImage.getGraphics();
-        imagePane.paint(g);
-        g.dispose();
-        capture.setRenderedImage(renderedImage);
+        if (capture.isVideo()) {
+            // TODO should "render" video file if it has overlays or was otherwise edited (trim)
+            // TODO this should be made in a separate thread (or be part of the export?) to avoid freezing the UI
+            // renderVideo();
+            // TODO for now, just point to the same file
+            capture.setRenderedFile(capture.getOriginalFile());
+        }
+        else {
+            BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics g = renderedImage.getGraphics();
+            imagePane.paint(g);
+            g.dispose();
+            capture.setRenderedImage(renderedImage);
+        }
 
         // Save name and overlays
         capture.setName(nameTextField.getText());
@@ -480,7 +526,10 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         JMenuItem menuItem;
         for (Target target : Ginj.getTargetPrefs().getTargetList()) {
             Exporter exporter = target.getExporter();
-            if (exporter.isOnlineService()) {
+            if (
+                    ((capture.isVideo() && exporter.isVideoSupported()) || (!capture.isVideo() && exporter.isImageSupported()))
+                            && (exporter.isOnlineService())
+            ) {
                 menuItem = new JMenuItem(target.getDisplayName(), exporter.getButtonIcon(24));
                 menuItem.addActionListener(e -> onExport(target));
                 popup.add(menuItem);

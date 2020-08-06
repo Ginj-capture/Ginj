@@ -31,13 +31,16 @@ public class TargetPrefs {
 
     public static synchronized TargetPrefs load() {
         final File targetPrefsFile = Ginj.getTargetPrefsFile();
-        try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(targetPrefsFile)))) {
-            return (TargetPrefs) xmlDecoder.readObject();
+        if (targetPrefsFile.exists()) {
+            // try to load it
+            try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(targetPrefsFile)))) {
+                return (TargetPrefs) xmlDecoder.readObject();
+            }
+            catch (Exception e) {
+                logger.error("Error loading targets from '" + targetPrefsFile.getAbsolutePath()  + "'. Creating new default targetPrefs.", e);
+            }
         }
-        catch (Exception e) {
-            logger.error("Error loading targets from '" + targetPrefsFile.getAbsolutePath()  + "'. Creating new default targetPrefs.", e);
-            return getDefaultTargetPrefs();
-        }
+        return getDefaultTargetPrefs();
     }
 
     private static TargetPrefs getDefaultTargetPrefs() {

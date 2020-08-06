@@ -95,14 +95,17 @@ public class Prefs {
 
     public static void load() {
         File preferencesFile = Ginj.getPrefsFile();
-
-        try (final FileReader reader = new FileReader(preferencesFile)) {
-            preferences.load(reader);
+        if (preferencesFile.exists()) {
+            // try to load it
+            try (final FileReader reader = new FileReader(preferencesFile)) {
+                preferences.load(reader);
+                return;
+            }
+            catch (IOException e) {
+                logger.error("Error reading preferences from " + preferencesFile.getAbsolutePath() + ". Using default preferences...", e);
+            }
         }
-        catch (IOException e) {
-            logger.error("Error reading preferences from " + preferencesFile.getAbsolutePath() + ". Using default preferences...", e);
-            resetToDefaults();
-        }
+        resetToDefaults();
     }
 
     public static void save() {

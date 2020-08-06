@@ -31,9 +31,16 @@
       <fileEntry mountPoint="440" file="./ffmpeg4.3.1/linux_amd64/readme.txt" />
     </entries>
     <components>
-      <component name="FFMpeg" id="441">
-        <description>FFmpeg is required to support video captures. 
-If FFmpeg 4.3 (or newer) is already installed on your system and present in the path, you may choose to disable this component.</description>
+      <component name="Ginj" id="605" displayDescription="true" hideHelpButton="true" changeable="false">
+        <description>This is the main component.
+It contains the Ginj classes, the Java Runtime environment and a native launcher, and cannot be disabled.</description>
+        <include>
+          <entry defaultFileset="true" />
+        </include>
+      </component>
+      <component name="FFMpeg" id="606" displayDescription="true" hideHelpButton="true">
+        <description>FFmpeg is required to support video captures.
+This option will copy FFmpeg4.3.1 into Ginj's installation directory. If FFmpeg 4.3 (or newer) is already installed on your system and present in the path, you may choose to disable this component.</description>
         <include>
           <entry filesetId="432" />
           <entry filesetId="434" />

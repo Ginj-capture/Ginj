@@ -1,16 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="8.0.7" transformSequenceNumber="8">
-  <directoryPresets config="./images/ginj-logo" />
-  <application name="Ginj" applicationId="2821-6917-3685-7854" mediaDir="./releases" compression="9" shortName="Ginj" publisher="Ginj" publisherWeb="http://www.ginj.info" version="0.3.10-pre2" allPathsRelative="true" backupOnSave="true" macVolumeId="2f8e78c917a76687" javaMinVersion="14" javaMaxVersion="14" jdkMode="jdk" jdkName="JDK 14.0">
+  <directoryPresets config="./ffmpeg4.3.1/linux_amd64/readme.txt" />
+  <application name="Ginj" applicationId="2821-6917-3685-7854" mediaDir="./releases" compression="9" shortName="Ginj" publisher="Ginj" publisherWeb="http://www.ginj.info" version="0.4.0" allPathsRelative="true" backupOnSave="true" macVolumeId="2f8e78c917a76687" javaMinVersion="14" javaMaxVersion="14" jdkMode="jdk" jdkName="JDK 14.0">
     <jreBundles jdkProviderId="AdoptOpenJDK" release="openjdk14/jdk-14.0.1+7" />
   </application>
-  <files>
+  <files missingFilesStrategy="error">
+    <filesets>
+      <fileset name="ffmpeg-win" id="432" />
+      <fileset name="ffmpeg-mac" id="434" />
+      <fileset name="ffmpeg-lnx" id="436" />
+    </filesets>
+    <roots>
+      <root id="433" fileset="432" />
+      <root id="435" fileset="434" />
+      <root id="437" fileset="436" />
+    </roots>
     <mountPoints>
       <mountPoint id="58" />
+      <mountPoint id="438" root="433" />
+      <mountPoint id="439" root="435" />
+      <mountPoint id="440" root="437" />
     </mountPoints>
     <entries>
       <fileEntry mountPoint="58" file="./target/Ginj.jar" />
+      <fileEntry mountPoint="438" file="./ffmpeg4.3.1/Win64/ffmpeg.exe" />
+      <fileEntry mountPoint="438" file="./ffmpeg4.3.1/Win64/README.txt" />
+      <fileEntry mountPoint="439" file="./ffmpeg4.3.1/MacOS/ffmpeg" />
+      <fileEntry mountPoint="439" file="./ffmpeg4.3.1/MacOS/readme.txt" />
+      <fileEntry mountPoint="440" file="./ffmpeg4.3.1/linux_amd64/ffmpeg" />
+      <fileEntry mountPoint="440" file="./ffmpeg4.3.1/linux_amd64/readme.txt" />
     </entries>
+    <components>
+      <component name="FFMpeg" id="441">
+        <description>FFmpeg is required to support video captures. 
+If FFmpeg 4.3 (or newer) is already installed on your system and present in the path, you may choose to disable this component.</description>
+        <include>
+          <entry filesetId="432" />
+          <entry filesetId="434" />
+          <entry filesetId="436" />
+        </include>
+      </component>
+    </components>
   </files>
   <launchers>
     <launcher name="Ginj" id="59" checkUpdater="true">
@@ -1024,16 +1054,28 @@ return true;</property>
   </installerGui>
   <mediaSets>
     <windows name="Windows" id="60">
+      <exclude>
+        <entry filesetId="434" />
+        <entry filesetId="436" />
+      </exclude>
       <jreBundle jreBundleSource="generated" />
     </windows>
     <macosFolder name="macOS Folder" id="61">
+      <exclude>
+        <entry filesetId="432" />
+        <entry filesetId="436" />
+      </exclude>
       <jreBundle jreBundleSource="generated" />
     </macosFolder>
     <unixInstaller name="Unix Installer" id="65">
+      <exclude>
+        <entry filesetId="432" />
+        <entry filesetId="434" />
+      </exclude>
       <jreBundle jreBundleSource="generated" />
     </unixInstaller>
   </mediaSets>
-  <buildIds buildAll="false">
+  <buildIds>
     <mediaSet refId="61" />
   </buildIds>
   <buildOptions verbose="true" />

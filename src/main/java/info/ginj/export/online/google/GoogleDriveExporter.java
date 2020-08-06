@@ -217,76 +217,78 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
         byte[] buffer = new byte[maxChunkSize];
         int offset = 0;
         long remainingBytes = file.length();
-        InputStream is;
-        try {
-            is = new FileInputStream(file);
+
+        try (InputStream is = new FileInputStream(file)) {
+            while (remainingBytes > 0) {
+
+                int chunkSize = (int) Math.min(maxChunkSize, remainingBytes);
+                final int bytesRead;
+                try {
+                    bytesRead = is.read(buffer, 0, chunkSize);
+                }
+                catch (IOException e) {
+                    throw new UploadException("Could not read bytes from file");
+                }
+
+                logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+
+                HttpPut httpPut = new HttpPut(uploadUrl);
+                httpPut.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
+                //httpPost.addHeader("Content-Length", chunkSize); // Don't put it here, it causes a "dupe header" error as there is an entity.
+                httpPut.addHeader("Content-Range", "bytes " + offset + "-" + (Math.min(offset + CHUNK_SIZE, file.length()) - 1) + "/" + file.length());
+
+                httpPut.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
+
+                try {
+                    CloseableHttpResponse response = client.execute(httpPut);
+                    if (offset + CHUNK_SIZE < file.length() && response.getCode() == 308) {
+                        // All chunks except the last should get a 308 Resume Incomplete - This is normal
+                        try {
+                            String responseText = EntityUtils.toString(response.getEntity());
+                            logger.debug("Response: " + responseText);
+                        }
+                        catch (ParseException e) {
+                            throw new CommunicationException("Could not parse media upload response as String:\n" + response.getEntity());
+                        }
+                    }
+                    else if (offset + CHUNK_SIZE >= file.length() && isStatusOK(response.getCode())) {
+                        // Last chunk should get a 200 OK
+                        try {
+                            String responseText = EntityUtils.toString(response.getEntity());
+                            logger.info("Response: " + responseText);
+                            if (offset + CHUNK_SIZE >= file.length()) {
+                                fileResource = new Gson().fromJson(responseText, FilesResource.class);
+                            }
+                        }
+                        catch (ParseException e) {
+                            throw new CommunicationException("Could not parse media upload response as String:\n" + response.getEntity());
+                        }
+                    }
+                    else {
+                        // All the rest is unexpected
+                        final String responseError = getResponseError(response);
+                        if ((response.getCode() / 100) == 5) {
+                            // Error 5xx
+                            throw new UploadException("Resuming not implemented yet:\n" + responseError);
+                        }
+                        throw new UploadException("The server returned the following error when uploading file contents:\n" + responseError);
+                    }
+                }
+                catch (IOException e) {
+                    throw new CommunicationException("Error uploading file contents", e);
+                }
+
+                offset += bytesRead;
+                remainingBytes = file.length() - offset;
+            }
+            logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
         }
         catch (FileNotFoundException e) {
             throw new UploadException("File not found: " + file.getAbsolutePath());
         }
-        while (remainingBytes > 0) {
-
-            int chunkSize = (int) Math.min(maxChunkSize, remainingBytes);
-            final int bytesRead;
-            try {
-                bytesRead = is.read(buffer, 0, chunkSize);
-            }
-            catch (IOException e) {
-                throw new UploadException("Could not read bytes from file");
-            }
-
-            logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
-
-            HttpPut httpPut = new HttpPut(uploadUrl);
-            httpPut.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
-            //httpPost.addHeader("Content-Length", chunkSize); // Don't put it here, it causes a "dupe header" error as there is an entity.
-            httpPut.addHeader("Content-Range", "bytes " + offset + "-" + (Math.min(offset + CHUNK_SIZE, file.length()) - 1) + "/" + file.length());
-
-            httpPut.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
-
-            try {
-                CloseableHttpResponse response = client.execute(httpPut);
-                if (offset + CHUNK_SIZE < file.length() && response.getCode() == 308) {
-                    // All chunks except the last should get a 308 Resume Incomplete - This is normal
-                    try {
-                        String responseText = EntityUtils.toString(response.getEntity());
-                        logger.debug("Response: " + responseText);
-                    }
-                    catch (ParseException e) {
-                        throw new CommunicationException("Could not parse media upload response as String:\n" + response.getEntity());
-                    }
-                }
-                else if (offset + CHUNK_SIZE >= file.length() && isStatusOK(response.getCode())) {
-                    // Last chunk should get a 200 OK
-                    try {
-                        String responseText = EntityUtils.toString(response.getEntity());
-                        logger.info("Response: " + responseText);
-                        if (offset + CHUNK_SIZE >= file.length()) {
-                            fileResource = new Gson().fromJson(responseText, FilesResource.class);
-                        }
-                    }
-                    catch (ParseException e) {
-                        throw new CommunicationException("Could not parse media upload response as String:\n" + response.getEntity());
-                    }
-                }
-                else {
-                    // All the rest is unexpected
-                    final String responseError = getResponseError(response);
-                    if ((response.getCode() / 100) == 5) {
-                        // Error 5xx
-                        throw new UploadException("Resuming not implemented yet:\n" + responseError);
-                    }
-                    throw new UploadException("The server returned the following error when uploading file contents:\n" + responseError);
-                }
-            }
-            catch (IOException e) {
-                throw new CommunicationException("Error uploading file contents", e);
-            }
-
-            offset += bytesRead;
-            remainingBytes = file.length() - offset;
+        catch (IOException e) {
+            throw new UploadException(e);
         }
-        logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
 
         return fileResource;
     }

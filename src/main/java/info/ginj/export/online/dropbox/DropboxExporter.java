@@ -247,6 +247,8 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     }
 
     public FileMetadata uploadFile(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
+        FileMetadata fileMetadata;
+
         String sessionId;
 
         final File file = capture.getRenderedFile();
@@ -255,161 +257,160 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         byte[] buffer = new byte[maxChunkSize];
         int offset = 0;
         long remainingBytes = file.length();
-        InputStream is;
-        try {
-            is = new FileInputStream(file);
-        }
-        catch (FileNotFoundException e) {
-            throw new UploadException("File not found: " + file.getAbsolutePath());
-        }
 
-
-        // Step 1: Initiating an upload session with the first CHUNK
-        logProgress("Uploading", PROGRESS_UPLOAD_START);
-        HttpPost httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/start");
-
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
-        //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
-        httpPost.addHeader("Dropbox-API-Arg", "{\"close\": false}");
-
-        // First chunk
-        int bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
-        httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
-
-        // Send request
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
-            if (isStatusOK(response.getCode())) {
-                final String responseText;
-                try {
-                    responseText = EntityUtils.toString(response.getEntity());
-                    @SuppressWarnings("rawtypes")
-                    Map map = new Gson().fromJson(responseText, Map.class);
-                    sessionId = (String) map.get("session_id");
-                }
-                catch (ParseException e) {
-                    throw new CommunicationException("Could not parse start upload session response as String: " + response.getEntity());
-                }
-                if (sessionId == null) {
-                    throw new CommunicationException("Returned session id is null.");
-                }
-            }
-            else {
-                final String responseError = getResponseError(response);
-                if ((response.getCode() / 100) == 5) {
-                    // Error 5xx
-                    // Don't know if Dropbox actually uses it but well
-                    throw new UploadException("Resuming not implemented yet:\n" + responseError);
-                }
-                throw new UploadException("The server returned the following error when starting file contents:\n" + responseError);
-            }
-        }
-        catch (IOException e) {
-            throw new CommunicationException("Error starting file contents", e);
-        }
-
-        // Update counters
-        offset += bytesRead;
-        remainingBytes = file.length() - offset;
-
-
-        // Step 2: Append to session with more CHUNKS, if needed
-        while (remainingBytes > CHUNK_SIZE) {
-            logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
-            httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/append_v2");
+        try (InputStream is = new FileInputStream(file)) {
+            // Step 1: Initiating an upload session with the first CHUNK
+            logProgress("Uploading", PROGRESS_UPLOAD_START);
+            HttpPost httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/start");
 
             httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
             //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
-            httpPost.addHeader("Dropbox-API-Arg",
-                    "{\"cursor\": " +
-                            "{\"session_id\": \"" + sessionId + "\"," +
-                            "\"offset\": " + offset + "}" +
-                            ",\"close\": false}");
+            httpPost.addHeader("Dropbox-API-Arg", "{\"close\": false}");
 
-            // Next chunk
-            bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
+            // First chunk
+            int bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
             httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
 
             // Send request
             try {
                 CloseableHttpResponse response = client.execute(httpPost);
-                if (!isStatusOK(response.getCode())) {
+                if (isStatusOK(response.getCode())) {
+                    final String responseText;
+                    try {
+                        responseText = EntityUtils.toString(response.getEntity());
+                        @SuppressWarnings("rawtypes")
+                        Map map = new Gson().fromJson(responseText, Map.class);
+                        sessionId = (String) map.get("session_id");
+                    }
+                    catch (ParseException e) {
+                        throw new CommunicationException("Could not parse start upload session response as String: " + response.getEntity());
+                    }
+                    if (sessionId == null) {
+                        throw new CommunicationException("Returned session id is null.");
+                    }
+                }
+                else {
                     final String responseError = getResponseError(response);
                     if ((response.getCode() / 100) == 5) {
                         // Error 5xx
                         // Don't know if Dropbox actually uses it but well
                         throw new UploadException("Resuming not implemented yet:\n" + responseError);
                     }
-                    throw new UploadException("The server returned the following error when appending file contents:\n" + responseError);
+                    throw new UploadException("The server returned the following error when starting file contents:\n" + responseError);
                 }
             }
             catch (IOException e) {
-                throw new CommunicationException("Error appending file contents", e);
+                throw new CommunicationException("Error starting file contents", e);
             }
 
             // Update counters
             offset += bytesRead;
             remainingBytes = file.length() - offset;
-        }
 
 
-        // Step 3: Finish session (optionally with the remaining bytes)
-        logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+            // Step 2: Append to session with more CHUNKS, if needed
+            while (remainingBytes > CHUNK_SIZE) {
+                logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+                httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/append_v2");
 
-        final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.computeUploadFilename();
-        FileMetadata fileMetadata;
+                httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
+                //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
+                httpPost.addHeader("Dropbox-API-Arg",
+                        "{\"cursor\": " +
+                                "{\"session_id\": \"" + sessionId + "\"," +
+                                "\"offset\": " + offset + "}" +
+                                ",\"close\": false}");
 
-        httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/finish");
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
-        //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
-        httpPost.addHeader("Dropbox-API-Arg",
-                "{\"cursor\": " +
-                        "{\"session_id\": \"" + sessionId + "\"," +
-                        "\"offset\": " + offset + "}" +
-                        ",\"commit\": " +
-                        "{\"path\": \"" + destinationFileName + "\"," +
-                        "\"mode\": \"add\"," +
-                        "\"autorename\": true," +
-                        "\"mute\": false," +
-                        "\"strict_conflict\": false}" +
-                        "}");
+                // Next chunk
+                bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
+                httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
 
-        // Last chunk
-        bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
-        httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
-
-        // Send request
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
-            if (isStatusOK(response.getCode())) {
-                final String responseText;
+                // Send request
                 try {
-                    responseText = EntityUtils.toString(response.getEntity());
-                    fileMetadata = new Gson().fromJson(responseText, FileMetadata.class);
-                    if (fileMetadata == null) {
-                        throw new CommunicationException("Returned fileMetadata is null.");
+                    CloseableHttpResponse response = client.execute(httpPost);
+                    if (!isStatusOK(response.getCode())) {
+                        final String responseError = getResponseError(response);
+                        if ((response.getCode() / 100) == 5) {
+                            // Error 5xx
+                            // Don't know if Dropbox actually uses it but well
+                            throw new UploadException("Resuming not implemented yet:\n" + responseError);
+                        }
+                        throw new UploadException("The server returned the following error when appending file contents:\n" + responseError);
                     }
                 }
-                catch (ParseException e) {
-                    throw new CommunicationException("Could not parse finish upload session response as String: " + response.getEntity());
+                catch (IOException e) {
+                    throw new CommunicationException("Error appending file contents", e);
+                }
+
+                // Update counters
+                offset += bytesRead;
+                remainingBytes = file.length() - offset;
+            }
+
+
+            // Step 3: Finish session (optionally with the remaining bytes)
+            logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+
+            final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.computeUploadFilename();
+
+            httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/finish");
+            httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
+            //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
+            httpPost.addHeader("Dropbox-API-Arg",
+                    "{\"cursor\": " +
+                            "{\"session_id\": \"" + sessionId + "\"," +
+                            "\"offset\": " + offset + "}" +
+                            ",\"commit\": " +
+                            "{\"path\": \"" + destinationFileName + "\"," +
+                            "\"mode\": \"add\"," +
+                            "\"autorename\": true," +
+                            "\"mute\": false," +
+                            "\"strict_conflict\": false}" +
+                            "}");
+
+            // Last chunk
+            bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
+            httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
+
+            // Send request
+            try {
+                CloseableHttpResponse response = client.execute(httpPost);
+                if (isStatusOK(response.getCode())) {
+                    final String responseText;
+                    try {
+                        responseText = EntityUtils.toString(response.getEntity());
+                        fileMetadata = new Gson().fromJson(responseText, FileMetadata.class);
+                        if (fileMetadata == null) {
+                            throw new CommunicationException("Returned fileMetadata is null.");
+                        }
+                    }
+                    catch (ParseException e) {
+                        throw new CommunicationException("Could not parse finish upload session response as String: " + response.getEntity());
+                    }
+                }
+                else {
+                    final String responseError = getResponseError(response);
+                    if ((response.getCode() / 100) == 5) {
+                        // Error 5xx
+                        // Don't know if Dropbox actually uses it but well
+                        throw new UploadException("Resuming not implemented yet:\n" + responseError);
+                    }
+                    throw new UploadException("The server returned the following error when finishing file contents:\n" + responseError);
                 }
             }
-            else {
-                final String responseError = getResponseError(response);
-                if ((response.getCode() / 100) == 5) {
-                    // Error 5xx
-                    // Don't know if Dropbox actually uses it but well
-                    throw new UploadException("Resuming not implemented yet:\n" + responseError);
-                }
-                throw new UploadException("The server returned the following error when finishing file contents:\n" + responseError);
+            catch (IOException e) {
+                throw new CommunicationException("Error finishing file contents", e);
             }
+
+
+            logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
+        }
+        catch (FileNotFoundException e) {
+            throw new UploadException("File not found: " + file.getAbsolutePath(), e);
         }
         catch (IOException e) {
-            throw new CommunicationException("Error finishing file contents", e);
+            throw new UploadException(e);
         }
-
-
-        logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
 
         return fileMetadata;
     }

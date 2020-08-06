@@ -563,62 +563,63 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
         byte[] buffer = new byte[maxChunkSize];
         int offset = 0;
         long remainingBytes = file.length();
-        InputStream is;
-        try {
-            is = new FileInputStream(file);
+        try (InputStream is = new FileInputStream(file)) {
+            while (remainingBytes > 0) {
+                String command = (remainingBytes > maxChunkSize) ? "upload" : "upload, finalize";
+                int chunkSize = (int) Math.min(maxChunkSize, remainingBytes);
+                final int bytesRead;
+                try {
+                    bytesRead = is.read(buffer, 0, chunkSize);
+                }
+                catch (IOException e) {
+                    throw new UploadException("Could not read bytes from file");
+                }
+
+                logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+
+                httpPost = new HttpPost(uploadUrl);
+                httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
+                //httpPost.addHeader("Content-Length", chunkSize); // Don't put it here, it causes a "dupe header" error as there is an entity.
+                httpPost.addHeader("X-Goog-Upload-Command", command);
+                httpPost.addHeader("X-Goog-Upload-Offset", offset);
+
+                httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
+
+                try {
+                    CloseableHttpResponse response = client.execute(httpPost);
+                    if (isStatusOK(response.getCode())) {
+                        try {
+                            uploadToken = EntityUtils.toString(response.getEntity());
+                        }
+                        catch (ParseException e) {
+                            throw new CommunicationException("Could not parse media upload response as String:\n" + response.getEntity());
+                        }
+                    }
+                    else {
+                        final String responseError = getResponseError(response);
+                        if ((response.getCode() / 100) == 5) {
+                            // Error 5xx
+                            throw new UploadException("Resuming not implemented yet:\n" + responseError);
+                        }
+                        throw new UploadException("The server returned the following error when uploading file contents:\n" + responseError);
+                    }
+                }
+                catch (IOException e) {
+                    throw new CommunicationException("Error uploading file contents", e);
+                }
+
+
+                offset += bytesRead;
+                remainingBytes = file.length() - offset;
+            }
+            logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
         }
         catch (FileNotFoundException e) {
             throw new UploadException("File not found: " + file.getAbsolutePath());
         }
-        while (remainingBytes > 0) {
-            String command = (remainingBytes > maxChunkSize) ? "upload" : "upload, finalize";
-            int chunkSize = (int) Math.min(maxChunkSize, remainingBytes);
-            final int bytesRead;
-            try {
-                bytesRead = is.read(buffer, 0, chunkSize);
-            }
-            catch (IOException e) {
-                throw new UploadException("Could not read bytes from file");
-            }
-
-            logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
-
-            httpPost = new HttpPost(uploadUrl);
-            httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
-            //httpPost.addHeader("Content-Length", chunkSize); // Don't put it here, it causes a "dupe header" error as there is an entity.
-            httpPost.addHeader("X-Goog-Upload-Command", command);
-            httpPost.addHeader("X-Goog-Upload-Offset", offset);
-
-            httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
-
-            try {
-                CloseableHttpResponse response = client.execute(httpPost);
-                if (isStatusOK(response.getCode())) {
-                    try {
-                        uploadToken = EntityUtils.toString(response.getEntity());
-                    }
-                    catch (ParseException e) {
-                        throw new CommunicationException("Could not parse media upload response as String:\n" + response.getEntity());
-                    }
-                }
-                else {
-                    final String responseError = getResponseError(response);
-                    if ((response.getCode() / 100) == 5) {
-                        // Error 5xx
-                        throw new UploadException("Resuming not implemented yet:\n" + responseError);
-                    }
-                    throw new UploadException("The server returned the following error when uploading file contents:\n" + responseError);
-                }
-            }
-            catch (IOException e) {
-                throw new CommunicationException("Error uploading file contents", e);
-            }
-
-
-            offset += bytesRead;
-            remainingBytes = file.length() - offset;
+        catch (IOException e) {
+            throw new UploadException(e);
         }
-        logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
 
         return uploadToken;
     }

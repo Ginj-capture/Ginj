@@ -50,7 +50,8 @@ public class Prefs {
         DEBUG_NO_SETVISIBLE_FALSE_IN_RECOVERY("debug.no.setvisible.false.in.recovery", "Debug param to see what part really recovers the widget", true),
         DEBUG_NO_SETVISIBLE_TRUE_IN_RECOVERY("debug.no.setvisible.true.in.recovery", "Debug param to see what part really recovers the widget", true),
         DEBUG_NO_TO_FRONT_IN_RECOVERY("debug.no.to.front.in.recovery", "Debug param to see what part really recovers the widget", true),
-        DEBUG_NO_REQUEST_FOCUS_IN_RECOVERY("debug.no.request.focus.in.recovery", "Debug param to see what part really recovers the widget", true);
+        DEBUG_NO_REQUEST_FOCUS_IN_RECOVERY("debug.no.request.focus.in.recovery", "Debug param to see what part really recovers the widget", true),
+        FFMPEG_TERMINATION_TIMEOUT("ffmpeg.termination.timeout", "The max delay between a request to end an ffmpeg process and its actual response", true);
 
         private final String keyString;
         private final String help;
@@ -142,6 +143,22 @@ public class Prefs {
         final String hexColor = get(key);
         if (hexColor == null || hexColor.isBlank()) return null;
         return Color.decode(hexColor);
+    }
+
+    public static long getAsLong(Key key, long defaultValue) {
+        String valueStr = get(key);
+        if (valueStr == null || valueStr.length() == 0) {
+            return defaultValue;
+        }
+        else {
+            try {
+                return Long.parseLong(valueStr);
+            }
+            catch (NumberFormatException e) {
+                logger.error("Value '" + valueStr + "' cannot be converted into a number for key '" + key.getKey() + "'.", e);
+                return defaultValue;
+            }
+        }
     }
 
     public static void set(Key key, String value) {

@@ -11,14 +11,14 @@ import info.ginj.model.Target;
 
 public abstract class AbstractOnlineExporter extends Exporter {
 
-    public int PROGRESS_CHECK_AUTHORIZE_START = 2;
-    public int PROGRESS_CREATING_ALBUM = 5;
-    public int PROGRESS_GETTING_ALBUM = 6;
-    public int PROGRESS_SHARING_ALBUM = 8;
-    public int PROGRESS_RENDER_START = 10;
-    public int PROGRESS_UPLOAD_START = 20;
-    public int PROGRESS_UPLOAD_END = 90;
-    public int PROGRESS_CREATING_MEDIA = 95;
+    public static final int PROGRESS_CHECK_AUTHORIZE_START = 2;
+    public static final int PROGRESS_CREATING_ALBUM = 5;
+    public static final int PROGRESS_GETTING_ALBUM = 6;
+    public static final int PROGRESS_SHARING_ALBUM = 8;
+    public static final int PROGRESS_RENDER_START = 10;
+    public static final int PROGRESS_UPLOAD_START = 20;
+    public static final int PROGRESS_UPLOAD_END = 90;
+    public static final int PROGRESS_CREATING_MEDIA = 95;
 
     /** The chunk size to use for data upload.
      * Must be a multiple of 256*1024 for Google Drive

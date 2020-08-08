@@ -706,7 +706,7 @@ public class StarWindow extends JWindow {
         }
         // No match was found
         if (displayNumber == 0) {
-            UI.alertError(this, "Display error", "Cannot find bounds of main display!\nDefaulting to Toolkit diaplay.\nPlease report this message as an issue on Github.\nThanks");
+            UI.alertError(this, "Display error", "Cannot find bounds of main display!\nDefaulting to Toolkit display.\nPlease report this message as an issue on Github.\nThanks");
             return new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
         }
         else {

@@ -80,6 +80,7 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
             g2d.setColor(UI.AREA_SELECTION_COLOR);
             g2d.setStroke(SELECTED_AREA_STROKE);
             g2d.drawRect(selection.x - SELECTED_AREA_STROKE_WIDTH / 2, selection.y - SELECTED_AREA_STROKE_WIDTH / 2, selection.width + SELECTED_AREA_STROKE_WIDTH, selection.height + SELECTED_AREA_STROKE_WIDTH);
+            // TODO animate border, see http://zetcode.com/javagames/animation/
         }
 
         @Override

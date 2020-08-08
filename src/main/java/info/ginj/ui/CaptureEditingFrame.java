@@ -80,7 +80,8 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         if (capture.isVideo()) {
             originalImage = Jaffree.grabImage(capture.getOriginalFile(), 0);
 
-            // For video playback, JaxaFX this could be an option...:
+            // For video playback, JaxaFX could be an option...:
+            // (from https://stackoverflow.com/questions/52038982/how-to-play-mp4-video-in-java-swing-app )
 //            final JFXPanel VFXPanel = new JFXPanel();
 //
 //            File video_source = new File("tutorial.mp4");

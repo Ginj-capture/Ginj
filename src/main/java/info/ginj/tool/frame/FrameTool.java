@@ -7,10 +7,13 @@ import info.ginj.ui.ImageEditorPane;
 
 import java.awt.*;
 
-public class FrameTool implements GinjTool {
+public class FrameTool extends GinjTool {
+
+    public static final String NAME = "Frame";
+
     @Override
     public String getName() {
-        return "Frame";
+        return NAME;
     }
 
     @Override

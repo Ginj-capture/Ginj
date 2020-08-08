@@ -65,7 +65,7 @@ final class Util {
     }
 
     static String getIDFromStaticMethod (Class clazz) {
-        // System.err.println("GetID by method for " + clazz);
+        // logger.error("GetID by method for " + clazz);
         String result = null;
         try {
             Method m = clazz.getDeclaredMethod("getStep", new Class[] {});
@@ -107,7 +107,7 @@ final class Util {
                 result[i] = pages[i].getName();
             }
         }
-        // System.err.println("Returning " + Arrays.asList(result));
+        // logger.error("Returning " + Arrays.asList(result));
         return result;
     }
 

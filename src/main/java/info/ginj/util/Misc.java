@@ -1,5 +1,7 @@
 package info.ginj.util;
 
+import org.apache.commons.lang3.SystemUtils;
+
 import java.util.Locale;
 
 public class Misc {
@@ -39,5 +41,13 @@ public class Misc {
         if (property == null) return false;
         property = property.toLowerCase();
         return property.equals("true") || property.equals("yes") || property.equals("1");
+    }
+
+    /**
+     * @return "Exit" or "Quit", according to the OS.
+     */
+    public static String getExitQuitText() {
+        if (SystemUtils.IS_OS_WINDOWS) return "Exit";
+        else return "Quit";
     }
 }

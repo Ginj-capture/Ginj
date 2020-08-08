@@ -43,11 +43,12 @@ Ginj's core is pure Java, and Java is "write once, run anywhere", so yes, it run
 
 Just kidding.
 
-Ginj targets OpenJDK 14, so obviously Ginj won't ever run on a platform that does not support that JDK version. Moreover, I don't own a Mac, and I don't intend to test Ginj on a Linux VM until my to-do list becomes manageable. Early feedback on Ubuntu indicates that the Desktop widget has visual issues but that captures are OK and can be copied, saved and shared online, which I find amazing since it never was launched under Linux before release. 
+Ginj targets OpenJDK 14, so obviously Ginj won't ever run on a platform that does not support that JDK version. Moreover, I don't own a Mac, and I don't intend to test Ginj on a Linux VM until my to-do list becomes manageable.
 
 In other words, until now, Ginj has almost exclusively been tested on Windows.
 
-If you test it on other platforms, feel free to [open an issue](https://github.com/Ginj-capture/Ginj/issues) and tell me your experience. I will update this section accordingly. 
+However, early user feedback on Ubuntu indicates that the Desktop widget has visual issues but that captures are OK and can be copied, saved and shared online, which I find amazing since it never was launched under Linux before release. 
+If you test it on other platforms, feel free to [open an issue](https://github.com/Ginj-capture/Ginj/issues) and tell me about your experience. I will update this section accordingly. 
 
 #### How can I get support?
 
@@ -72,20 +73,23 @@ Great. Head over to the [latest release page](https://github.com/Ginj-capture/Gi
 
 Note 1: there's no splash screen yet, so look for the circle at the center top of your desktop.
 
-Note 2: if you already have OpenJDK 14 installed and configured by default, you may alternately just download and use the executable .jar which is less than 3Mb and includes all Ginj code and libraries.
+Note 2: if you already have OpenJDK 14 installed and configured by default, you may alternately just download the executable .jar (around 5MB of which 600KB for Ginj code and the rest for libraries) and launch Ginj by typing `java -jar Ginj.jar` in the download folder.
 
 #### Credits. 
 
 The app makes use of the following libraries:
-- HttpComponents, Copyright © 2005–2020 The Apache Software Foundation.
-- GSon, Copyright © 2008 Google Inc.
-- SLF4j, Copyright © 2004-2017 QOS.ch
-- Wizard by Timothy Boudreau of Netbeans, originally hosted at https://wizard.dev.java.net , v1.1 saved by Lonzak and available at https://github.com/Lonzak/Wizard-API (in source version as it's pre-Maven).
+- [HttpComponents](https://hc.apache.org/), Copyright © 2005–2020 The Apache Software Foundation
+- [GSon](https://github.com/google/gson), Copyright © 2008 Google Inc.
+- [SLF4j](http://www.slf4j.org/), Copyright © 2004-2017 QOS.ch
+- Wizard by Timothy Boudreau of Netbeans, originally hosted at https://wizard.dev.java.net , v1.1 saved from the internet drain by Lonzak and available at https://github.com/Lonzak/Wizard-API (in source version as it's pre-Maven).
+- [JKeyMaster](https://github.com/tulskiy/jkeymaster), Copyright © 2011 Denis Tulskiy
 
 The source code contains classes or snippets from:
 - The open source [EaSynth_Look_And_Feel_Bundle.zip](http://www.easynth.com/freewares/EaSynthLookAndFeel.html)
 - [The Java Tutorial](https://docs.oracle.com/javase/tutorial/), Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
 - [JHLabs image filters](http://jhlabs.com/ip/filters/index.html) by Jerry Huxtable
+- SystemUtils from [Commons-lang](https://commons.apache.org/proper/commons-lang/)  
+- [Desktop](https://github.com/jjYBdx4IL/misc/blob/master/swing-utils/src/main/java/com/github/jjYBdx4IL/utils/awt/Desktop.java) Copyright © 2017 jjYBdx4IL (https://github.com/jjYBdx4IL)
 - Discussions at [StackOverflow](https://stackoverflow.com/) and [CodeRanch](https://coderanch.com/) - hats off to MadProgrammer, camickr, and others.
 
 The user interface uses: 

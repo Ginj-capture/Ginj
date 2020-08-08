@@ -1,27 +1,28 @@
 package info.ginj.ui;
 
 import info.ginj.Ginj;
+import info.ginj.model.Capture;
 import info.ginj.ui.component.BorderedLabel;
 import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.ui.component.LowerButton;
 import info.ginj.ui.component.LowerButtonBar;
 import info.ginj.util.Coords;
+import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 import java.awt.font.TextAttribute;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,11 +30,11 @@ import java.util.Map;
  * It takes up the full screen, captures the screen on startup and uses it as background, then paints the selection box
  * above it.
  * Note: an undecorated JFrame is required instead of a JWindow, otherwise keyboard events (ESC) are not captured
- *
+ * <p>
  * Note about multiscreen systems and coordinates:
  * The "main display" always has (0,0) at the top left of the "client area" (where normal windows should be drawn).
  * If secondary displays are positioned to the right and/or below it, all their points are in the (+,+) quadrant,
- * but if a secondary display is above or to the left, its coordinates will be negative.
+ * but if a secondary display is above or to the left, one or both of its coordinates will be negative.
  * The logic is that all physical displays' bounds are first union'ed to create a mega-rectangle encompassing all displays.
  * Then, that mega-rectangle is captured to create a mega-image.
  * Finally, a mega-window is created and displayed at the top-left corner of the mega-rectangle (maybe in negative space)
@@ -47,7 +48,9 @@ import java.util.Map;
  * the button panel once the mouse button is released, as the panel *must* be visible of course.
  * Thanks for reading :-)
  */
-public class CaptureSelectionFrame extends JFrame {
+public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
+
+    private static final Logger logger = LoggerFactory.getLogger(CaptureSelectionFrame.class);
 
     public static final int SIZE_BOX_WIDTH = 75;
     public static final int SIZE_BOX_HEIGHT = 18;
@@ -57,47 +60,36 @@ public class CaptureSelectionFrame extends JFrame {
     private static final int RESIZE_AREA_OUT_MARGIN = 10;
 
     private static final int OPERATION_NONE = -1;
+    public static final int SELECTED_AREA_STROKE_WIDTH = 2;
+    public static final BasicStroke SELECTED_AREA_STROKE = new BasicStroke(SELECTED_AREA_STROKE_WIDTH);
 
     // Caching
-    private final List<Rectangle> visibleAreas = new ArrayList<>();
     // See https://stackoverflow.com/a/10687248
     private final Cursor CURSOR_NONE = Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), new Point(), null);
 
 
     // Current state
-    private Rectangle capturedArea;
     private BufferedImage capturedScreenImg;
     private Point rememberedReferenceOffset = null; // filled when selecting or dragging
-    private Rectangle selection; // filled when selection is done
     private int currentOperation = OPERATION_NONE;
     private boolean isInitialSelectionDone;
 
-    private final JPanel actionPanel;
-    private final BorderedLabel captureSizeLabel;
-    private final JButton imageButton;
-    private final JButton videoButton;
-    private final StarWindow starWindow;
+    private BorderedLabel captureSizeLabel;
+    private JButton imageButton;
+    private JButton videoButton;
 
     public CaptureSelectionFrame(StarWindow starWindow) {
-        super();
-        this.starWindow = starWindow;
+        super(starWindow, Ginj.getAppName() + " Selection");
 
-        // No window title bar or border.
-        // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
-        setUndecorated(true);
+        UI.addEscKeyShortcut(this, e -> onCancel());
 
-        // For Alt+Tab behaviour
-        this.setTitle(Ginj.getAppName() + " Selection");
-        this.setIconImage(StarWindow.getAppIcon());
-
-        JComponent contentPane = new CaptureMainPane();
-        setContentPane(contentPane);
         addMouseBehaviour();
 
-        setLayout(null); // Allow absolute positioning of button bar
+        resetSelection();
+    }
 
-        // Prepare button bar
-        actionPanel = new DoubleBorderedPanel(); // To add a margin around buttonBar
+    protected JPanel createActionPanel() {
+        JPanel actionPanel = new DoubleBorderedPanel(); // To add a margin around buttonBar
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 2));
         JPanel buttonBar = new LowerButtonBar();
 
@@ -117,30 +109,11 @@ public class CaptureSelectionFrame extends JFrame {
         buttonBar.add(captureSizeLabel);
 
         actionPanel.add(buttonBar);
-        UI.packPanel(actionPanel);
-        contentPane.add(actionPanel);
-
-        addKeyboardShortcuts();
-
-        resetSelection();
-
-        pack();
-        positionWindowOnStartup();
-        setVisible(true);
-        requestFocus();
-
-        setAlwaysOnTop(true);
+        return actionPanel;
     }
 
-    private void addKeyboardShortcuts() {
-        addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    onCancel();
-                }
-            }
-        });
+    protected CaptureMainPane createContentPane() {
+        return new CaptureMainPane();
     }
 
 
@@ -153,25 +126,16 @@ public class CaptureSelectionFrame extends JFrame {
         public CaptureMainPane() {
             try {
                 Robot robot = new Robot();
-                Rectangle2D areaToCapture = new Rectangle2D.Double(0,0,-1,-1);
-                GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
-                    GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
-                    //System.out.println(screenConfiguration.getBounds());
-                    visibleAreas.add(screenConfiguration.getBounds());
-                    Rectangle2D.union(areaToCapture, screenConfiguration.getBounds(), areaToCapture);
-                }
-                capturedArea = areaToCapture.getBounds();
 
 // Simulate small screen to be able to debug in parallel of "full screen" capture window on top
 //capturedArea = new Rectangle(0,0,800,600);
 //visibleAreas.clear();
 //visibleAreas.add(capturedArea);
 
-                capturedScreenImg = robot.createScreenCapture(capturedArea);
+                capturedScreenImg = robot.createScreenCapture(allDisplaysBounds);
             }
             catch (AWTException e) {
-                e.printStackTrace();
+                logger.error("Error performing robot capture", e);
             }
 
             // Prepared a dimmed & greyscale version to be used for "unselected area"
@@ -180,7 +144,7 @@ public class CaptureSelectionFrame extends JFrame {
 
         @Override
         public Dimension getPreferredSize() {
-            return new Dimension(capturedArea.width, capturedArea.height);
+            return new Dimension(allDisplaysBounds.width, allDisplaysBounds.height);
         }
 
         @Override
@@ -203,11 +167,11 @@ public class CaptureSelectionFrame extends JFrame {
                 // Draw part of the original image over the dimmed image
                 g2d.setClip(rectangleToDraw);
                 g2d.drawImage(capturedScreenImg, 0, 0, this);
-                g2d.setClip(0, 0, capturedArea.width, capturedArea.height);
+                g2d.setClip(0, 0, allDisplaysBounds.width, allDisplaysBounds.height);
 
                 // Draw the selection rectangle
                 g2d.setColor(UI.AREA_SELECTION_COLOR);
-                g2d.setStroke(new BasicStroke(2));
+                g2d.setStroke(SELECTED_AREA_STROKE);
                 g2d.drawRect(rectangleToDraw.x, rectangleToDraw.y, rectangleToDraw.width, rectangleToDraw.height);
             }
             else {
@@ -221,8 +185,8 @@ public class CaptureSelectionFrame extends JFrame {
                 // Draw cross lines
                 g2d.setColor(UI.AREA_SELECTION_COLOR);
                 g2d.setStroke(new BasicStroke(3));
-                g2d.drawLine(mousePosition.x, capturedArea.y, mousePosition.x, (int) capturedArea.getHeight());
-                g2d.drawLine(capturedArea.x, mousePosition.y, (int) capturedArea.getWidth(), mousePosition.y);
+                g2d.drawLine(mousePosition.x, allDisplaysBounds.y, mousePosition.x, (int) allDisplaysBounds.getHeight());
+                g2d.drawLine(allDisplaysBounds.x, mousePosition.y, (int) allDisplaysBounds.getWidth(), mousePosition.y);
             }
 
             // Determine size to print in size box
@@ -231,7 +195,7 @@ public class CaptureSelectionFrame extends JFrame {
                 if (rectangleToDraw == null) {
                     // No (partial) selection yet, show screen size
                     // TODO : "capturedArea" to be replaced by "hovered window" when window detection is implemented
-                    sizeText = capturedArea.width + " x " + capturedArea.height;
+                    sizeText = allDisplaysBounds.width + " x " + allDisplaysBounds.height;
                 }
                 else {
                     // We're dragging, show current size
@@ -248,11 +212,11 @@ public class CaptureSelectionFrame extends JFrame {
                 // Draw the selection size box
                 g2d.setColor(UI.SELECTION_SIZE_BOX_COLOR);
                 int sizeBoxX = mousePosition.x + SIZE_BOX_OFFSET;
-                if (sizeBoxX + SIZE_BOX_WIDTH > capturedArea.width) {
+                if (sizeBoxX + SIZE_BOX_WIDTH > allDisplaysBounds.width) {
                     sizeBoxX = mousePosition.x - SIZE_BOX_OFFSET - SIZE_BOX_WIDTH;
                 }
                 int sizeBoxY = mousePosition.y + SIZE_BOX_OFFSET;
-                if (sizeBoxY + SIZE_BOX_HEIGHT > capturedArea.height) {
+                if (sizeBoxY + SIZE_BOX_HEIGHT > allDisplaysBounds.height) {
                     sizeBoxY = mousePosition.y - SIZE_BOX_OFFSET - SIZE_BOX_HEIGHT;
                 }
                 g2d.fillRoundRect(sizeBoxX, sizeBoxY, SIZE_BOX_WIDTH, SIZE_BOX_HEIGHT, 4, 4);
@@ -352,7 +316,7 @@ public class CaptureSelectionFrame extends JFrame {
             public void mouseReleased(MouseEvent e) {
                 if (selection.width == 0 && selection.height == 0) {
                     // Just a click in fact
-                    selection = new Rectangle(0, 0, capturedArea.width, capturedArea.height);
+                    selection = new Rectangle(0, 0, allDisplaysBounds.width, allDisplaysBounds.height);
                     // TODO should become "hovered window", if any, when detection is implemented
                 }
                 currentOperation = OPERATION_NONE;
@@ -494,6 +458,12 @@ public class CaptureSelectionFrame extends JFrame {
         addMouseMotionListener(mouseAdapter);
     }
 
+    @Override
+    protected int getSelectedAreaStrokeWidth() {
+        return SELECTED_AREA_STROKE_WIDTH;
+    }
+
+
     private void setActionPanelVisible(boolean visible) {
         if (visible) {
             // Compute size to be displayed in box.
@@ -501,7 +471,7 @@ public class CaptureSelectionFrame extends JFrame {
             // In that case, we keep the selection unchanged (in case we want to move it back on screen),
             // but the actual capture would be cropped to the dimensions of the mega-window of course.
             // Use that size here
-            final Rectangle croppedSelection = selection.intersection(new Rectangle(0, 0, capturedArea.width, capturedArea.height));
+            final Rectangle croppedSelection = getCroppedSelection();
             captureSizeLabel.setText(croppedSelection.width + " x " + croppedSelection.height);
             boolean isValidArea = (croppedSelection.width > 5) && (croppedSelection.height > 5);
             imageButton.setEnabled(isValidArea);
@@ -513,61 +483,6 @@ public class CaptureSelectionFrame extends JFrame {
         revalidate();
     }
 
-    private void positionActionPanel() {
-        final int barWidth = actionPanel.getWidth();
-        final int barHeight = actionPanel.getHeight();
-
-        // Find the best position according to selection and bar size
-        // Note: not the exact same strategy as the original, but close...
-        // Note: all points are in the coordinates system of the "mega-window" so all are positive (top left is 0,0)
-        // Note: these positions can probably be improved... later
-        Point[] candidatePositions = new Point[]{
-                new Point(selection.x, selection.y + selection.height), // Below bottom left
-                new Point(selection.x, selection.y - barHeight), // Above top left
-                new Point(selection.x - barWidth, selection.y), // Next to top left
-                new Point(selection.x + selection.width, selection.y + selection.height - barHeight), // Next to bottom right
-                new Point(0, selection.y + selection.height), // Below, on left screen edge
-                new Point(0, selection.y - barHeight), // Above, on left screen edge
-                new Point(selection.x, selection.y + selection.height - barHeight), // Over, at bottom left of selection
-                new Point(selection.x, selection.y), // Over, at top left of selection
-                new Point(0, capturedArea.height - barHeight), // Over, at bottom left of captured area
-                new Point(0, capturedArea.height - barHeight), // Over, at top left of 1st screen
-                new Point((int) (-capturedArea.x + (visibleAreas.get(0).getWidth() - barWidth)/2), (int)(-capturedArea.y + (visibleAreas.get(0).getHeight() - barHeight)/2)) // Last resort: at center of main screen
-        };
-        Point bestPosition = null;
-        for (Point candidatePosition : candidatePositions) {
-//            System.out.print("Testing " + candidatePosition + "... ");
-            // We have to apply the mega-window position offset to test this point in "window coordinates" against visibility in "device coordinates"
-            final Rectangle candidateBounds = new Rectangle(capturedArea.x + candidatePosition.x, capturedArea.y + candidatePosition.y, barWidth, barHeight);
-            if (capturedArea.contains(candidateBounds)) {
-                // We have to take care of "checkered flag" multi screen configurations.
-                // e.g. if we have one screen at top left and another one at bottom right,
-                // then positioning the action panel at the bottom left is unacceptable as it will be unreachable with the mouse
-                for (Rectangle visibleArea : visibleAreas) {
-                    if (visibleArea.contains(candidateBounds)) {
-                        bestPosition = candidatePosition;
-//                        System.out.println("On screen " + visibleArea + ": SELECTED !");
-                        break;
-                    }
-//                    else {
-//                        System.out.print("Out of screen " + visibleArea + "... ");
-//                    }
-                }
-                if (bestPosition != null) {
-                    break;
-                }
-//                System.out.println("Rejected.");
-            }
-//            else {
-//                System.out.println("Out of mega-rectangle: Rejected.");
-//            }
-        }
-        if (bestPosition == null) {
-            bestPosition = candidatePositions[candidatePositions.length - 1];
-        }
-        actionPanel.setBounds(new Rectangle(bestPosition.x, bestPosition.y, barWidth, barHeight));
-    }
-
     private void resetSelection() {
         setActionPanelVisible(false);
         isInitialSelectionDone = false;
@@ -577,8 +492,14 @@ public class CaptureSelectionFrame extends JFrame {
         repaint();
     }
 
-    private void positionWindowOnStartup() {
-        setLocation(capturedArea.x, capturedArea.y);
+    private Rectangle getCroppedSelection() {
+        return selection.intersection(new Rectangle(0, 0, allDisplaysBounds.width, allDisplaysBounds.height));
+    }
+
+    private Capture createNewCapture(boolean isVideo) {
+        Capture capture = new Capture(new SimpleDateFormat(Misc.DATETIME_FORMAT_PATTERN).format(new Date()));
+        capture.setVideo(isVideo);
+        return capture;
     }
 
     ////////////////////////////
@@ -586,17 +507,19 @@ public class CaptureSelectionFrame extends JFrame {
 
 
     private void onCaptureImage() {
-        // Crop image
-        final Rectangle croppedSelection = selection.intersection(new Rectangle(0, 0, capturedArea.width, capturedArea.height));
+        final Rectangle croppedSelection = getCroppedSelection();
         final BufferedImage capturedImg = capturedScreenImg.getSubimage(croppedSelection.x, croppedSelection.y, croppedSelection.width, croppedSelection.height);
-        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capturedImg);
+        final Capture capture = createNewCapture(false);
+        capture.setOriginalImage(capturedImg);
+        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
         captureEditingFrame.setVisible(true);
         dispose();
     }
 
     private void onCaptureVideo() {
-        UI.featureNotImplementedDialog(this);
-        // TODO
+        final VideoControlFrame videoControlFrame = new VideoControlFrame(starWindow, getCroppedSelection(), createNewCapture(true));
+        dispose();
+        videoControlFrame.setVisible(true);
     }
 
     private void onRedo() {

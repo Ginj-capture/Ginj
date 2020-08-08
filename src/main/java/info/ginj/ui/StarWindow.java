@@ -1,31 +1,44 @@
 package info.ginj.ui;
 
+import com.github.jjYBdx4IL.utils.awt.Desktop;
+import com.tulskiy.keymaster.common.Provider;
 import info.ginj.Ginj;
+import info.ginj.model.Export;
 import info.ginj.model.Prefs;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
+import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.MouseInputListener;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * This "Star Window" is the original widget displayed at the border of the screen to initiate a capture
- * Note: at first the full star was drawn no matter where it stood, half-visible, half-hidden out-of-screen,
- * but when Windows notices a resolution change (or a taskbar show/hide), it moves all windows inwards so that they are 100% on screen.
+ * Note: at first the full star was drawn no matter where it stood, half-visible onscreen, half-hidden out-of-screen.
+ * But when MS Windows notices a resolution change (or a taskbar show/hide), it moves all windows inwards so that they are 100% on screen, making the full sun appear.
  * So now the "Star Window" is a full star while dragging, but becomes a half star once dropped against a screen border.
  * <p>
  * UI transparency based on sample code by MadProgrammer at https://stackoverflow.com/questions/26205164/java-custom-shaped-frame-using-image
  */
 public class StarWindow extends JWindow {
+
+    private static final Logger logger = LoggerFactory.getLogger(StarWindow.class);
+
+    private Provider hotKeyProvider;
+    private TrayIcon trayIcon;
+    private Export lastExport = null;
 
     public enum Border {TOP, LEFT, BOTTOM, RIGHT}
 
@@ -43,7 +56,12 @@ public class StarWindow extends JWindow {
     public static final float OPACITY_HALF = 0.5f;
     public static final float OPACITY_FULL = 1.0f;
 
+    public static final int STAR_INTERNAL_RADIUS = 17;
     public static final int STAR_ONLY_RADIUS = 25;
+    public static final int STAR_RAY_START_RADIUS = 36;
+    public static final int STAR_RAY_END_RADIUS = 48;
+
+    private static final BasicStroke STAR_RAY_STROKE = new BasicStroke(7, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 
     // Button sizes
     public static final int LARGE_SIZE_PIXELS = 40;
@@ -70,10 +88,10 @@ public class StarWindow extends JWindow {
     private static final int SMALL_RADIUS_PIXELS_DIAG = (int) Math.round((SMALL_RADIUS_PIXELS * Math.sqrt(2)) / 2);
     private static final int MEDIUM_RADIUS_PIXELS_DIAG = (int) Math.round((MEDIUM_RADIUS_PIXELS * Math.sqrt(2)) / 2);
     private static final int LARGE_RADIUS_PIXELS_DIAG = (int) Math.round((LARGE_RADIUS_PIXELS * Math.sqrt(2)) / 2);
+    private static final int STAR_RAY_START_RADIUS_DIAG = (int) Math.round((STAR_RAY_START_RADIUS * Math.sqrt(2)) / 2);
+    private static final int STAR_RAY_END_RADIUS_DIAG = (int) Math.round((STAR_RAY_END_RADIUS * Math.sqrt(2)) / 2);
 
     // Caching
-    private Image starOnlyImg;
-    private Image starRaysImg;
     // Array of images for the buttons.
     private final Image[][] buttonImg = new Image[3][3]; // 3 buttons x 3 sizes
     // This array contains the offset position between top left corner of the window and the top left corner of the button
@@ -98,13 +116,13 @@ public class StarWindow extends JWindow {
     public StarWindow() {
         super();
 
-//        showSplashIntro();
+        showSplashIntro();
 
         appIcon = new ImageIcon(getClass().getResource("/img/app-icon-64.png")).getImage();
 
         // Background is transparent. Only the "star icon" is visible, and even then, it has half opacity
         setBackground(new Color(0, 0, 0, 0));
-        setOpacity(OPACITY_HALF);
+        if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_OPACITY_CHANGE)) setOpacity(OPACITY_HALF);
 
         // Prepare the main pane to paint and receive event
         JComponent contentPane = new MainPane();
@@ -122,10 +140,165 @@ public class StarWindow extends JWindow {
             }
         });
 
+        registerHotKey();
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+                logger.warn("Window got deactivated. Trying to recover...");
+                recoverWidget();
+            }
+        });
+
+        addSystemTrayIcon();
+
         // Prepare to show Window
         pack();
         setLocationOnStartup();
         setAlwaysOnTop(true);
+    }
+
+    private void addSystemTrayIcon() {
+        //Check the SystemTray support
+        if (SystemTray.isSupported()) {
+            final PopupMenu popup = new PopupMenu();
+            trayIcon = new TrayIcon(new ImageIcon(getClass().getResource("/img/app-icon-64.png")).getImage());
+
+            // Create a popup menu components
+            MenuItem captureItem = new MenuItem("Capture");
+            MenuItem historyItem = new MenuItem("History");
+            MenuItem moreItem = new MenuItem("More");
+            MenuItem checkForUpdatesItem = new MenuItem("Check for updates");
+            MenuItem exitItem = new MenuItem(Misc.getExitQuitText());
+            popup.add(captureItem);
+            popup.add(historyItem);
+            popup.add(moreItem);
+            popup.add(checkForUpdatesItem);
+            popup.add(exitItem);
+
+            trayIcon.setPopupMenu(popup);
+
+            try {
+                SystemTray.getSystemTray().add(trayIcon);
+            }
+            catch (AWTException e) {
+                logger.error("TrayIcon could not be added.");
+                return;
+            }
+
+            trayIcon.setImageAutoSize(true);
+            trayIcon.setToolTip(Ginj.getAppName());
+
+            // On balloon notification click (or icon double click), pop-up the last export, if possible
+            // Note that in Windows 10, notifications are historized but I see no way of knowing which one was clicked in the
+            // notification history. So for now the click works only once...
+            trayIcon.addActionListener(e -> {
+                if (lastExport != null && lastExport.isLocationCopied()) {
+                    try {
+                        String location = lastExport.getLocation();
+                        if (location.startsWith("http") || location.startsWith("ftp")) {
+                            Desktop.browse(new URI(location));
+                        }
+                        else {
+                            Desktop.select(new File(location));
+                        }
+                    }
+                    catch (Exception e1) {
+                        logger.error("Error trying to open capture location", e1);
+                    }
+                    // Forget about it once clicked
+                    lastExport = null;
+                }
+                else {
+                    showSplashIntro();
+                }
+            });
+
+            // Handlers for the different menus
+            captureItem.addActionListener(e -> {
+                if (SystemUtils.IS_OS_WINDOWS) {
+                    // On Windows the default behaviour of the tray pop-up menu is to fade out instead of closing immediately,
+                    // Causing the menu to be visible on the screenshot. So we add a delay here
+                    // See https://stackoverflow.com/questions/63155462/java-robot-launched-from-windows-system-tray
+                    try {
+                        Thread.sleep(300);
+                    }
+                    catch (InterruptedException interruptedException) {
+                        //noop
+                    }
+                }
+                if (SystemUtils.IS_OS_MAC) recoverWidget();
+                onCapture();
+            });
+            historyItem.addActionListener(e -> {
+                if (SystemUtils.IS_OS_MAC) recoverWidget();
+                onHistory();
+            });
+            moreItem.addActionListener(e -> {
+                if (SystemUtils.IS_OS_MAC) recoverWidget();
+                onMore();
+            });
+            checkForUpdatesItem.addActionListener(e -> {
+                if (SystemUtils.IS_OS_MAC) recoverWidget();
+                onCheckForUpdates();
+            });
+            exitItem.addActionListener(e -> {
+                if (SystemUtils.IS_OS_MAC) recoverWidget();
+                onExit(this);
+            });
+        }
+    }
+
+    /*
+     * On Mac, if the widget is not on the desktop where the action menu is called,
+     * many issues occur regarding the opened window's focus and position in stack (toFront, toBack).
+     * On other platforms, this should be called when the window detects it  has been "deactivated"
+     * This code tries to move the widget here before opening those windows.
+     */
+    private void recoverWidget() {
+        if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_SETVISIBLE_FALSE_IN_RECOVERY)) setVisible(false);
+        if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_SETVISIBLE_TRUE_IN_RECOVERY)) setVisible(true);
+        if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_TO_FRONT_IN_RECOVERY)) toFront();
+        if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_REQUEST_FOCUS_IN_RECOVERY)) requestFocus();
+    }
+
+    public boolean isTrayAvailable() {
+        return trayIcon != null;
+    }
+
+
+    public void popupTrayNotification(Export export) {
+        trayIcon.displayMessage(export.getExporterName() + " export complete",
+                export.getMessage(false),
+                TrayIcon.MessageType.INFO);
+        lastExport = export;
+    }
+
+
+    void registerHotKey() {
+        // Add hotkey hook from Preferences
+        Provider provider = getHotkeyProvider();
+        if (provider != null) {
+            String keystroke = Prefs.get(Prefs.Key.CAPTURE_HOTKEY);
+            if (keystroke != null && keystroke.length() > 0) {
+                provider.register(KeyStroke.getKeyStroke(keystroke), hotKey -> onCapture());
+            }
+        }
+    }
+
+    void unregisterHotKey() {
+        // Remove hotkey
+        Provider provider = getHotkeyProvider();
+        if (provider != null) {
+            provider.reset();
+        }
+    }
+
+    Provider getHotkeyProvider() {
+        if (hotKeyProvider == null) {
+            hotKeyProvider = Provider.getCurrentProvider(true);
+        }
+        return hotKeyProvider;
     }
 
     public static Image getAppIcon() {
@@ -141,29 +314,42 @@ public class StarWindow extends JWindow {
         this.historyFrame = historyFrame;
     }
 
-    public MoreFrame getMoreFrame() {
-        return moreFrame;
+    /**
+     * This makes sure only one target management window is open, no matter if requested by "capture editing" or by the "more" frame
+     */
+    public void openTargetManagementFrame() {
+        if (targetManagementFrame == null) {
+            targetManagementFrame = new TargetManagementFrame(this);
+        }
+        targetManagementFrame.setVisible(true);
+        targetManagementFrame.requestFocus();
     }
 
-    public void setMoreFrame(MoreFrame moreFrame) {
-        this.moreFrame = moreFrame;
+    public void clearTargetManagementFrame() {
+        targetManagementFrame = null;
     }
 
-    public TargetManagementFrame getTargetManagementFrame() {
-        return targetManagementFrame;
+    /**
+     * This makes sure only one "more" window is open.
+     * Note: we tried making it a dialog, but then it freezes this StarWindow, which gets stuck with the More button open :-(
+     */
+    public void openMoreFrame() {
+        if (moreFrame == null) {
+            moreFrame = new MoreFrame(this);
+        }
+        moreFrame.setVisible(true);
+        moreFrame.requestFocus();
     }
 
-    public void setTargetManagementFrame(TargetManagementFrame targetManagementFrame) {
-        this.targetManagementFrame = targetManagementFrame;
+
+    public void clearMoreFrame() {
+        moreFrame = null;
     }
 
     public class MainPane extends JPanel {
 
         public MainPane() {
             try {
-                starOnlyImg = ImageIO.read(getClass().getResource("/img/star-only.png")).getScaledInstance(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS, Image.SCALE_SMOOTH);
-                starRaysImg = ImageIO.read(getClass().getResource("/img/star-rays.png")).getScaledInstance(STAR_WIDTH_PIXELS, STAR_HEIGHT_PIXELS, Image.SCALE_SMOOTH);
-
                 Image originalImg = ImageIO.read(getClass().getResource("/img/capture.png"));
                 buttonImg[BTN_CAPTURE][LARGE] = originalImg.getScaledInstance(LARGE_SIZE_PIXELS, LARGE_SIZE_PIXELS, Image.SCALE_SMOOTH);
                 buttonImg[BTN_CAPTURE][MEDIUM] = originalImg.getScaledInstance(MEDIUM_SIZE_PIXELS, MEDIUM_SIZE_PIXELS, Image.SCALE_SMOOTH);
@@ -181,8 +367,7 @@ public class StarWindow extends JWindow {
 
             }
             catch (IOException e) {
-                System.err.println("Error loading images for the main star UI");
-                e.printStackTrace();
+                logger.error("Error loading images for the main star UI", e);
                 System.exit(Ginj.ERR_STATUS_LOAD_IMG);
             }
 
@@ -200,17 +385,18 @@ public class StarWindow extends JWindow {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHints(UI.ANTI_ALIASING_ON);
             if (isDragging) {
                 // Full image with rays
-                g2d.drawImage(starRaysImg, 0, 0, this);
+                drawCirclesAndRays(g2d, STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
             }
             else {
                 if (isWindowDeployed) {
                     // Half image with rays
                     switch (currentBorder) {
-                        case TOP -> g2d.drawImage(starRaysImg, 0, -STAR_HEIGHT_PIXELS / 2, this);
-                        case LEFT -> g2d.drawImage(starRaysImg, -STAR_WIDTH_PIXELS / 2, 0, this);
-                        case BOTTOM, RIGHT -> g2d.drawImage(starRaysImg, 0, 0, this);
+                        case TOP -> drawCirclesAndRays(g2d, STAR_WIDTH_PIXELS / 2, 0);
+                        case LEFT -> drawCirclesAndRays(g2d, 0, STAR_HEIGHT_PIXELS / 2);
+                        case BOTTOM, RIGHT -> drawCirclesAndRays(g2d, STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
                     }
                     // Draw 3 action icons, with size and position depending on highlight state
                     for (int button = 0; button < 3; button++) {
@@ -230,14 +416,38 @@ public class StarWindow extends JWindow {
                 else {
                     // Half image without rays
                     switch (currentBorder) {
-                        case TOP -> g2d.drawImage(starOnlyImg, 0, -STAR_HEIGHT_PIXELS / 2, this);
-                        case LEFT -> g2d.drawImage(starOnlyImg, -STAR_WIDTH_PIXELS / 2, 0, this);
-                        case BOTTOM, RIGHT -> g2d.drawImage(starOnlyImg, 0, 0, this);
+                        case TOP -> drawCircles(g2d, STAR_WIDTH_PIXELS / 2, 0);
+                        case LEFT -> drawCircles(g2d, 0, STAR_HEIGHT_PIXELS / 2);
+                        case BOTTOM, RIGHT -> drawCircles(g2d, STAR_WIDTH_PIXELS / 2, STAR_HEIGHT_PIXELS / 2);
                     }
+
                 }
             }
             g2d.dispose();
         }
+
+        private void drawCircles(Graphics2D g2d, int centerX, int centerY) {
+            g2d.setColor(UI.WIDGET_EXTERNAL_COLOR);
+            g2d.fillOval(centerX - STAR_ONLY_RADIUS, centerY - STAR_ONLY_RADIUS, 2 * STAR_ONLY_RADIUS, 2 * STAR_ONLY_RADIUS);
+            g2d.setColor(UI.WIDGET_INTERNAL_COLOR);
+            g2d.fillOval(centerX - STAR_INTERNAL_RADIUS, centerY - STAR_INTERNAL_RADIUS, 2 * STAR_INTERNAL_RADIUS, 2 * STAR_INTERNAL_RADIUS);
+        }
+
+        private void drawCirclesAndRays(Graphics2D g2d, int centerX, int centerY) {
+            drawCircles(g2d, centerX, centerY);
+            g2d.setColor(UI.WIDGET_EXTERNAL_COLOR);
+            g2d.setStroke(STAR_RAY_STROKE);
+            /*east*/g2d.drawLine(centerX + STAR_RAY_START_RADIUS, centerY, centerX + STAR_RAY_END_RADIUS, centerY);
+            /*west*/g2d.drawLine(centerX - STAR_RAY_START_RADIUS, centerY, centerX - STAR_RAY_END_RADIUS, centerY);
+            /*south*/g2d.drawLine(centerX, centerY + STAR_RAY_START_RADIUS, centerX, centerY + STAR_RAY_END_RADIUS);
+            /*north*/g2d.drawLine(centerX, centerY - STAR_RAY_START_RADIUS, centerX, centerY - STAR_RAY_END_RADIUS);
+            /*s-e*/g2d.drawLine(centerX + STAR_RAY_START_RADIUS_DIAG, centerY + STAR_RAY_START_RADIUS_DIAG, centerX + STAR_RAY_END_RADIUS_DIAG, centerY + STAR_RAY_END_RADIUS_DIAG);
+            /*s-w*/g2d.drawLine(centerX - STAR_RAY_START_RADIUS_DIAG, centerY + STAR_RAY_START_RADIUS_DIAG, centerX - STAR_RAY_END_RADIUS_DIAG, centerY + STAR_RAY_END_RADIUS_DIAG);
+            /*n-e*/g2d.drawLine(centerX + STAR_RAY_START_RADIUS_DIAG, centerY - STAR_RAY_START_RADIUS_DIAG, centerX + STAR_RAY_END_RADIUS_DIAG, centerY - STAR_RAY_END_RADIUS_DIAG);
+            /*n-w*/g2d.drawLine(centerX - STAR_RAY_START_RADIUS_DIAG, centerY - STAR_RAY_START_RADIUS_DIAG, centerX - STAR_RAY_END_RADIUS_DIAG, centerY - STAR_RAY_END_RADIUS_DIAG);
+
+        }
+
     }
 
 
@@ -379,7 +589,7 @@ public class StarWindow extends JWindow {
     @Override
     public void setLocation(int x, int y) {
         if (!isDragging) {
-            System.out.println("Widget location = (" + x + ", " + y + ").");
+            logger.info("Widget location = (" + x + ", " + y + ").");
         }
         super.setLocation(x, y);
     }
@@ -388,7 +598,7 @@ public class StarWindow extends JWindow {
         isWindowDeployed = deployed;
         if (deployed) {
             // Show the handle as opaque
-            setOpacity(OPACITY_FULL);
+            if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_OPACITY_CHANGE)) setOpacity(OPACITY_FULL);
             // And make the background of the window "visible", but filled with an almost transparent color
             // This has the effect of capturing mouse events on the full rectangular Window once it is deployed,
             // which is necessary so that mouse doesn't "fall in the transparent holes" causing MouseExited events that
@@ -396,15 +606,19 @@ public class StarWindow extends JWindow {
             // TODO: this does not work on Linux where such a low opacity is not supported, so square is visible
             // TODO: replace transparency by a screenshot of the desktop below and printing it as an opaque background
             //       before drawing the star icon
-            contentPane.setOpaque(true);
-            contentPane.setBackground(new Color(0, 0, 0, 1)); // 1/255 opacity
+            if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_FAKE_TRANSPARENCY)) {
+                contentPane.setBackground(new Color(0, 0, 0, 1)); // 1/255 opacity
+                contentPane.setOpaque(true);
+            }
         }
         else {
             // Show the handle as semi-transparent
-            setOpacity(OPACITY_HALF);
+            if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_OPACITY_CHANGE)) setOpacity(OPACITY_HALF);
             // And make the background of the window invisible, so that all mouse events and clicks "pass through"
-            contentPane.setOpaque(false);
-            contentPane.setBackground(defaultPaneBackground); // Strangely enough, setting it to a transparent color break things up
+            if (!Prefs.isTrue(Prefs.Key.DEBUG_NO_FAKE_TRANSPARENCY)) {
+                contentPane.setBackground(defaultPaneBackground); // Strangely enough, setting it to a transparent color break things up
+                contentPane.setOpaque(false);
+            }
         }
     }
 
@@ -435,7 +649,19 @@ public class StarWindow extends JWindow {
 
         try {
             Border border = Border.valueOf(Prefs.get(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER));
-            int distanceFromCorner = Integer.parseInt(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER));
+            int distanceFromCorner;
+            try {
+                // New way, store relative value
+                double distanceFromCornerPercent = Double.parseDouble(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER_PERCENT));
+                distanceFromCorner = switch (border) {
+                    case TOP, BOTTOM -> (int) (currentDisplayBounds.width * distanceFromCornerPercent / 100);
+                    case LEFT, RIGHT -> (int) (currentDisplayBounds.height * distanceFromCornerPercent / 100);
+                };
+            }
+            catch (NumberFormatException e) {
+                // Old way, store absolute value
+                distanceFromCorner = Integer.parseInt(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER));
+            }
             switch (border) {
                 case TOP -> centerLocation = new Point(
                         currentDisplayBounds.x + Math.min(Math.max(distanceFromCorner, SCREEN_CORNER_DEAD_ZONE_X_PIXELS), currentDisplayBounds.width - SCREEN_CORNER_DEAD_ZONE_X_PIXELS),
@@ -545,27 +771,28 @@ public class StarWindow extends JWindow {
             }
         }
 
-        int targetX, targetY, distanceFromCorner;
+        int targetX, targetY;
+        double distanceFromCornerPercent;
         switch (bestBorder) {
             case TOP -> {
                 targetX = bestDisplay.x + Math.min(Math.max(center.x - bestDisplay.x, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.width - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
                 targetY = bestDisplay.y;
-                distanceFromCorner = targetX - bestDisplay.x;
+                distanceFromCornerPercent = (100.0 * (targetX - bestDisplay.x)) / bestDisplay.width;
             }
             case BOTTOM -> {
                 targetX = bestDisplay.x + Math.min(Math.max(center.x - bestDisplay.x, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.width - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
                 targetY = bestDisplay.y + bestDisplay.height - 1;
-                distanceFromCorner = targetX - bestDisplay.x;
+                distanceFromCornerPercent = (100.0 * (targetX - bestDisplay.x)) / bestDisplay.width;
             }
             case LEFT -> {
                 targetX = bestDisplay.x;
                 targetY = bestDisplay.y + Math.min(Math.max(center.y - bestDisplay.y, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
-                distanceFromCorner = targetY - bestDisplay.y;
+                distanceFromCornerPercent = (100.0 * (targetY - bestDisplay.y)) / bestDisplay.height;
             }
             case RIGHT -> {
                 targetX = bestDisplay.x + bestDisplay.width - 1;
                 targetY = bestDisplay.y + Math.min(Math.max(center.y - bestDisplay.y, SCREEN_CORNER_DEAD_ZONE_Y_PIXELS), bestDisplay.height - SCREEN_CORNER_DEAD_ZONE_Y_PIXELS);
-                distanceFromCorner = targetY - bestDisplay.y;
+                distanceFromCornerPercent = (100.0 * (targetY - bestDisplay.y)) / bestDisplay.height;
             }
             default -> throw new IllegalStateException("Unexpected value: " + bestBorder);
         }
@@ -576,7 +803,8 @@ public class StarWindow extends JWindow {
 
         Prefs.set(Prefs.Key.STAR_WINDOW_DISPLAY_NUMBER, String.valueOf(bestDisplayNumber));
         Prefs.set(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER, bestBorder.name());
-        Prefs.set(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER, String.valueOf(distanceFromCorner));
+        Prefs.set(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER_PERCENT, String.valueOf(distanceFromCornerPercent));
+        Prefs.remove(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER);
         Prefs.save();
         return new Point(targetX, targetY);
     }
@@ -631,6 +859,16 @@ public class StarWindow extends JWindow {
         }
     }
 
+    @Override
+    public void dispose() {
+        super.dispose();
+        if (trayIcon != null) {
+            SystemTray.getSystemTray().remove(trayIcon);
+        }
+        logger.info("StarWindow disposed.");
+        System.exit(Ginj.ERR_STATUS_OK);
+    }
+
     // Util for other Windows
 
     public void positionFrameNextToStarIcon(JFrame frame) {
@@ -647,16 +885,16 @@ public class StarWindow extends JWindow {
     }
 
 
-    public void centerFrameOnStarIconDisplay(JFrame frame) {
-        frame.setLocation(currentDisplayBounds.x + (currentDisplayBounds.width - frame.getWidth())/2,
-                currentDisplayBounds.y + (currentDisplayBounds.height - frame.getHeight())/2);
+    public void centerFrameOnStarIconDisplay(Window window) {
+        window.setLocation(currentDisplayBounds.x + (currentDisplayBounds.width - window.getWidth()) / 2,
+                currentDisplayBounds.y + (currentDisplayBounds.height - window.getHeight()) / 2);
     }
 
 
     ////////////////////////////
     // EVENT HANDLERS
 
-    private void onCapture() {
+    void onCapture() {
         // Hide star icon during the capture
         setVisible(false);
         // Creating the capture selection window will cause the screenshot to happen
@@ -678,11 +916,18 @@ public class StarWindow extends JWindow {
 
 
     private void onMore() {
-        if (moreFrame == null) {
-            moreFrame = new MoreFrame(this);
+        openMoreFrame();
+    }
+
+    void onCheckForUpdates() {
+        new CheckForUpdateDialog(this).setVisible(true);
+    }
+
+    void onExit(Component parentComponent) {
+        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(parentComponent, "Are you sure you want to " + Misc.getExitQuitText().toLowerCase() + " " + Ginj.getAppName() + "?", Misc.getExitQuitText() + " " + Ginj.getAppName() + "?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+            Prefs.save();
+            dispose();
         }
-        moreFrame.setVisible(true);
-        moreFrame.requestFocus();
     }
 
 
@@ -700,8 +945,8 @@ public class StarWindow extends JWindow {
         }
     }
 
-//
-//    private void showSplashIntro() {
+
+    private void showSplashIntro() {
 //        final Point startCenter = new Point(screenSize.width / 2, screenSize.height / 2);
 //        final Point endCenter = getSavedCenterLocation();
 //        Point currentCenter = new Point();
@@ -729,10 +974,10 @@ public class StarWindow extends JWindow {
 //            //timer.stop();
 //        }
 //        catch (Exception e){
-//            e.printStackTrace();
+//            logger.error("Splash screen error", e);
 //            // In all cases, ignore exceptions and skip animation
 //        }
-//    }
+    }
 //
 //    private static class AnimationJWindow extends JWindow {
 //        private final BufferedImage image;

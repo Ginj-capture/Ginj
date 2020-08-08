@@ -8,11 +8,7 @@ import info.ginj.export.online.AbstractOAuth2Exporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
-import info.ginj.model.Account;
-import info.ginj.model.Capture;
-import info.ginj.model.Profile;
-import info.ginj.model.Target;
-import info.ginj.util.Misc;
+import info.ginj.model.*;
 import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -24,6 +20,8 @@ import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -35,12 +33,14 @@ import java.util.Map;
  * see https://www.dropbox.com/developers/documentation/http/documentation
  */
 public class DropboxExporter extends AbstractOAuth2Exporter {
+
+    private static final Logger logger = LoggerFactory.getLogger(DropboxExporter.class);
+
     private static final String DROPBOX_CLIENT_APP_KEY = "pdio3i9brehyjo1";
     private static final String DROPBOX_OAUTH2_AUTH_URL = "https://www.dropbox.com/oauth2/authorize";
     private static final String DROPBOX_OAUTH2_TOKEN_URL = "https://api.dropboxapi.com/oauth2/token";
     private static final String DROPBOX_REVOKE_URL = "https://www.dropbox.com/account/connected_apps";
 
-    public static final int CHUNK_SIZE = 262144; // 256k
     public static final String NAME = "Dropbox";
 
 
@@ -124,21 +124,22 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     @Override
     public void exportCapture(Capture capture, Target target) {
         try {
-            final String captureUrl = uploadCapture(capture, target);
+            final Export export = uploadCapture(capture, target);
             String message = "Upload successful.";
 
-            if (captureUrl != null) {
+            if (export.getLocation() != null) {
                 if (target.getSettings().getMustCopyPath()) {
-                    copyTextToClipboard(captureUrl);
+                    copyTextToClipboard(export.getLocation());
+                    export.setLocationCopied(true);
                     message += "\nA link to your capture was copied to the clipboard";
                 }
             }
-            capture.addExport(getExporterName(), captureUrl, null); // TODO store media Id. UploadCapture should return an Export object
+            capture.addExport(export);
             // Indicate export is complete.
             complete(message);
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e, logger);
             failed("Upload error");
         }
     }
@@ -199,7 +200,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                 return profile;
             }
             else {
-                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when listing albums:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -216,10 +217,10 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
      * @return a public URL to share to give access to the uploaded media.
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException        if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specific error occurs
      */
     @Override
-    public String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
+    public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
         logProgress("Rendering file", PROGRESS_RENDER_START);
         try {
@@ -236,14 +237,18 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
         if (target.getSettings().getMustShare()) {
             // Step 2: Share it
-            SharedLinkMetadata sharedLinkMetadata = shareFile(client, target, fileMetadata);
+            SharedLinkMetadata sharedLinkMetadata = shareFile(client, target, fileMetadata.getPathDisplay());
 
-            return sharedLinkMetadata.getUrl();
+            return new Export(getExporterName(), fileMetadata.getPathDisplay(), sharedLinkMetadata.getUrl(), false);
         }
-        else return null;
+        else {
+            return new Export(getExporterName(), fileMetadata.getPathDisplay(), null, false);
+        }
     }
 
     public FileMetadata uploadFile(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
+        FileMetadata fileMetadata;
+
         String sessionId;
 
         final File file = capture.getRenderedFile();
@@ -252,161 +257,160 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         byte[] buffer = new byte[maxChunkSize];
         int offset = 0;
         long remainingBytes = file.length();
-        InputStream is;
-        try {
-            is = new FileInputStream(file);
-        }
-        catch (FileNotFoundException e) {
-            throw new UploadException("File not found: " + file.getAbsolutePath());
-        }
+
+        try (InputStream is = new FileInputStream(file)) {
+            // Step 1: Initiating an upload session with the first CHUNK
+            logProgress("Uploading", PROGRESS_UPLOAD_START);
+            HttpPost httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/start");
+
+            httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
+            //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
+            httpPost.addHeader("Dropbox-API-Arg", "{\"close\": false}");
+
+            // First chunk
+            int bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
+            httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
+
+            // Send request
+            try {
+                CloseableHttpResponse response = client.execute(httpPost);
+                if (isStatusOK(response.getCode())) {
+                    final String responseText;
+                    try {
+                        responseText = EntityUtils.toString(response.getEntity());
+                        @SuppressWarnings("rawtypes")
+                        Map map = new Gson().fromJson(responseText, Map.class);
+                        sessionId = (String) map.get("session_id");
+                    }
+                    catch (ParseException e) {
+                        throw new CommunicationException("Could not parse start upload session response as String: " + response.getEntity());
+                    }
+                    if (sessionId == null) {
+                        throw new CommunicationException("Returned session id is null.");
+                    }
+                }
+                else {
+                    final String responseError = getResponseError(response);
+                    if ((response.getCode() / 100) == 5) {
+                        // Error 5xx
+                        // Don't know if Dropbox actually uses it but well
+                        throw new UploadException("Resuming not implemented yet:\n" + responseError);
+                    }
+                    throw new UploadException("The server returned the following error when starting file contents:\n" + responseError);
+                }
+            }
+            catch (IOException e) {
+                throw new CommunicationException("Error starting file contents", e);
+            }
+
+            // Update counters
+            offset += bytesRead;
+            remainingBytes = file.length() - offset;
 
 
-        // Step 1: Initiating an upload session with the first CHUNK
-        logProgress("Uploading", PROGRESS_UPLOAD_START);
-        HttpPost httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/start");
+            // Step 2: Append to session with more CHUNKS, if needed
+            while (remainingBytes > CHUNK_SIZE) {
+                logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+                httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/append_v2");
 
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
-        //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
-        httpPost.addHeader("Dropbox-API-Arg", "{\"close\": false}");
+                httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
+                //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
+                httpPost.addHeader("Dropbox-API-Arg",
+                        "{\"cursor\": " +
+                                "{\"session_id\": \"" + sessionId + "\"," +
+                                "\"offset\": " + offset + "}" +
+                                ",\"close\": false}");
 
-        // First chunk
-        int bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
-        httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
+                // Next chunk
+                bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
+                httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
 
-        // Send request
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
-            if (isStatusOK(response.getCode())) {
-                final String responseText;
+                // Send request
                 try {
-                    responseText = EntityUtils.toString(response.getEntity());
-                    @SuppressWarnings("rawtypes")
-                    Map map = new Gson().fromJson(responseText, Map.class);
-                    sessionId = (String) map.get("session_id");
+                    CloseableHttpResponse response = client.execute(httpPost);
+                    if (!isStatusOK(response.getCode())) {
+                        final String responseError = getResponseError(response);
+                        if ((response.getCode() / 100) == 5) {
+                            // Error 5xx
+                            // Don't know if Dropbox actually uses it but well
+                            throw new UploadException("Resuming not implemented yet:\n" + responseError);
+                        }
+                        throw new UploadException("The server returned the following error when appending file contents:\n" + responseError);
+                    }
                 }
-                catch (ParseException e) {
-                    throw new CommunicationException("Could not parse start upload session response as String: " + response.getEntity());
+                catch (IOException e) {
+                    throw new CommunicationException("Error appending file contents", e);
                 }
-                if (sessionId == null) {
-                    throw new CommunicationException("Returned session id is null.");
-                }
+
+                // Update counters
+                offset += bytesRead;
+                remainingBytes = file.length() - offset;
             }
-            else {
-                final String responseError = getResponseError(response);
-                if ((response.getCode() / 100) == 5) {
-                    // Error 5xx
-                    // Don't know if Dropbox actually uses it but well
-                    throw new UploadException("Resuming not implemented yet: " + responseError);
-                }
-                throw new UploadException("Server returned an error when starting file contents: " + responseError);
-            }
-        }
-        catch (IOException e) {
-            throw new CommunicationException("Error starting file contents", e);
-        }
-
-        // Update counters
-        offset += bytesRead;
-        remainingBytes = file.length() - offset;
 
 
-        // Step 2: Append to session with more CHUNKS, if needed
-        while (remainingBytes > CHUNK_SIZE) {
+            // Step 3: Finish session (optionally with the remaining bytes)
             logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
-            httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/append_v2");
 
+            final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.computeUploadFilename();
+
+            httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/finish");
             httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
             //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
             httpPost.addHeader("Dropbox-API-Arg",
                     "{\"cursor\": " +
                             "{\"session_id\": \"" + sessionId + "\"," +
                             "\"offset\": " + offset + "}" +
-                            ",\"close\": false}");
+                            ",\"commit\": " +
+                            "{\"path\": \"" + destinationFileName + "\"," +
+                            "\"mode\": \"add\"," +
+                            "\"autorename\": true," +
+                            "\"mute\": false," +
+                            "\"strict_conflict\": false}" +
+                            "}");
 
-            // Next chunk
+            // Last chunk
             bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
             httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
 
             // Send request
             try {
                 CloseableHttpResponse response = client.execute(httpPost);
-                if (!isStatusOK(response.getCode())) {
+                if (isStatusOK(response.getCode())) {
+                    final String responseText;
+                    try {
+                        responseText = EntityUtils.toString(response.getEntity());
+                        fileMetadata = new Gson().fromJson(responseText, FileMetadata.class);
+                        if (fileMetadata == null) {
+                            throw new CommunicationException("Returned fileMetadata is null.");
+                        }
+                    }
+                    catch (ParseException e) {
+                        throw new CommunicationException("Could not parse finish upload session response as String: " + response.getEntity());
+                    }
+                }
+                else {
                     final String responseError = getResponseError(response);
                     if ((response.getCode() / 100) == 5) {
                         // Error 5xx
                         // Don't know if Dropbox actually uses it but well
-                        throw new UploadException("Resuming not implemented yet: " + responseError);
+                        throw new UploadException("Resuming not implemented yet:\n" + responseError);
                     }
-                    throw new UploadException("Server returned an error when appending file contents: " + responseError);
+                    throw new UploadException("The server returned the following error when finishing file contents:\n" + responseError);
                 }
             }
             catch (IOException e) {
-                throw new CommunicationException("Error appending file contents", e);
+                throw new CommunicationException("Error finishing file contents", e);
             }
 
-            // Update counters
-            offset += bytesRead;
-            remainingBytes = file.length() - offset;
+
+            logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
         }
-
-
-        // Step 3: Finish session (optionally with the remaining bytes)
-        logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
-
-        final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.getDefaultName() + (capture.isVideo() ? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION);
-        FileMetadata fileMetadata;
-
-        httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/finish");
-        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
-        //httpPost.addHeader("Content-Length", 0); // Don't put it here, it causes a "dupe header" error if there is an entity, and if there is no entity it's forbidden.
-        httpPost.addHeader("Dropbox-API-Arg",
-                "{\"cursor\": " +
-                        "{\"session_id\": \"" + sessionId + "\"," +
-                        "\"offset\": " + offset + "}" +
-                        ",\"commit\": " +
-                        "{\"path\": \"" + destinationFileName + "\"," +
-                        "\"mode\": \"add\"," +
-                        "\"autorename\": true," +
-                        "\"mute\": false," +
-                        "\"strict_conflict\": false}" +
-                        "}");
-
-        // Last chunk
-        bytesRead = readBytes(is, buffer, maxChunkSize, remainingBytes);
-        httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
-
-        // Send request
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
-            if (isStatusOK(response.getCode())) {
-                final String responseText;
-                try {
-                    responseText = EntityUtils.toString(response.getEntity());
-                    fileMetadata = new Gson().fromJson(responseText, FileMetadata.class);
-                    if (fileMetadata == null) {
-                        throw new CommunicationException("Returned fileMetadata is null.");
-                    }
-                }
-                catch (ParseException e) {
-                    throw new CommunicationException("Could not parse finish upload session response as String: " + response.getEntity());
-                }
-            }
-            else {
-                final String responseError = getResponseError(response);
-                if ((response.getCode() / 100) == 5) {
-                    // Error 5xx
-                    // Don't know if Dropbox actually uses it but well
-                    throw new UploadException("Resuming not implemented yet: " + responseError);
-                }
-                throw new UploadException("Server returned an error when finishing file contents: " + responseError);
-            }
+        catch (FileNotFoundException e) {
+            throw new UploadException("File not found: " + file.getAbsolutePath(), e);
         }
         catch (IOException e) {
-            throw new CommunicationException("Error finishing file contents", e);
+            throw new UploadException(e);
         }
-
-
-        logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
 
         return fileMetadata;
     }
@@ -423,13 +427,68 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         return bytesRead;
     }
 
-    private SharedLinkMetadata shareFile(CloseableHttpClient client, Target target, FileMetadata fileMetadata) throws AuthorizationException, CommunicationException {
+    public boolean fileExists(CloseableHttpClient client, Target target, String path) throws AuthorizationException, CommunicationException {
+        try {
+            getFileMetadata(client, target, path);
+            return true;
+        }
+        catch (FileNotFoundException e) {
+            return false;
+        }
+    }
+
+    /**
+     * This method implements https://api.dropboxapi.com/2/files/get_metadata
+     * @param path
+     * @return
+     */
+    private FileMetadata getFileMetadata(CloseableHttpClient client, Target target, String path) throws AuthorizationException, CommunicationException, FileNotFoundException {
+        HttpPost httpPost = new HttpPost("https://api.dropboxapi.com/2/files/get_metadata");
+
+        httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
+        httpPost.addHeader("Content-Type", "application/json");
+        httpPost.setEntity(new StringEntity(
+                "{\"path\": \"" + path + "\"," +
+                        "\"include_media_info\": false," +
+                        "\"include_deleted\": false," +
+                        "\"include_has_explicit_shared_members\": false}"
+
+        ));
+
+        // Send request
+        CloseableHttpResponse response;
+        try {
+            response = client.execute(httpPost);
+        }
+        catch (IOException e) {
+            throw new CommunicationException("Error getting metadata", e);
+        }
+        if (isStatusOK(response.getCode())) {
+            final String responseText;
+            try {
+                responseText = EntityUtils.toString(response.getEntity());
+                return new Gson().fromJson(responseText, FileMetadata.class);
+            }
+            catch (ParseException | IOException e) {
+                throw new CommunicationException("Could not parse metadata query response as String: " + response.getEntity());
+            }
+        }
+        else {
+            String responseError = getResponseError(response);
+            if ("path".equals(responseError)) {
+                throw new FileNotFoundException();
+            }
+            throw new CommunicationException("The server returned the following error when getting metadata:\n" + responseError);
+        }
+    }
+
+    public SharedLinkMetadata shareFile(CloseableHttpClient client, Target target, String pathDisplay) throws AuthorizationException, CommunicationException {
         HttpPost httpPost = new HttpPost("https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
         httpPost.addHeader("Content-Type", "application/json");
         httpPost.setEntity(new StringEntity(
-                "{\"path\": \"" + fileMetadata.getPathDisplay() + "\"," +
+                "{\"path\": \"" + pathDisplay + "\"," +
                         "\"settings\": {" +
                         "\"requested_visibility\": \"public\"," +
                         "\"audience\": \"public\"," +
@@ -451,11 +510,44 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                 }
             }
             else {
-                throw new CommunicationException("Server returned an error when creating shared link: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when creating shared link:\n" + getResponseError(response));
             }
         }
-        catch (IOException | CommunicationException e) {
+        catch (IOException e) {
             throw new CommunicationException("Error creating shared link", e);
+        }
+    }
+
+    /**
+     * Dropbox specific version.
+     * See https://www.dropbox.com/developers/documentation/http/documentation#error-handling
+     * @param httpResponse
+     * @return
+     */
+    @SuppressWarnings("rawtypes")
+    @Override
+    protected String getResponseError(CloseableHttpResponse httpResponse) {
+        int errCode = httpResponse.getCode();
+        if (errCode == 409) { // Dropbox endpoint specific error
+            try {
+                String responseText = EntityUtils.toString(httpResponse.getEntity());
+                // Dropbox errors 409 are of the form
+                // {"error_summary": "email_not_verified/..", "error": {".tag": "email_not_verified"}}
+                try {
+                    Map messageMap = new Gson().fromJson(responseText, Map.class);
+                    Map errorMap = (Map) messageMap.get("error");
+                    return (String) errorMap.get(".tag");
+                }
+                catch (Exception e) {
+                    return httpResponse.getCode() + " (" + responseText + ")";
+                }
+            }
+            catch (IOException | ParseException e) {
+                return String.valueOf(errCode);
+            }
+        }
+        else {
+            return super.getResponseError(httpResponse);
         }
     }
 
@@ -930,8 +1022,11 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
 
     @SuppressWarnings("unused")
-    public static class FileMetadata {
+    public class FileMetadata {
 
+        @SerializedName(".tag")
+        @Expose
+        private String tag;
         @SerializedName("name")
         @Expose
         private String name;
@@ -975,11 +1070,34 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         @Expose
         private FileLockInfo fileLockInfo;
 
+        /**
+         * No args constructor for use in serialization
+         *
+         */
         public FileMetadata() {
         }
 
-        public FileMetadata(String name, String id, String clientModified, String serverModified, String rev, Integer size, String pathLower, String pathDisplay, SharingInfo sharingInfo, Boolean isDownloadable, List<PropertyGroup> propertyGroups, Boolean hasExplicitSharedMembers, String contentHash, FileLockInfo fileLockInfo) {
+        /**
+         *
+         * @param pathDisplay
+         * @param fileLockInfo
+         * @param rev
+         * @param clientModified
+         * @param pathLower
+         * @param propertyGroups
+         * @param contentHash
+         * @param isDownloadable
+         * @param size
+         * @param name
+         * @param hasExplicitSharedMembers
+         * @param serverModified
+         * @param tag
+         * @param id
+         * @param sharingInfo
+         */
+        public FileMetadata(String tag, String name, String id, String clientModified, String serverModified, String rev, Integer size, String pathLower, String pathDisplay, SharingInfo sharingInfo, Boolean isDownloadable, List<PropertyGroup> propertyGroups, Boolean hasExplicitSharedMembers, String contentHash, FileLockInfo fileLockInfo) {
             super();
+            this.tag = tag;
             this.name = name;
             this.id = id;
             this.clientModified = clientModified;
@@ -994,6 +1112,14 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             this.hasExplicitSharedMembers = hasExplicitSharedMembers;
             this.contentHash = contentHash;
             this.fileLockInfo = fileLockInfo;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+
+        public void setTag(String tag) {
+            this.tag = tag;
         }
 
         public String getName() {

@@ -19,6 +19,8 @@ package org.netbeans.modules.wizard;
 import org.netbeans.api.wizard.displayer.InstructionsPanel;
 import org.netbeans.spi.wizard.Wizard;
 import org.netbeans.spi.wizard.WizardObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.accessibility.*;
 import javax.imageio.ImageIO;
@@ -45,6 +47,9 @@ import java.util.Locale;
  * @author Tim Boudreau
  */
 public class InstructionsPanelImpl extends JComponent implements WizardObserver, Accessible, InstructionsPanel {
+
+    private static final Logger logger = LoggerFactory.getLogger(InstructionsPanelImpl.class);
+
     private final BufferedImage img;
     private final Wizard wizard;
     private static final int MARGIN = 5;
@@ -116,13 +121,13 @@ public class InstructionsPanelImpl extends JComponent implements WizardObserver,
                 try {
                     img = ImageIO.read(url);
                 } catch (IOException ioe) {
-                    System.err.println("Could not load wizard image " + //NOI18N
+                    logger.error("Could not load wizard image " + //NOI18N
                             ioe.getMessage());
                     System.clearProperty("wizard.sidebar.image"); //NOI18N
                     img = null; //error loading img, set to null to use default
                 }
             } else { //URL was not successfully parsed, set img to null to use default
-                System.err.println("Bad URL for wizard image " + imgStr); //NOI18N
+                logger.error("Bad URL for wizard image " + imgStr); //NOI18N
                 System.clearProperty("wizard.sidebar.image"); //NOI18N
                 img = null;
             }

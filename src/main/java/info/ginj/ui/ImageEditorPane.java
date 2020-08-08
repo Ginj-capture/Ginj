@@ -3,6 +3,8 @@ package info.ginj.ui;
 import info.ginj.action.*;
 import info.ginj.tool.Overlay;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
@@ -14,19 +16,29 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 public class ImageEditorPane extends JLayeredPane {
+
+    private static final Logger logger = LoggerFactory.getLogger(ImageEditorPane.class);
+
     private final CaptureEditingFrame frame;
-    private final BufferedImage capturedImg;
-    private final Dimension capturedImgSize;
+    private BufferedImage capturedImg;
+    private Dimension capturedImgSize;
 
     private Overlay selectedOverlay;
 
     public ImageEditorPane(CaptureEditingFrame frame, BufferedImage capturedImg) {
         super();
         this.frame = frame;
+        setCapturedImg(capturedImg);
+        if (!frame.capture.isVideo()) {
+            // TODO enable overlays on video
+            addMouseEditingBehaviour();
+        }
+        addKeyboardShortcuts(this);
+    }
+
+    public void setCapturedImg(BufferedImage capturedImg) {
         this.capturedImg = capturedImg;
         capturedImgSize = new Dimension(capturedImg.getWidth(), capturedImg.getHeight());
-        addMouseEditingBehaviour();
-        addKeyboardShortcuts(this);
     }
 
     @Override
@@ -68,7 +80,7 @@ public class ImageEditorPane extends JLayeredPane {
                         }
                     }
                     else {
-                        System.err.println("Encountered unexpected component: " + component);
+                        logger.error("Encountered unexpected component: " + component, e);
                     }
                 }
                 setSelectedOverlay(foundOverlay);
@@ -110,14 +122,14 @@ public class ImageEditorPane extends JLayeredPane {
                 }
                 else {
                     // Only a handle is dragged
-                    selectedOverlay.moveHandle(selectedHandleIndex, mousePosition);
+                    selectedHandleIndex = selectedOverlay.moveHandle(selectedHandleIndex, mousePosition);
                 }
                 repaint();
             }
 
             public void mouseReleased(MouseEvent e) {
                 if (currentAction == null) {
-                    System.err.println("Mouse released with no currentAction !");
+                    logger.error("Mouse released with no currentAction !", e);
                 }
                 else {
                     final Point released = e.getPoint();
@@ -224,6 +236,8 @@ public class ImageEditorPane extends JLayeredPane {
             // De-select previous one
             if (selectedOverlay != null) {
                 selectedOverlay.setSelected(false);
+                // Give focus back to the image pane. In case it was a text component, it is required otherwise keystrokes (e.g. DEL) are still directed to the text area
+                requestFocus();
             }
             selectedOverlay = overlay;
             if (overlay != null) {

@@ -11,7 +11,9 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.net.URIBuilder;
 
@@ -31,7 +33,9 @@ import java.util.Map;
  * <p>
  * TODO: only keep a single HttpClient ?
  */
-public abstract class GoogleExporter extends AbstractOAuth2Exporter {
+public abstract class AbstractGoogleExporter extends AbstractOAuth2Exporter {
+    public static final ByteArrayEntity EMPTY_ENTITY = new ByteArrayEntity(new byte[]{}, ContentType.APPLICATION_OCTET_STREAM);
+
     private static final String GOOGLE_CLIENT_APP_KEY = "805469689820-c3drai5blocq5ae120md067te73ejv49.apps.googleusercontent.com";
     private static final String GOOGLE_NOT_SO_SECRET_CLIENT_APP_KEY = "2guKmYBdrb1nhGkMgdSrbeXl"; // "In this context, the client secret is obviously not treated as a secret." ( https://developers.google.com/identity/protocols/oauth2 )
     private static final String GOOGLE_OAUTH2_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -40,7 +44,6 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
 
     // Access to display username and email
     private static final String[] GOOGLE_PROFILE_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"};
-
 
     @Override
     protected String getClientAppId() {
@@ -134,11 +137,11 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
 
                 final List<String> missingScopes = getMissingScopes(scopeStr);
                 if (!missingScopes.isEmpty()) {
-                    throw new AuthorizationException("The authorizations below are missing for " + getExporterName() + ". Please re-authorize this account.\n Missing scopes: " + missingScopes);
+                    throw new AuthorizationException("The authorizations below are missing for " + getExporterName() + ".\nPlease re-authorize this account.\n Missing scopes: " + missingScopes);
                 }
             }
             else {
-                throw new AuthorizationException("Server returned an error when listing albums: " + getResponseError(response));
+                throw new AuthorizationException("The server returned the following error when listing albums:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -187,11 +190,11 @@ public abstract class GoogleExporter extends AbstractOAuth2Exporter {
                     return profile;
                 }
                 catch (ParseException e) {
-                    throw new CommunicationException("Could not parse account information response as String: " + response.getEntity());
+                    throw new CommunicationException("Could not parse account information response as String:\n" + response.getEntity());
                 }
             }
             else {
-                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when listing albums:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {

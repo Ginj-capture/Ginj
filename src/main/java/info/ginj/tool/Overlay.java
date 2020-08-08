@@ -2,6 +2,8 @@ package info.ginj.tool;
 
 import com.jhlabs.image.GaussianFilter;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,8 +11,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 
 public abstract class Overlay extends JPanel {
-    public static final RenderingHints ANTI_ALIASING_ON = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    public static final RenderingHints ANTI_ALIASING_OFF = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+
+    private static final Logger logger = LoggerFactory.getLogger(Overlay.class);
 
     public static final int HANDLE_WIDTH = 8;
     public static final int HANDLE_HEIGHT = 8;
@@ -84,7 +86,7 @@ public abstract class Overlay extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
-        g2d.setRenderingHints(ANTI_ALIASING_ON);
+        g2d.setRenderingHints(UI.ANTI_ALIASING_ON);
 
         // Draw shadow
         if (!isEditInProgress() && mustDrawShadow()) {
@@ -109,7 +111,7 @@ public abstract class Overlay extends JPanel {
             // Compute and cache handle graphics
             handleImg = new BufferedImage(10, 10, BufferedImage.TYPE_INT_ARGB);
             final Graphics2D g2d = handleImg.createGraphics();
-            g2d.setRenderingHints(ANTI_ALIASING_OFF);
+            g2d.setRenderingHints(UI.ANTI_ALIASING_OFF);
             // Blueish center square
             g2d.setColor(UI.HANDLE_CENTER_COLOR);
             g2d.fillRect(2, 2, 6,6);
@@ -233,16 +235,18 @@ public abstract class Overlay extends JPanel {
      * By convention, when a component is first drawn, the end of the drawing (arrowhead or second point of rectangle) is returned with index 0
      * @param handleIndex the index of the handle
      * @param newPosition the new position of that handle
+     * @return the index of the (new) handle to move from now on. Normally = handleIndex param, except when changing quadrants
      */
-    public final void moveHandle(int handleIndex, Point newPosition) {
+    public final int moveHandle(int handleIndex, Point newPosition) {
         if (handleIndex != NO_INDEX) {
             // This is a move of one handle
-            setHandlePosition(handleIndex, newPosition, false);
+            handleIndex = setHandlePosition(handleIndex, newPosition, false);
             clearShadow();
         }
         else {
-            System.err.print("moveHandle with a handleIndex = NO_INDEX");
+            logger.error("moveHandle with a handleIndex = NO_INDEX");
         }
+        return handleIndex;
     }
 
     /**
@@ -261,7 +265,7 @@ public abstract class Overlay extends JPanel {
      */
     public void moveDrawing(int deltaX, int deltaY) {
         // This is a drag'n'drop move => move all points
-        System.out.println("Delta : " + deltaX + ", " + deltaY);
+        //Logger.info("Delta : " + deltaX + ", " + deltaY);
         final Point[] handles = getHandles();
         for (int i = 0; i < handles.length; i++) {
             setHandlePosition(i, new Point(handles[i].x + deltaX, handles[i].y + deltaY), true);
@@ -314,7 +318,7 @@ public abstract class Overlay extends JPanel {
     /**
      * Returns all handles of the component. Handles are squares displayed over the selected overlay, providing ways to change its shape.
      * By convention, when a component is first drawn, getHandles()[0] is the handle at the "end" of the drawing (arrowhead or second point of rectangle).
-     * @return the array of all handles for this overlay
+     * @return an array with all handles of this component
      */
     @java.beans.Transient
     public abstract Point[] getHandles();
@@ -325,7 +329,8 @@ public abstract class Overlay extends JPanel {
      * @param handleIndex the index of the handle to move
      * @param newPosition the new position of that handle
      * @param skipSizeChecks if true, no size checks are made. This can be required when moving a component by shifting all its handles
+     * @return the index of the (new) handle to move from now on. Normally = handleIndex param, except when changing quadrants
      */
-    protected abstract void setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks);
+    protected abstract int setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks);
 
 }

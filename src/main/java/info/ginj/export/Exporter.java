@@ -3,6 +3,7 @@ package info.ginj.export;
 import info.ginj.export.clipboard.ClipboardExporter;
 import info.ginj.export.disk.DiskExporter;
 import info.ginj.export.online.dropbox.DropboxExporter;
+import info.ginj.export.online.google.GoogleDriveExporter;
 import info.ginj.export.online.google.GooglePhotosExporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Target;
@@ -22,18 +23,24 @@ public abstract class Exporter implements Cancellable {
     protected JFrame parentFrame;
     private ExportMonitor exportMonitor;
 
+    // Caching
+    private static ArrayList<Exporter> exporters;
+
     /**
-     * This static method returns an list of all exporters.
+     * This static method returns a list of all exporters.
      *
      * @return a list containing an instance of all available exporters
      */
     @java.beans.Transient
     public static List<Exporter> getList() {
-        final ArrayList<Exporter> exporters = new ArrayList<>();
-        exporters.add(new DiskExporter());
-        exporters.add(new ClipboardExporter());
-        exporters.add(new DropboxExporter());
-        exporters.add(new GooglePhotosExporter());
+        if (exporters == null) {
+            exporters = new ArrayList<>();
+            exporters.add(new DiskExporter());
+            exporters.add(new ClipboardExporter());
+            exporters.add(new DropboxExporter());
+            exporters.add(new GooglePhotosExporter());
+            exporters.add(new GoogleDriveExporter());
+        }
         return exporters;
     }
 

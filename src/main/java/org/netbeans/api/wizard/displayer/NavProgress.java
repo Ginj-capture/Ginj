@@ -4,13 +4,13 @@ import org.netbeans.api.wizard.WizardDisplayer;
 import org.netbeans.modules.wizard.NbBridge;
 import org.netbeans.spi.wizard.ResultProgressHandle;
 import org.netbeans.spi.wizard.Summary;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.logging.Logger;
 
 /**
  * Show progress bar for deferred results, with a label showing percent done and progress bar.
@@ -25,9 +25,8 @@ import java.util.logging.Logger;
  */
 public class NavProgress implements ResultProgressHandle
 {
-    private static final Logger logger =
-        Logger.getLogger(NavProgress.class.getName());
-    
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(NavProgress.class);
+
     JProgressBar        progressBar = new JProgressBar();
 
     JLabel              lbl         = new JLabel();
@@ -173,15 +172,13 @@ public class NavProgress implements ResultProgressHandle
             {
                 EventQueue.invokeAndWait(r);
             }
-            catch (InvocationTargetException ex)
+            catch (InvocationTargetException e)
             {
-                ex.printStackTrace();
-                logger.severe("Error invoking operation " + ex.getClass().getName() + " " + ex.getMessage());
+                logger.error("Error invoking operation " + e.getClass().getName() + " " + e.getMessage(), e);
             }
-            catch (InterruptedException ex)
+            catch (InterruptedException e)
             {
-                logger.severe("Error invoking operation " + ex.getClass().getName() + " " + ex.getMessage());
-                ex.printStackTrace();
+                logger.error("Error invoking operation " + e.getClass().getName() + " " + e.getMessage(), e);
             }
         }
     }

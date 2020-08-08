@@ -629,7 +629,7 @@ public class WizardPage extends JPanel implements WizardPanel {
         }
 
         Object mapKey = getMapKeyFor(comp);
-        // debug: System.err.println("MaybeUpdateMap " + mapKey + " from " + comp);
+        // debug: logger.error("MaybeUpdateMap " + mapKey + " from " + comp);
         if (mapKey != null) {
             Object value = valueFrom(comp);
             if (logger.isLoggable(Level.FINE)) {

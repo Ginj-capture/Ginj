@@ -6,11 +6,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import info.ginj.Ginj;
-import info.ginj.export.online.OnlineExporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
 import info.ginj.model.Capture;
+import info.ginj.model.Export;
 import info.ginj.model.Target;
 import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -26,6 +26,8 @@ import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -44,14 +46,13 @@ import static info.ginj.util.Misc.DATE_FORMAT_PATTERN;
  * <p>
  * TODO: videos must be max 10GB
  */
-public class GooglePhotosExporter extends GoogleExporter implements OnlineExporter {
+public class GooglePhotosExporter extends AbstractGoogleExporter {
+
+    private static final Logger logger = LoggerFactory.getLogger(GooglePhotosExporter.class);
 
     // "Access to create an album, share it, upload media items to it, and join a shared album."
     private static final String[] GOOGLE_PHOTOS_REQUIRED_SCOPES = {"https://www.googleapis.com/auth/photoslibrary.appendonly", "https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata", "https://www.googleapis.com/auth/photoslibrary.sharing"};
 
-    public static final ByteArrayEntity EMPTY_ENTITY = new ByteArrayEntity(new byte[]{}, ContentType.APPLICATION_OCTET_STREAM);
-
-    public static final int CHUNK_SIZE = 262144; // 256k
     public static final String NAME = "Google Photos";
 
     public enum Granularity {
@@ -116,20 +117,21 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
     @Override
     public void exportCapture(Capture capture, Target target) {
         try {
-            final String albumUrl = uploadCapture(capture, target);
+            final Export export = uploadCapture(capture, target);
             String message = "Upload successful.";
-            if (albumUrl != null) {
+            if (export.getLocation() != null) {
                 if (target.getSettings().getMustCopyPath()) {
-                    copyTextToClipboard(albumUrl);
+                    copyTextToClipboard(export.getLocation());
+                    export.setLocationCopied(true);
                     message += "\nA link to the album containing your capture was copied to the clipboard";
                 }
             }
-            capture.addExport(getExporterName(), albumUrl, null); // TODO store media Id. UploadCapture should return an Export object
+            capture.addExport(export);
             // Indicate export is complete.
             complete(message);
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, getExporterName() + "Error", "There was an error exporting to " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e, logger);
             failed("Upload error");
         }
     }
@@ -147,10 +149,10 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
      * @return a public URL to share to give access to the uploaded media.
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException        if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specific error occurs
      */
     @Override
-    public String uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
+    public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
         logProgress("Rendering file", PROGRESS_RENDER_START);
         try {
@@ -175,10 +177,10 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         // Unfortunately, mediaId seems to be useless as we can only share the album...
 
         if (target.getSettings().getMustShare()) {
-            return album.getShareInfo().getShareableUrl();
+            return new Export(getExporterName(), mediaId, album.getShareInfo().getShareableUrl(), false);
         }
         else {
-            return null;
+            return new Export(getExporterName(), mediaId, null, false);
         }
     }
 
@@ -205,7 +207,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         };
 
         // Try to find the album in the list of existing albums
-        logProgress("Getting album", OnlineExporter.PROGRESS_GETTING_ALBUM);
+        logProgress("Getting album", PROGRESS_GETTING_ALBUM);
         Album album = getAlbumByName(client, target, albumName);
 
         // See if we found it
@@ -213,17 +215,17 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
             // Yes. See if it is shared
             if (album.getShareInfo() == null || album.getShareInfo().getShareableUrl() == null) {
                 // No, share it
-                logProgress("Sharing album", OnlineExporter.PROGRESS_SHARING_ALBUM);
+                logProgress("Sharing album", PROGRESS_SHARING_ALBUM);
                 shareAlbum(client, target, album);
             }
         }
         else {
             // Not found. Create it
-            logProgress("Creating album", OnlineExporter.PROGRESS_CREATING_ALBUM);
+            logProgress("Creating album", PROGRESS_CREATING_ALBUM);
             album = createAlbum(client, target, albumName);
 
             // And, share it
-            logProgress("Sharing album", OnlineExporter.PROGRESS_SHARING_ALBUM);
+            logProgress("Sharing album", PROGRESS_SHARING_ALBUM);
             shareAlbum(client, target, album);
         }
 
@@ -294,12 +296,12 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new CommunicationException("Could not parse album list response as String: " + response.getEntity());
+                    throw new CommunicationException("Could not parse album list response as String:\n" + response.getEntity());
                 }
                 return new Gson().fromJson(responseText, AlbumList.class);
             }
             else {
-                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when listing albums:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -339,7 +341,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new AuthorizationException("Could not parse album sharing response as String: " + response.getEntity());
+                    throw new AuthorizationException("Could not parse album sharing response as String:\n" + response.getEntity());
                 }
 
                 ShareResult shareResult = new Gson().fromJson(responseText, ShareResult.class);
@@ -350,7 +352,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 // and return it.
             }
             else {
-                throw new CommunicationException("Server returned an error when sharing album: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when sharing album:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -383,12 +385,12 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new CommunicationException("Could not parse album list response as String: " + response.getEntity());
+                    throw new CommunicationException("Could not parse album list response as String:\n" + response.getEntity());
                 }
                 return new Gson().fromJson(responseText, Album.class);
             }
             else {
-                throw new CommunicationException("Server returned an error when listing albums: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when listing albums:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -432,13 +434,13 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new CommunicationException("Could not parse album creation response as String: " + response.getEntity());
+                    throw new CommunicationException("Could not parse album creation response as String:\n" + response.getEntity());
                 }
                 // Parse response back
                 return gson.fromJson(responseText, Album.class);
             }
             else {
-                throw new CommunicationException("Server returned an error when creating album: " + getResponseError(response));
+                throw new CommunicationException("The server returned the following error when creating album:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -456,7 +458,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 //     * @return the uploadToken to be used to link this content to a media
 //     * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
 //     * @throws CommunicationException if an url, network or decoding error occurs
-//     * @throws UploadException if an upload-specfic error occurs
+//     * @throws UploadException if an upload-specific error occurs
 //     */
 //    private String uploadFileBytesSimple(CloseableHttpClient client, String accountNumber, File file) throws AuthorizationException, UploadException, CommunicationException {
 //        String uploadToken;
@@ -476,11 +478,11 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 //                    uploadToken = EntityUtils.toString(response.getEntity());
 //                }
 //                catch (ParseException e) {
-//                    throw new CommunicationException("Could not parse media upload response as String: " + response.getEntity());
+//                    throw new CommunicationException("Could not parse media upload response as String:\n" + response.getEntity());
 //                }
 //            }
 //            else {
-//                throw new UploadException("Server returned an error when uploading file contents: " + getResponseError(response));
+//                throw new UploadException("The server returned the following error when uploading file contents:\n" + getResponseError(response));
 //            }
 //        }
 //        catch (IOException e) {
@@ -499,7 +501,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
      * @return the uploadToken to be used to link this content to a media
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException        if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specific error occurs
      */
     private String uploadFileBytes(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
         String uploadToken = null;
@@ -518,11 +520,10 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         httpPost.addHeader("X-Goog-Upload-Protocol", "resumable");
         httpPost.addHeader("X-Goog-Upload-Raw-Size", file.length());
 
-        String uploadUrl;
-        int chunkGranularityBytes;
-
         httpPost.setEntity(EMPTY_ENTITY);
 
+        String uploadUrl;
+        int chunkGranularityBytes;
         try {
             CloseableHttpResponse response = client.execute(httpPost);
             if (isStatusOK(response.getCode())) {
@@ -544,11 +545,11 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     }
                 }
                 catch (ProtocolException e) {
-                    throw new CommunicationException("Protocol exception initializing upload: " + response.getEntity());
+                    throw new CommunicationException("Protocol exception initializing upload:\n" + response.getEntity());
                 }
             }
             else {
-                throw new UploadException("Server returned an error when uploading file contents: " + getResponseError(response));
+                throw new UploadException("The server returned the following error when uploading file contents:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -562,62 +563,63 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
         byte[] buffer = new byte[maxChunkSize];
         int offset = 0;
         long remainingBytes = file.length();
-        InputStream is;
-        try {
-            is = new FileInputStream(file);
+        try (InputStream is = new FileInputStream(file)) {
+            while (remainingBytes > 0) {
+                String command = (remainingBytes > maxChunkSize) ? "upload" : "upload, finalize";
+                int chunkSize = (int) Math.min(maxChunkSize, remainingBytes);
+                final int bytesRead;
+                try {
+                    bytesRead = is.read(buffer, 0, chunkSize);
+                }
+                catch (IOException e) {
+                    throw new UploadException("Could not read bytes from file");
+                }
+
+                logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+
+                httpPost = new HttpPost(uploadUrl);
+                httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
+                //httpPost.addHeader("Content-Length", chunkSize); // Don't put it here, it causes a "dupe header" error as there is an entity.
+                httpPost.addHeader("X-Goog-Upload-Command", command);
+                httpPost.addHeader("X-Goog-Upload-Offset", offset);
+
+                httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
+
+                try {
+                    CloseableHttpResponse response = client.execute(httpPost);
+                    if (isStatusOK(response.getCode())) {
+                        try {
+                            uploadToken = EntityUtils.toString(response.getEntity());
+                        }
+                        catch (ParseException e) {
+                            throw new CommunicationException("Could not parse media upload response as String:\n" + response.getEntity());
+                        }
+                    }
+                    else {
+                        final String responseError = getResponseError(response);
+                        if ((response.getCode() / 100) == 5) {
+                            // Error 5xx
+                            throw new UploadException("Resuming not implemented yet:\n" + responseError);
+                        }
+                        throw new UploadException("The server returned the following error when uploading file contents:\n" + responseError);
+                    }
+                }
+                catch (IOException e) {
+                    throw new CommunicationException("Error uploading file contents", e);
+                }
+
+
+                offset += bytesRead;
+                remainingBytes = file.length() - offset;
+            }
+            logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
         }
         catch (FileNotFoundException e) {
             throw new UploadException("File not found: " + file.getAbsolutePath());
         }
-        while (remainingBytes > 0) {
-            String command = (remainingBytes > maxChunkSize) ? "upload" : "upload, finalize";
-            int chunkSize = (int) Math.min(maxChunkSize, remainingBytes);
-            final int bytesRead;
-            try {
-                bytesRead = is.read(buffer, 0, chunkSize);
-            }
-            catch (IOException e) {
-                throw new UploadException("Could not read bytes from file");
-            }
-
-            logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
-
-            httpPost = new HttpPost(uploadUrl);
-            httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
-            //httpPost.addHeader("Content-Length", chunkSize); // Don't put it here, it causes a "dupe header" error as there is an entity.
-            httpPost.addHeader("X-Goog-Upload-Command", command);
-            httpPost.addHeader("X-Goog-Upload-Offset", offset);
-
-            httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
-
-            try {
-                CloseableHttpResponse response = client.execute(httpPost);
-                if (isStatusOK(response.getCode())) {
-                    try {
-                        uploadToken = EntityUtils.toString(response.getEntity());
-                    }
-                    catch (ParseException e) {
-                        throw new CommunicationException("Could not parse media upload response as String: " + response.getEntity());
-                    }
-                }
-                else {
-                    final String responseError = getResponseError(response);
-                    if ((response.getCode() / 100) == 5) {
-                        // Error 5xx
-                        throw new UploadException("Resuming not implemented yet: " + responseError);
-                    }
-                    throw new UploadException("Server returned an error when uploading file contents: " + responseError);
-                }
-            }
-            catch (IOException e) {
-                throw new CommunicationException("Error uploading file contents", e);
-            }
-
-
-            offset += bytesRead;
-            remainingBytes = file.length() - offset;
+        catch (IOException e) {
+            throw new UploadException(e);
         }
-        logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
 
         return uploadToken;
     }
@@ -634,11 +636,11 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
      * @return the ID of the created media
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
-     * @throws UploadException        if an upload-specfic error occurs
+     * @throws UploadException        if an upload-specific error occurs
      */
     private String createMediaItem(CloseableHttpClient client, Target target, Capture capture, String albumId, String uploadToken) throws AuthorizationException, UploadException, CommunicationException {
 
-        logProgress("Creating media", OnlineExporter.PROGRESS_CREATING_MEDIA);
+        logProgress("Creating media", PROGRESS_CREATING_MEDIA);
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -646,7 +648,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
 
         // Build JSON query:
         JsonObject simpleMediaItem = new JsonObject();
-        simpleMediaItem.addProperty("fileName", capture.getDefaultName());
+        simpleMediaItem.addProperty("fileName", capture.computeUploadFilename());
         simpleMediaItem.addProperty("uploadToken", uploadToken);
 
         JsonObject newMediaItem = new JsonObject();
@@ -672,7 +674,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                     responseText = EntityUtils.toString(response.getEntity());
                 }
                 catch (ParseException e) {
-                    throw new AuthorizationException("Could not parse media creation response as String: " + response.getEntity());
+                    throw new AuthorizationException("Could not parse media creation response as String:\n" + response.getEntity());
                 }
 
                 MediaCreationResponse mediaCreationResponse = new Gson().fromJson(responseText, MediaCreationResponse.class);
@@ -690,7 +692,7 @@ public class GooglePhotosExporter extends GoogleExporter implements OnlineExport
                 return mediaItemResult.getMediaItem().getId();
             }
             else {
-                throw new UploadException("Server returned an error when creating media: " + getResponseError(response));
+                throw new UploadException("The server returned the following error when creating media:\n" + getResponseError(response));
             }
         }
         catch (IOException e) {

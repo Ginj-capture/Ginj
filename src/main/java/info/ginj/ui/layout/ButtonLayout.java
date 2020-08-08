@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
+ * A layout making all added buttons the same size, dictated by the largest one.
  * From https://stackoverflow.com/questions/11536089/making-all-button-size-same
  *
  * @author Santhosh Kumar - santhosh@in.fiorano.com

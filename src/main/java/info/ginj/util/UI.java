@@ -1,8 +1,11 @@
 package info.ginj.util;
 
+import com.github.jjYBdx4IL.utils.awt.Desktop;
 import info.ginj.Ginj;
 import info.ginj.ui.layout.SpringLayoutUtilities;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -16,14 +19,22 @@ import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 
 public class UI {
+
+    private static final Logger logger = LoggerFactory.getLogger(UI.class);
+
+    public static final Color WIDGET_EXTERNAL_COLOR = new Color(255, 194, 0);
+    public static final Color WIDGET_INTERNAL_COLOR = new Color(255, 236, 0);
+
     public static final Color AREA_SELECTION_COLOR = new Color(251, 185, 1);
     public static final Color SELECTION_SIZE_BOX_COLOR = new Color(0, 0, 0, 128);
     public static final Color UNSELECTED_AREA_DIMMED_COLOR = new Color(144, 144, 144, 112);
@@ -45,6 +56,9 @@ public class UI {
     public static final Color LABEL_FOREGROUND_COLOR = new Color(222, 165, 5);
 
     public static final String[] SIZE_UNITS = {" KiB", " MiB", " GiB", " TiB", " PiB"};
+
+    public static final RenderingHints ANTI_ALIASING_ON = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    public static final RenderingHints ANTI_ALIASING_OFF = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
     /**
      * Lay out components of a Panel and compute its size, like pack() for a Window.
@@ -105,8 +119,7 @@ public class UI {
             return new ImageIcon(scaledImage);
         }
         catch (IOException e) {
-            System.err.println("Error loading resource: " + resource);
-            e.printStackTrace();
+            logger.error("Error loading resource: " + resource, e);
             return null;
         }
     }
@@ -229,6 +242,10 @@ public class UI {
     }
 
     public static JEditorPane createClickableHtmlEditorPane(String htmlMessage) {
+        return createClickableHtmlEditorPane(htmlMessage, null);
+    }
+
+    public static JEditorPane createClickableHtmlEditorPane(String htmlMessage, ActionListener additionalClickListener) {
         // for copying style
         JLabel label = new JLabel();
         Font font = label.getFont();
@@ -248,10 +265,18 @@ public class UI {
         editorPane.addHyperlinkListener(e -> {
             if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED)) {
                 try {
-                    Desktop.getDesktop().browse(e.getURL().toURI());
+                    if (e.getDescription().startsWith("http") || e.getDescription().startsWith("ftp")) {
+                        Desktop.browse(e.getURL().toURI());
+                    }
+                    else {
+                        Desktop.select(new File(e.getDescription()));
+                    }
+                    if (additionalClickListener != null) {
+                        additionalClickListener.actionPerformed(new ActionEvent(e.getSource(), 0, "click"));
+                    }
                 }
                 catch (Exception e1) {
-                    // noop
+                    logger.error("Error trying to open capture location", e1);
                 }
             }
         });
@@ -259,7 +284,7 @@ public class UI {
         return editorPane;
     }
 
-    public static void addDraggableWindowMouseBehaviour(JFrame frame, Component handle) {
+    public static void addDraggableWindowMouseBehaviour(Window window, Component handle) {
         MouseInputListener mouseListener = new MouseInputAdapter() {
             Point clicked;
 
@@ -269,10 +294,10 @@ public class UI {
 
             public void mouseDragged(MouseEvent e) {
                 Point position = e.getPoint();
-                Point location = frame.getLocation();
+                Point location = window.getLocation();
                 int x = location.x - clicked.x + position.x;
                 int y = location.y - clicked.y + position.y;
-                frame.setLocation(x, y);
+                window.setLocation(x, y);
             }
         };
         handle.addMouseListener(mouseListener);
@@ -312,8 +337,9 @@ public class UI {
     }
 
     // Convenience methods to display a message from a separate Thread
-    public static void alertException(Component parentComponent, String title, String messagePrefix, Exception e) {
-        e.printStackTrace();
+
+    public static void alertException(Component parentComponent, String title, String messagePrefix, Exception e, Logger logger) {
+        logger.error(messagePrefix, e);
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(parentComponent, messagePrefix + ":\n" + e.getMessage() + "\nSee console for more information (or start '" + Ginj.getAppName() + " /create-i4j-log' next time to save logs)", title, JOptionPane.ERROR_MESSAGE));
     }
 
@@ -331,13 +357,13 @@ public class UI {
     }
 
     /**
-     * Returns a panel with the given fields
+     * Create a panel containing a series of label/field pairs, arranged in two columns.
      * @param keyValues must alternate between String (the label to display) and value (the component for users to enter value)
-     * @return
+     * @return a panel with the given fields
      */
-    public static JPanel getFieldPanel(Object ... keyValues) {
+    public static JPanel createFieldPanel(Object ... keyValues) {
         if (keyValues.length % 2 != 0) {
-            throw new RuntimeException("Field panels must receive an even number of components");
+            throw new RuntimeException("Field panels expect an even number of components");
         }
 
         JPanel fieldsPanel = new JPanel(new BorderLayout());
@@ -356,7 +382,7 @@ public class UI {
                 keyLabel.setVisible(valueComponent.isVisible());
             }
             catch (ClassCastException e) {
-                throw new RuntimeException("Field panels must alternate between JLabel and other components. Received " + keyValues[componentNumber]);
+                throw new RuntimeException("Field panels must alternate between String and JComponent. Received " + keyValues[componentNumber], e);
             }
             componentNumber += 2;
         }
@@ -378,6 +404,7 @@ public class UI {
      * @param isVisible if true, the field is visible
      * @return the created JTextField
      */
+    @SuppressWarnings("rawtypes")
     public static JTextField createWizardTextField(String name, Map map, String defaultText, boolean isEnabled, boolean isVisible) {
         String text = (String) map.get(name);
         if (text == null) {
@@ -400,6 +427,7 @@ public class UI {
      * @param isVisible if true, the field is visible
      * @return the created JCheckBox
      */
+    @SuppressWarnings("rawtypes")
     public static JCheckBox createWizardCheckBox(String name, Map map, boolean defaultSelected, boolean isEnabled, boolean isVisible) {
         Boolean selected = (Boolean) map.get(name);
         if (selected == null) {
@@ -423,6 +451,7 @@ public class UI {
      * @param isVisible if true, the field is visible
      * @return the created JCheckBox
      */
+    @SuppressWarnings("rawtypes")
     public static JCheckBox createWizardCheckBox(String name, Map map, boolean defaultSelected, JCheckBox masterCheckBox, boolean isVisible) {
         Boolean selected = (Boolean) map.get(name);
         if (selected == null) {
@@ -448,6 +477,7 @@ public class UI {
      * @param isVisible if true, the field is visible
      * @return the created JList
      */
+    @SuppressWarnings("rawtypes")
     public static <T> JList<T> createWizardList(String name, T[] values, Map map, int defaultIndex, boolean isEnabled, boolean isVisible) {
         final Object object = map.get(name);
         DefaultListModel<T> model = new DefaultListModel<>();
@@ -465,5 +495,32 @@ public class UI {
         list.setEnabled(isEnabled);
         list.setVisible(isVisible);
         return list;
+    }
+
+    public static void addEscKeyShortcut(RootPaneContainer window, ActionListener actionListener) {
+        window.getRootPane().registerKeyboardAction(actionListener,
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW);
+    }
+
+    public static String readDisplayDetails() {
+        String displayDetails = "";
+        GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice[] screenDevices = graphicsEnvironment.getScreenDevices();
+        for (int currentDisplay = 0; currentDisplay < screenDevices.length; currentDisplay++) {
+            GraphicsConfiguration[] screenConfigurations = screenDevices[currentDisplay].getConfigurations();
+            for (int currentConfiguration = 0; currentConfiguration < screenConfigurations.length; currentConfiguration++) {
+                GraphicsConfiguration screenConfiguration = screenConfigurations[currentConfiguration];
+                final Rectangle screenBounds = screenConfiguration.getBounds();
+                // determine the "borders" (taskbars, menus):
+                final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
+                displayDetails += "Screen.config " + currentDisplay + "." + currentConfiguration + ": "
+                        + screenBounds.width + "x" + screenBounds.height + "@" + screenBounds.x + "," + screenBounds.y
+                        + " minus "
+                        + screenInsets.top + "/" + screenInsets.left + "/" + screenInsets.bottom + "/" + screenInsets.right
+                        + " insets.";
+            }
+        }
+        return displayDetails;
     }
 }

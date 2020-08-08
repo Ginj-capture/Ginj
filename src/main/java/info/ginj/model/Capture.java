@@ -6,6 +6,7 @@ import info.ginj.util.Misc;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.beans.Transient;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,8 +28,13 @@ public class Capture implements Cloneable {
     BufferedImage originalImage;
     File renderedFile;
     BufferedImage renderedImage;
+    long videoDurationMs;
 
     public Capture() {
+    }
+
+    public Capture(String id) {
+        this.id = id;
     }
 
     public Capture(String id, BufferedImage image) {
@@ -84,48 +90,58 @@ public class Capture implements Cloneable {
         this.exports = exports;
     }
 
-    public void addExport(String exporter, String url, String id) {
-        exports.add(new Export(exporter, id, url));
+    public void addExport(Export export) {
+        exports.add(export);
     }
+
+
+    public void setVideoDurationMs(long videoDurationMs) {
+        this.videoDurationMs = videoDurationMs;
+    }
+
+    public long getVideoDurationMs() {
+        return videoDurationMs;
+    }
+
 
     // Note: Transient to prevent being saved to disk
 
-    @java.beans.Transient
+    @Transient
     public File getOriginalFile() {
         return originalFile;
     }
 
-    @java.beans.Transient
+    @Transient
     public void setOriginalFile(File originalFile) {
         this.originalFile = originalFile;
     }
 
-    @java.beans.Transient
+    @Transient
     public BufferedImage getOriginalImage() {
         return originalImage;
     }
 
-    @java.beans.Transient
+    @Transient
     public void setOriginalImage(BufferedImage originalImage) {
         this.originalImage = originalImage;
     }
 
-    @java.beans.Transient
+    @Transient
     public File getRenderedFile() {
         return renderedFile;
     }
 
-    @java.beans.Transient
+    @Transient
     public void setRenderedFile(File renderedFile) {
         this.renderedFile = renderedFile;
     }
 
-    @java.beans.Transient
+    @Transient
     public BufferedImage getRenderedImage() {
         return renderedImage;
     }
 
-    @java.beans.Transient
+    @Transient
     public void setRenderedImage(BufferedImage renderedImage) {
         this.renderedImage = renderedImage;
     }
@@ -138,6 +154,9 @@ public class Capture implements Cloneable {
 
 // Utils
 
+    public String computeExtension() {
+        return isVideo()? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION;
+    }
 
 
     /**
@@ -155,7 +174,7 @@ public class Capture implements Cloneable {
         return renderedFile;
     }
 
-    @java.beans.Transient
+    @Transient
     public String getType() {
         return isVideo ? "Video" : "Image";
     }
@@ -165,15 +184,15 @@ public class Capture implements Cloneable {
      *
      * @return
      */
-    @java.beans.Transient
+    @Transient
     public String getDefaultName() {
         if (name == null || name.isBlank()) {
-            return id;
+            return getBaseFilename();
         }
         return name;
     }
 
-    @java.beans.Transient
+    @Transient
     public String getBaseFilename() {
         String baseFilename = getId();
         if (getVersion() > 1) {
@@ -190,5 +209,18 @@ public class Capture implements Cloneable {
                 ", isVideo=" + isVideo +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    /**
+     * Compute the name under which the capture will be shared
+     * @return the name to use
+     */
+    public String computeUploadFilename() {
+        String filename = getDefaultName();
+        String extension = computeExtension();
+        if (!filename.toLowerCase().endsWith(extension)) {
+            filename += extension;
+        }
+        return filename;
     }
 }

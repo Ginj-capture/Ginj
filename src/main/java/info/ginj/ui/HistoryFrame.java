@@ -9,6 +9,8 @@ import info.ginj.ui.component.YellowLabel;
 import info.ginj.ui.layout.WrapLayout;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
  * This window displays and manages the historized captures
  */
 public class HistoryFrame extends JFrame {
+
+    private static final Logger logger = LoggerFactory.getLogger(HistoryFrame.class);
 
     private final BorderedLabel statusLabel;
 
@@ -175,6 +179,8 @@ public class HistoryFrame extends JFrame {
         // Lay out components again
         pack();
 
+        UI.addEscKeyShortcut(this, e -> onClose());
+
         // Center window
         starWindow.centerFrameOnStarIconDisplay(this);
     }
@@ -220,13 +226,13 @@ public class HistoryFrame extends JFrame {
             }
         }
         catch (Exception e) {
-            UI.alertException(this, "Error", "Error determining captures sharing the same file", e);
+            UI.alertException(this, "Error", "Error determining captures sharing the same file", e, logger);
         }
         return siblingCaptures;
     }
 
     private File getCaptureFile(Capture capture) {
-        return new File(Ginj.getHistoryFolder(), capture.getId() + (capture.isVideo() ? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION));
+        return new File(Ginj.getHistoryFolder(), capture.getId() + capture.computeExtension());
     }
 
     public void setSelectedItem(HistoryItemWidget selectedItem) {
@@ -285,7 +291,7 @@ public class HistoryFrame extends JFrame {
             captureEditingFrame.setVisible(true);
         }
         catch (CloneNotSupportedException e) {
-            UI.alertException(this, "Clone error", "Error creating clone of previous capture", e);
+            UI.alertException(this, "Clone error", "Error creating clone of previous capture", e, logger);
         }
     }
 
@@ -321,17 +327,17 @@ public class HistoryFrame extends JFrame {
     private void onSort(SortOrder order) {
         List<Component> components = new ArrayList<>(Arrays.asList(historyList.getComponents()));
         Comparator<Component> comparator = switch (order) {
-            case DATE -> (Comparator<Component>) (o1, o2) -> {
+            case DATE -> (o1, o2) -> {
                 HistoryItemWidget historyItemWidget1 = (HistoryItemWidget) o1;
                 HistoryItemWidget historyItemWidget2 = (HistoryItemWidget) o2;
                 return (int) (historyItemWidget2.getFile().lastModified() - (historyItemWidget1.getFile().lastModified()));
             };
-            case SIZE -> (Comparator<Component>) (o1, o2) -> {
+            case SIZE -> (o1, o2) -> {
                 HistoryItemWidget historyItemWidget1 = (HistoryItemWidget) o1;
                 HistoryItemWidget historyItemWidget2 = (HistoryItemWidget) o2;
                 return (int) (historyItemWidget2.getCaptureSize() - (historyItemWidget1.getCaptureSize()));
             };
-            case NAME -> (Comparator<Component>) (o1, o2) -> {
+            case NAME -> (o1, o2) -> {
                 HistoryItemWidget historyItemWidget1 = (HistoryItemWidget) o1;
                 HistoryItemWidget historyItemWidget2 = (HistoryItemWidget) o2;
                 return historyItemWidget1.getOrLoadCapture().getName().compareTo(historyItemWidget2.getOrLoadCapture().getName());
@@ -470,9 +476,14 @@ public class HistoryFrame extends JFrame {
                 });
                 String xmlFilename = file.getAbsolutePath();
 
-                imagePanel.setImagePath(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + Misc.THUMBNAIL_EXTENSION);
+                String basename = xmlFilename.substring(0, xmlFilename.lastIndexOf('.'));
+                imagePanel.setImagePath(basename + Misc.THUMBNAIL_EXTENSION);
 
-                File captureFile = new File(xmlFilename.substring(0, xmlFilename.lastIndexOf('.')) + (capture.isVideo()? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION));
+                int versionPos = basename.lastIndexOf("_v");
+                if (versionPos != -1) {
+                    basename = basename.substring(0, versionPos);
+                }
+                File captureFile = new File(basename + capture.computeExtension());
                 captureSize = captureFile.length();
                 sizeLabel.setText(Misc.getPrettySize(captureSize));
                 addMouseListener(new MouseAdapter() {
@@ -503,8 +514,7 @@ public class HistoryFrame extends JFrame {
                 deleteButton.addActionListener(e -> onDelete(capture));
             }
             catch (Exception e) {
-                UI.alertException(HistoryFrame.this, "Load error", "Error loading capture '" + file.getAbsolutePath() + "'", e);
-                e.printStackTrace();
+                UI.alertException(HistoryFrame.this, "Load error", "Error loading capture '" + file.getAbsolutePath() + "'", e, logger);
             }
         }
 
@@ -538,7 +548,7 @@ public class HistoryFrame extends JFrame {
             synchronized (this) { // in case we reorder while loading is in progress
                 if (capture == null) {
                     loadCapture();
-                    //System.out.println("Loaded " + capture);
+                    //Logger.info("Loaded " + capture);
                 }
             }
             return capture;
@@ -575,8 +585,7 @@ public class HistoryFrame extends JFrame {
                 image = ImageIO.read(new File(imagePath));
             }
             catch (Exception e) {
-                System.err.println("Error reading '" + imagePath + "'...");
-                e.printStackTrace();
+                logger.error("Error reading '" + imagePath + "'...", e);
             }
             repaint();
         }

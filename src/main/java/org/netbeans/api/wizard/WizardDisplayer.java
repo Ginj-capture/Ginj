@@ -13,6 +13,8 @@ package org.netbeans.api.wizard;
 import org.netbeans.api.wizard.displayer.WizardDisplayerImpl;
 import org.netbeans.modules.wizard.NbBridge;
 import org.netbeans.spi.wizard.Wizard;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -84,6 +86,8 @@ import java.util.Map;
  * @author Tim Boudreau
  */
 public abstract class WizardDisplayer {
+    private static final Logger logger = LoggerFactory.getLogger(WizardDisplayer.class);
+
     protected WizardDisplayer() {
     }
     private static final String SYSPROP_KEY = "WizardDisplayer.default";
@@ -116,9 +120,8 @@ public abstract class WizardDisplayer {
                     factory = (WizardDisplayer) 
                             Class.forName (wdProp).newInstance();
                 } catch (Exception e) {
-                    System.err.println("Could not instantiate " + wdProp);
+                    logger.error("Could not instantiate " + wdProp, e);
                     System.clearProperty (SYSPROP_KEY);
-                    e.printStackTrace();
                 }
             }
         }

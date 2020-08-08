@@ -4,6 +4,7 @@
  - ~~Implement multi-screen capture~~
  - ~~Allow positioning the "star" widget on a secondary display~~
  - React to resolution changes and taskbar move/show/hide
+ - Support scaled displays (e.g. 125%)
  - ~~Open dialogs (capture editing, "more", "history", etc), on the display where the "star" widget is located~~
  - ~~Implement capture editing window~~
  - ~~Implement arrow overlay~~
@@ -24,24 +25,26 @@
  - ~~Implement preferences~~
  - ~~Implement history with **editable** items~~
  - ~~Implement edit from history window~~
- - Finalize history window (export button)
+ - Finalize history window (export button should perform a "smart" re-export, performing only missing operations (reupload, reshare, or just re-copy link))
  - ~~Load history contents asynchronously~~
  - ~~Persist StarWindow position~~
  - ~~Position ExportFrame and ExportCompletionFrame next to Star Window~~
  - ~~Implement target editing~~
- - In export completion window, replace plain text with html for the shared link to be clickable
- - Improve "About" dialog (logo, clickable link to site, credits)
+ - ~~In export completion window, replace plain text with html for the shared link to be clickable~~
+ - ~~Improve "About" dialog (logo, clickable link to site, credits)~~
  - Implement video using ffmpeg & Jaffree
+ - ~~Implement "check for updates" from Java~~
  - Implement generic preference editor
  - Typing in a Text Overlay should make the overlay grow wider
- - Add Google Drive exporter
+ - ~~Add Google Drive exporter~~
  - Add Youtube exporter
  - Add FTP exporter :-)
- - Implement tray icon and menu
- - Implement global shortcut
+ - ~~Implement tray icon and menu~~
+ - ~~Implement global shortcut~~
  - Implement load on startup
+ - Make sure to stop http server when aborting target configuration, and restarted it if user goes back
  - Implement windows detection (using JNA?)
- - Close most frames with ESC (ex: History)
+ - ~~Close most frames with ESC (ex: History)~~
  - Implement fixed ratio to 16:9 (shift-drag) or 4:3 (ctrl-drag) + snap to resp 640x360,800x450,960x540,1280x720 or 320x240,400x300,640x480,800x600,1024x768 / ENHANCEMENT: in 4:3 1280x960
  - ? Should undo/redo change selection inside the Action methods (e.g change color, resize) ? - or completely deselect component after operation
  - Ahem, try on Mac and/or Linux
@@ -70,7 +73,7 @@
  - Remember previously used custom colors
  - Add optional "Speech Balloon" overlay
  - Add optional "Line" overlay (with CTRL to constrain)
- - Add optional "Oval" overlay
+ - ~~Add optional "Oval" overlay~~
  - Shift should constrain handle move horizontally/vertically, Ctrl should resize symmetrically
  - Add overlays on video
 

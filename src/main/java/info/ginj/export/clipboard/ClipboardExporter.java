@@ -2,8 +2,11 @@ package info.ginj.export.clipboard;
 
 import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
+import info.ginj.model.Export;
 import info.ginj.model.Target;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -16,7 +19,7 @@ import java.awt.datatransfer.Clipboard;
  */
 public class ClipboardExporter extends Exporter {
 
-
+    private static final Logger logger = LoggerFactory.getLogger(ClipboardExporter.class);
     public static final String NAME = "Clipboard";
 
     @Override
@@ -76,11 +79,11 @@ public class ClipboardExporter extends Exporter {
             clipboard.setContents(transferableImage, (clipboard1, contents) -> {
                 // Do nothing. It's normal to lose ownership when another app copies something to the clipboard
             });
-            capture.addExport(getExporterName(), null, null);
+            capture.addExport(new Export(getExporterName(), null, null, false));
             complete("Image copied to clipboard");
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, "Export error", "There was an error copying image to the clipboard", e);
+            UI.alertException(parentFrame, "Export error", "There was an error copying image to the clipboard", e, logger);
             failed("Error copying capture");
         }
     }

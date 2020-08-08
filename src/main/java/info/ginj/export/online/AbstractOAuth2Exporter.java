@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import info.ginj.Ginj;
-import info.ginj.export.Exporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.model.Account;
@@ -21,6 +20,8 @@ import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.IOException;
@@ -44,7 +45,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * see https://developers.google.com/identity/protocols/oauth2/native-app
  * see https://www.dropbox.com/lp/developers/reference/oauth-guide
  */
-public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineExporter {
+public abstract class AbstractOAuth2Exporter extends AbstractOnlineExporter {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractOAuth2Exporter.class);
+
     public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + UI.colorToHex(UI.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + UI.colorToHex(UI.LABEL_FOREGROUND_COLOR) + ";} a{color:" + UI.colorToHex(UI.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";
     protected static final int PORT_GINJ = 6193;
@@ -82,12 +86,12 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
             checkAuthorizations(target.getAccount());
         }
         catch (AuthorizationException e) {
-            UI.alertException(parentFrame, getExporterName() + " authorization error", "Ginj was not authorized on " + getExporterName() + ".\nPlease go to " + Ginj.getAppName() + " preferences to re-authorize.", e);
+            UI.alertException(parentFrame, getExporterName() + " authorization error", "Ginj was not authorized on " + getExporterName() + ".\nPlease go to " + Ginj.getAppName() + " preferences to re-authorize.", e, logger);
             failed("Authorization error");
             return false;
         }
         catch (CommunicationException e) {
-            UI.alertException(parentFrame, getExporterName() + " authorization check error", "There was an error checking authorization on " + getExporterName(), e);
+            UI.alertException(parentFrame, getExporterName() + " authorization check error", "There was an error checking authorization on " + getExporterName(), e, logger);
             failed("Communication error");
             return false;
         }
@@ -109,7 +113,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
             sr.nextBytes(code);
             final Base64.Encoder encoder = Base64.getUrlEncoder();
             verifier = encoder.encodeToString(code).replaceAll("=+$", ""); // replacement required for Dropbox
-            // System.out.println("verifier = " + verifier);
+            // Logger.info("verifier = " + verifier);
 
             // Create a Code Challenge
             byte[] bytes = verifier.getBytes(StandardCharsets.US_ASCII);
@@ -117,7 +121,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
             md.update(bytes, 0, bytes.length);
             byte[] digest = md.digest();
             final String challenge = encoder.encodeToString(digest).replaceAll("=+$", ""); // replacement required for Google
-            // System.out.println("challenge = " + challenge);
+            // Logger.info("challenge = " + challenge);
 
             // Prepare the URL to forward the user to
             String url = getOAuth2AuthorizeUrl()
@@ -135,7 +139,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
             if (requiredScopes != null) {
                 url += "&scope=" + encodeScopes(requiredScopes);
             }
-            // System.out.println("url = " + url);
+            // Logger.info("url = " + url);
 
             // Step 2: Send a request to the OAuth 2.0 server
 
@@ -230,7 +234,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
                 }
             }
             else {
-                throw new AuthorizationException("Server returned code " + getResponseError(response));
+                throw new AuthorizationException("The server returned code " + getResponseError(response));
             }
         }
         catch (IOException e) {
@@ -265,7 +269,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
                 if (receivedCode == null) {
                     // First callback. Remember the received code, which will continue at Step 5.
                     receivedCode = code;
-                    // System.out.println("Server received code = " + code);
+                    // Logger.info("Server received code = " + code);
                 }
             }
             catch (Exception e) {
@@ -291,7 +295,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
 
     private void checkScopesResponse(String error, String code, List<String> allowedScopes) throws AuthorizationException {
         if (error != null) {
-            throw new AuthorizationException(getExporterName() + " returned an error: " + error);
+            throw new AuthorizationException(getExporterName() + " returned the following error:\n" + error);
         }
         if (code == null || code.isEmpty()) {
             throw new AuthorizationException("Missing code (" + code + ") in " + getExporterName() + " response.");
@@ -404,7 +408,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
                 }
             }
             else {
-                // throw new AuthorizationException("Server returned code " + getResponseError(response));
+                // throw new AuthorizationException("The server returned code " + getResponseError(response));
                 // This code used to track a nasty bug and throw additional info in that case... I'm leaving it.
                 final int code = response.getCode();
                 String responseText = null;
@@ -417,7 +421,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
 
                 // Fine tune the error message
                 if (responseText == null) {
-                    throw new AuthorizationException("Server returned code " + code);
+                    throw new AuthorizationException("The server returned code " + code);
                 }
                 else {
                     if (code == 400) {
@@ -438,7 +442,7 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
                         }
                     }
 
-                    throw new AuthorizationException("Server returned code " + code + " (" + responseText + ")");
+                    throw new AuthorizationException("The server returned code " + code + " (" + responseText + ")");
                 }
 
             }
@@ -508,10 +512,10 @@ public abstract class AbstractOAuth2Exporter extends Exporter implements OnlineE
     }
 
     @java.beans.Transient
-    protected static String getResponseError(CloseableHttpResponse response) {
-        String errorMsg = String.valueOf(response.getCode());
+    protected String getResponseError(CloseableHttpResponse httpResponse) {
+        String errorMsg = String.valueOf(httpResponse.getCode());
         try {
-            errorMsg += " (" + EntityUtils.toString(response.getEntity()) + ")";
+            errorMsg += " (" + EntityUtils.toString(httpResponse.getEntity()) + ")";
             // Note: if error is 405 and message complains it expected POST and received GET, it could be that the URL was redirected (301), eg from http to https
             // Which httpComponents by default converts from POST to GET
             // Seems the default has changed from HttpComponents 4 to 5 : https://www.baeldung.com/httpclient-redirect-on-http-post

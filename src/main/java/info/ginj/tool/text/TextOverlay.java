@@ -75,16 +75,6 @@ public class TextOverlay extends RectangleOverlay {
     }
 
     @Override
-    public void setSelected(boolean selected) {
-        super.setSelected(selected);
-        if (selected) {
-            if (!textArea.hasFocus()) {
-                textArea.requestFocusInWindow();
-            }
-        }
-    }
-
-    @Override
     public TextOverlay initialize(Point initialPoint, Color initialColor) {
         super.initialize(initialPoint, initialColor);
         textArea = new JTextArea();
@@ -110,6 +100,15 @@ public class TextOverlay extends RectangleOverlay {
                 e -> frame.addUndoableEdit(e.getEdit()));
         add(textArea);
         return this;
+    }
+
+    @Override
+    public int setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks) {
+        // As in Jing, moving or resizing a text overlay gives the focus to the TextArea
+        if (!textArea.hasFocus()) {
+            textArea.requestFocusInWindow();
+        }
+        return super.setHandlePosition(handleIndex, newPosition, skipSizeChecks);
     }
 
     @Override

@@ -1,7 +1,8 @@
 package info.ginj.ui;
 
 import info.ginj.Ginj;
-import info.ginj.model.Prefs;
+import info.ginj.ui.component.DoubleBorderedPanel;
+import info.ginj.util.Misc;
 import info.ginj.util.UI;
 
 import javax.swing.*;
@@ -9,7 +10,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 /**
- * This window centralizes optins
+ * This dialog centralizes access to settings, targets, and other features
  */
 public class MoreFrame extends JFrame {
 
@@ -20,7 +21,7 @@ public class MoreFrame extends JFrame {
         this.starWindow = starWindow;
 
         // For Alt+Tab behaviour
-        this.setTitle(Ginj.getAppName() + " Options");
+        this.setTitle(Ginj.getAppName() + " more...");
         this.setIconImage(StarWindow.getAppIcon());
 
 
@@ -28,34 +29,40 @@ public class MoreFrame extends JFrame {
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
         setUndecorated(true);
 
-        final Container contentPane = getContentPane();
+        final JPanel contentPane = new DoubleBorderedPanel();
+        setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout());
 
         // Prepare title bar
-        JPanel titleBar = UI.getTitleBar(Ginj.getAppName() + " Options", e -> onClose());
+        JPanel titleBar = UI.getTitleBar("More...", e -> onClose());
         contentPane.add(titleBar, BorderLayout.NORTH);
 
 
         // Prepare main panel
         JComponent mainPanel = new JPanel();
+        mainPanel.setOpaque(false);
         mainPanel.setLayout(new GridLayout(0,1,20,20));
-        mainPanel.setBorder(new EmptyBorder(new Insets(50, 50, 50, 50)));
+        mainPanel.setBorder(new EmptyBorder(new Insets(20, 20, 20, 20)));
 
-        mainPanel.add(new JLabel("More options to come..."));
-        // e.g. Capture folder
-//        mainPanel.add(new JButton("Check for updates...")); // TODO
+        final JButton optionsButton = new JButton("Options...");
+        optionsButton.addActionListener(e -> onOptions());
+        mainPanel.add(optionsButton);
 
-        final JButton configureTargetsButton = new JButton("Manage targets...");
-        configureTargetsButton.addActionListener(e -> onConfigureTargets());
-        mainPanel.add(configureTargetsButton);
+        final JButton manageTargetsButton = new JButton("Manage targets...");
+        manageTargetsButton.addActionListener(e -> onManageTargets());
+        mainPanel.add(manageTargetsButton);
+
+        final JButton checkForUpdatesButton = new JButton("Check for updates...");
+        checkForUpdatesButton.addActionListener(e -> starWindow.onCheckForUpdates());
+        mainPanel.add(checkForUpdatesButton);
 
         final JButton aboutButton = new JButton("About Ginj...");
         aboutButton.addActionListener(e -> onAbout());
         mainPanel.add(aboutButton);
 
-        final JButton quitButton = new JButton("Quit " + Ginj.getAppName());
-        quitButton.addActionListener(e -> onQuit());
-        mainPanel.add(quitButton);
+        final JButton exitButton = new JButton(Misc.getExitQuitText() + " " + Ginj.getAppName());
+        exitButton.addActionListener(e -> starWindow.onExit(this));
+        mainPanel.add(exitButton);
 
         contentPane.add(mainPanel, BorderLayout.CENTER);
 
@@ -65,31 +72,29 @@ public class MoreFrame extends JFrame {
         // Lay out components again
         pack();
 
+        UI.addEscKeyShortcut(this, e -> onClose());
+
         // Center window
         starWindow.centerFrameOnStarIconDisplay(this);
     }
 
-    private void onConfigureTargets() {
-        if (starWindow.getTargetManagementFrame() == null) {
-            starWindow.setTargetManagementFrame(new TargetManagementFrame(starWindow));
-        }
-        starWindow.getTargetManagementFrame().setVisible(true);
-        starWindow.getTargetManagementFrame().requestFocus();
+    private void onManageTargets() {
+        starWindow.openTargetManagementFrame();
+    }
+
+    private void onOptions() {
+        new OptionsDialog(starWindow).setVisible(true);
     }
 
     private void onAbout() {
-        JOptionPane.showMessageDialog(this, "This is " + Ginj.getAppName() + " version " + Ginj.getVersion() + "\nPlease checkout http://ginj.info for more information.", "About Ginj", JOptionPane.INFORMATION_MESSAGE);
+        new AboutDialog(starWindow).setVisible(true);
     }
 
-    private void onQuit() {
-        if (JOptionPane.YES_OPTION == JOptionPane.showConfirmDialog(this, "Are you sure you want to exit " + Ginj.getAppName() + "?", "Quit Jing?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
-            Prefs.save();
-            System.exit(Ginj.ERR_STATUS_OK);
-        }
-    }
 
     private void onClose() {
-        starWindow.setMoreFrame(null);
+        starWindow.clearMoreFrame();
+        // Restore the previous hotkey
+        starWindow.registerHotKey();
         // Close window
         dispose();
     }

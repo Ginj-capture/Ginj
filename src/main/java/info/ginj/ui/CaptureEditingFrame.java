@@ -8,30 +8,31 @@ import info.ginj.model.Prefs;
 import info.ginj.model.Target;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
-import info.ginj.tool.arrow.ArrowTool;
-import info.ginj.tool.frame.FrameTool;
-import info.ginj.tool.highlight.HighlightTool;
-import info.ginj.tool.text.TextTool;
 import info.ginj.ui.component.*;
-import info.ginj.util.Misc;
+import info.ginj.util.Jaffree;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public class CaptureEditingFrame extends JFrame implements TargetListChangeListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(CaptureEditingFrame.class);
 
     public static final int TOOL_BUTTON_ICON_WIDTH = 24;
     public static final int TOOL_BUTTON_ICON_HEIGHT = 24;
@@ -42,7 +43,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
     // State
     private final StarWindow starWindow;
-    private final Capture capture;
+    final Capture capture;
     private final ImageEditorPane imagePane;
     private final MiniToolButton undoButton;
     private final MiniToolButton redoButton;
@@ -51,16 +52,8 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     private final JTextField nameTextField;
 
     GinjTool currentTool;
-    private JPanel actionPanel;
+    private final JPanel actionPanel;
 
-
-    public CaptureEditingFrame(StarWindow starWindow, BufferedImage capturedImg) {
-        this(starWindow, new Capture(new SimpleDateFormat(Misc.DATETIME_FORMAT_PATTERN).format(new Date()), capturedImg)); // ENHANCEMENT: seconds
-    }
-
-    public CaptureEditingFrame(StarWindow starWindow, BufferedImage capturedImg, String captureId) {
-        this(starWindow, new Capture(captureId, capturedImg));
-    }
 
     public CaptureEditingFrame(StarWindow starWindow, Capture capture) {
         super();
@@ -85,7 +78,39 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         // Prepare main image panel first because it will be needed in ActionHandlers
         BufferedImage originalImage;
         if (capture.isVideo()) {
-            throw new RuntimeException("TODO Video");
+            originalImage = Jaffree.grabImage(capture.getOriginalFile(), 0);
+
+            // For video playback, JaxaFX this could be an option...:
+//            final JFXPanel VFXPanel = new JFXPanel();
+//
+//            File video_source = new File("tutorial.mp4");
+//            Media m = new Media(video_source.toURI().toString());
+//            MediaPlayer player = new MediaPlayer(m);
+//            MediaView viewer = new MediaView(player);
+//
+//            StackPane root = new StackPane();
+//            Scene scene = new Scene(root);
+//
+//            // center video position
+//            javafx.geometry.Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+//            viewer.setX((screen.getWidth() - videoPanel.getWidth()) / 2);
+//            viewer.setY((screen.getHeight() - videoPanel.getHeight()) / 2);
+//
+//            // resize video based on screen size
+//            DoubleProperty width = viewer.fitWidthProperty();
+//            DoubleProperty height = viewer.fitHeightProperty();
+//            width.bind(Bindings.selectDouble(viewer.sceneProperty(), "width"));
+//            height.bind(Bindings.selectDouble(viewer.sceneProperty(), "height"));
+//            viewer.setPreserveRatio(true);
+//
+//            // add video to stackpane
+//            root.getChildren().add(viewer);
+//
+//            VFXPanel.setScene(scene);
+//            videoPanel.setLayout(new BorderLayout());
+//            videoPanel.add(VFXPanel, BorderLayout.CENTER);
+//            player.play();
+
         }
         else {
             originalImage = capture.getOriginalImage();
@@ -94,7 +119,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
                     originalImage = ImageIO.read(capture.getOriginalFile());
                 }
                 catch (IOException e) {
-                    UI.alertException(this, "Load error", "Error loading capture file '" + capture.getOriginalFile() + "'", e);
+                    UI.alertException(this, "Load error", "Error loading capture file '" + capture.getOriginalFile() + "'", e, logger);
                     originalImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
                 }
             }
@@ -129,7 +154,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         toolBar.setBorder(new EmptyBorder(6, 6, 6, 6));
 
         ButtonGroup toolButtonGroup = new ButtonGroup();
-        GinjTool[] tools = new GinjTool[]{new ArrowTool(), new TextTool(), new FrameTool(), new HighlightTool()};
+        Set<GinjTool> tools = Prefs.getToolSet();
         for (GinjTool tool : tools) {
             addToolButton(toolBar, tool, toolButtonGroup);
         }
@@ -140,7 +165,6 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         toolBar.add(colorToolButton);
         toolBar.add(Box.createRigidArea(new Dimension(0, 8)));
 
-        // TODO implement undo
         JPanel undoRedoPanel = new JPanel();
         undoRedoPanel.setAlignmentX(0); // Otherwise the panel adds horizontal space...
         undoRedoPanel.setLayout(new BoxLayout(undoRedoPanel, BoxLayout.X_AXIS));
@@ -157,13 +181,15 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         undoRedoPanel.add(redoButton);
         toolBar.add(undoRedoPanel);
 
-        c = new GridBagConstraints();
-        c.gridx = 0;
-        c.gridy = 1;
-        c.gridwidth = 1;
-        c.gridheight = 1;
-        contentPane.add(toolBar, c);
-
+        if (!capture.isVideo()) {
+            // TODO enable overlays on video
+            c = new GridBagConstraints();
+            c.gridx = 0;
+            c.gridy = 1;
+            c.gridwidth = 1;
+            c.gridheight = 1;
+            contentPane.add(toolBar, c);
+        }
 
         // Prepare an opaque panel which will fill the main display area and host the image scrollpane
         // (the scrollpane will only occupy the center if image is smaller than the toolbars)
@@ -191,6 +217,48 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         c.fill = GridBagConstraints.BOTH;
         contentPane.add(mainPanel, c);
 
+        JPanel lowerPanel = new JPanel();
+        lowerPanel.setLayout(new GridBagLayout());
+
+        // If video, prepare "transport" panel
+        if (capture.isVideo()) {
+            JPanel transportPanel = new JPanel();
+            transportPanel.setLayout(new BorderLayout());
+            final BorderedLabel positionLabel = new BorderedLabel("00:00:00");
+            transportPanel.add(positionLabel, BorderLayout.WEST);
+
+            final JSlider positionSlider = new JSlider(JSlider.HORIZONTAL, 0, (int) capture.getVideoDurationMs(), 0); // Note: this typecast limits videos to 600 hours :-)
+            positionSlider.setMajorTickSpacing(1000);
+            transportPanel.add(positionSlider, BorderLayout.CENTER);
+            positionSlider.addChangeListener(e -> {
+                JSlider source = (JSlider)e.getSource();
+                Duration position = Duration.ofMillis(positionSlider.getValue());
+                positionLabel.setText(String.format("%02d:%02d:%02d", position.toHours(), position.toMinutesPart(), position.toSecondsPart()));
+                if (source.getValueIsAdjusting()) {
+                    // During drag, wait for value to settle
+                }
+                else {
+                    // update image
+                    imagePane.setCapturedImg(Jaffree.grabImage(capture.getOriginalFile(), positionSlider.getValue()));
+                    imagePane.invalidate();
+                    imagePane.repaint();
+                }
+            });
+
+            Duration totalDuration = Duration.ofMillis(capture.getVideoDurationMs());
+            final BorderedLabel durationLabel = new BorderedLabel(String.format("%02d:%02d:%02d", totalDuration.toHours(), totalDuration.toMinutesPart(), totalDuration.toSecondsPart()));
+            transportPanel.add(durationLabel, BorderLayout.EAST);
+            c = new GridBagConstraints();
+            c.gridx = 0;
+            c.gridy = GridBagConstraints.RELATIVE;
+            c.gridwidth = 1;
+            c.gridheight = 1;
+            c.insets = new Insets(8, 17, 8, 17);
+            c.fill = GridBagConstraints.BOTH;
+            c.weightx = 1;
+            c.weighty = 1;
+            lowerPanel.add(transportPanel, c);
+        }
 
         // Prepare name editing panel
         JPanel editPanel = new JPanel();
@@ -199,15 +267,17 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         editPanel.add(nameLabel, BorderLayout.WEST);
         nameTextField = new JTextField();
         editPanel.add(nameTextField, BorderLayout.CENTER);
-
-        JPanel lowerPanel = new JPanel();
-        lowerPanel.setLayout(new GridBagLayout());
         c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = GridBagConstraints.RELATIVE;
+        c.gridwidth = 1;
+        c.gridheight = 1;
         c.insets = new Insets(4, 17, 12, 17);
         c.fill = GridBagConstraints.BOTH;
         c.weightx = 1;
         c.weighty = 1;
         lowerPanel.add(editPanel, c);
+
 
         c = new GridBagConstraints();
         c.gridx = 1;
@@ -279,10 +349,13 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
             JScrollPane scrollableImagePanel = new JScrollPane(imagePane);
             mainPanel.add(scrollableImagePanel, c);
         }
+
         // Lay out components again
         pack();
         // And limit size
         setSize(size);
+
+        UI.addEscKeyShortcut(this, e -> onCancel());
 
         // Center window
         starWindow.centerFrameOnStarIconDisplay(this);
@@ -298,13 +371,18 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     private JPanel createExportButtonBar() {
         JPanel buttonBar = new LowerButtonBar();
 
-        LowerButton shareButton = new LowerButton("Share...", UI.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, UI.ICON_ENABLED_COLOR));
-        shareButton.addActionListener(e -> onShare(shareButton));
-        buttonBar.add(shareButton);
+        if (!Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS)) {
+            LowerButton shareButton = new LowerButton("Share...", UI.createIcon(getClass().getResource("/img/icon/share.png"), 16, 16, UI.ICON_ENABLED_COLOR));
+            shareButton.addActionListener(e -> onShare(shareButton));
+            buttonBar.add(shareButton);
+        }
 
         for (Target target : Ginj.getTargetPrefs().getTargetList()) {
             Exporter exporter = target.getExporter();
-            if (exporter.isImageSupported() && (!exporter.isOnlineService() || Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS))) {
+            if (
+                    ((capture.isVideo() && exporter.isVideoSupported()) || (!capture.isVideo() && exporter.isImageSupported()))
+                    && (!exporter.isOnlineService() || Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS))
+            ) {
                 LowerButton targetButton = new LowerButton(target.getDisplayName(), exporter.getButtonIcon(16));
                 targetButton.addActionListener(e -> onExport(target));
                 buttonBar.add(targetButton);
@@ -392,8 +470,8 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
             try {
                 undoManager.undo();
             }
-            catch (CannotRedoException cre) {
-                cre.printStackTrace();
+            catch (CannotUndoException e) {
+                logger.error("Cannot undo", e);
             }
             imagePane.repaint();
             refreshUndoRedoButtons();
@@ -405,8 +483,8 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
             try {
                 undoManager.redo();
             }
-            catch (CannotRedoException cre) {
-                cre.printStackTrace();
+            catch (CannotRedoException e) {
+                logger.error("Cannot redo", e);
             }
             imagePane.repaint();
             refreshUndoRedoButtons();
@@ -420,7 +498,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
      * @param action The undoable action
      */
     public void addUndoableAction(AbstractUndoableAction action) {
-        //System.out.println("Adding undoable action: " + action.getPresentationName());
+        //Logger.info("Adding undoable action: " + action.getPresentationName());
         undoManager.undoableEditHappened(new UndoableEditEvent(imagePane, action));
         refreshUndoRedoButtons();
     }
@@ -438,13 +516,22 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
 
     private void onExport(Target target) {
-        // Render image and overlays, but no handles
+        // 1. Render image and overlays, but no handles
         imagePane.setSelectedOverlay(null);
-        BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
-        Graphics g = renderedImage.getGraphics();
-        imagePane.paint(g);
-        g.dispose();
-        capture.setRenderedImage(renderedImage);
+        if (capture.isVideo()) {
+            // TODO should "render" video file if it has overlays or was otherwise edited (trim)
+            // TODO this should be made in a separate thread (or be part of the export?) to avoid freezing the UI
+            // renderVideo();
+            // TODO for now, just point to the same file
+            capture.setRenderedFile(capture.getOriginalFile());
+        }
+        else {
+            BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
+            Graphics g = renderedImage.getGraphics();
+            imagePane.paint(g);
+            g.dispose();
+            capture.setRenderedImage(renderedImage);
+        }
 
         // Save name and overlays
         capture.setName(nameTextField.getText());
@@ -457,9 +544,9 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         }
         capture.setOverlays(overlays);
 
-        // Perform export
+        // 2. Perform export
         Exporter exporter = target.getExporter();
-        ExportFrame exportFrame = new ExportFrame(this, capture, exporter);
+        ExportFrame exportFrame = new ExportFrame(this, starWindow, capture, exporter);
         exporter.initialize(this, exportFrame);
         // Note the chicken/egg problem:
         // - Frame needs the Exporter to start and control it
@@ -486,7 +573,10 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         JMenuItem menuItem;
         for (Target target : Ginj.getTargetPrefs().getTargetList()) {
             Exporter exporter = target.getExporter();
-            if (exporter.isOnlineService()) {
+            if (
+                    ((capture.isVideo() && exporter.isVideoSupported()) || (!capture.isVideo() && exporter.isImageSupported()))
+                            && (exporter.isOnlineService())
+            ) {
                 menuItem = new JMenuItem(target.getDisplayName(), exporter.getButtonIcon(24));
                 menuItem.addActionListener(e -> onExport(target));
                 popup.add(menuItem);
@@ -501,11 +591,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     }
 
     private void onConfigureTargets() {
-        if (starWindow.getTargetManagementFrame() == null) {
-            starWindow.setTargetManagementFrame(new TargetManagementFrame(starWindow));
-        }
-        starWindow.getTargetManagementFrame().setVisible(true);
-        starWindow.getTargetManagementFrame().requestFocus();
+        starWindow.openTargetManagementFrame();
     }
 
     private void onCustomize() {

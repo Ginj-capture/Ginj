@@ -9,17 +9,22 @@ import info.ginj.export.online.OAuthAccount;
 import info.ginj.export.online.dropbox.DropboxExporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
+import info.ginj.export.online.google.GoogleDriveExporter;
 import info.ginj.export.online.google.GooglePhotosExporter;
 import info.ginj.model.Account;
 import info.ginj.model.ExportSettings;
 import info.ginj.model.Target;
 import info.ginj.model.TargetPrefs;
+import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.ui.layout.ButtonLayout;
 import info.ginj.util.UI;
 import org.netbeans.api.wizard.WizardDisplayer;
 import org.netbeans.spi.wizard.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.util.List;
@@ -29,16 +34,21 @@ import java.util.*;
  * This window displays and manages the export targets
  */
 public class TargetManagementFrame extends JFrame implements TargetListChangeListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(TargetManagementFrame.class);
+
     public static final Dimension CONFIG_PREFERRED_SIZE = new Dimension(400, 300);
     public static final Dimension DETAIL_PANEL_PREFERRED_SIZE = new Dimension(500, 400);
 
     public static final String SELECT_TARGET_TYPE_STEP = "select_target_type";
-    public static final String GOOGLE_AUTHORIZE_STEP = "google_authorize";
-    public static final String GOOGLE_PHOTOS_CONFIGURE_STEP = "google_photos_configure";
     public static final String DROPBOX_AUTHORIZE_STEP = "dropbox_authorize";
-    public static final String DROPBOX_CONFIGURE_STEP = "dropbox_configure";
-    public static final String CLIPBOARD_CONFIGURE_STEP = "clipboard_configure";
+    public static final String GOOGLE_PHOTOS_AUTHORIZE_STEP = "google_photos_authorize";
+    public static final String GOOGLE_DRIVE_AUTHORIZE_STEP = "google_drive_authorize";
     public static final String DISK_CONFIGURE_STEP = "disk_configure";
+    public static final String CLIPBOARD_CONFIGURE_STEP = "clipboard_configure";
+    public static final String DROPBOX_CONFIGURE_STEP = "dropbox_configure";
+    public static final String GOOGLE_PHOTOS_CONFIGURE_STEP = "google_photos_configure";
+    public static final String GOOGLE_DRIVE_CONFIGURE_STEP = "google_drive_configure";
 
     private static StarWindow starWindow = null;
     private final DefaultListModel<Target> targetListModel;
@@ -57,7 +67,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
         setUndecorated(true);
 
-        final Container contentPane = getContentPane();
+        final JPanel contentPane = new DoubleBorderedPanel();
+        setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout());
 
         // Prepare title bar
@@ -67,7 +78,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         // Prepare main panel
         JPanel mainPanel = new JPanel(new BorderLayout());
-
+        mainPanel.setOpaque(false);
+        mainPanel.setBorder(new EmptyBorder(new Insets(20,20,20,20)));
         mainPanel.add(new JLabel("Defined targets:"), BorderLayout.NORTH);
 
 
@@ -128,6 +140,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         // Prepare lower panel
         JPanel lowerPanel = new JPanel();
+        lowerPanel.setOpaque(false);
+        lowerPanel.setBorder(new EmptyBorder(new Insets(5,5,5,5)));
         lowerPanel.setLayout(new FlowLayout());
         final JButton closeButton = new JButton("Close");
         closeButton.addActionListener(e -> onClose());
@@ -140,6 +154,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
         setPreferredSize(CONFIG_PREFERRED_SIZE);
         pack();
+
+        UI.addEscKeyShortcut(this, e -> onClose());
 
         // Center window
         starWindow.centerFrameOnStarIconDisplay(this);
@@ -165,10 +181,11 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         final Target selectedTarget = targetListModel.getElementAt(selectedIndex);
 
         Wizard wizard = switch(selectedTarget.getExporter().getExporterName()) {
-            case ClipboardExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new ClipboardConfigurationPage()}, new TextResultProducer());
             case DiskExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new DiskConfigurationPage()}, new TextResultProducer());
-            case GooglePhotosExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new GooglePhotosConfigurationPage()}, new GooglePhotosAccountResultProducer());
+            case ClipboardExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new ClipboardConfigurationPage()}, new TextResultProducer());
             case DropboxExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new DropboxConfigurationPage()}, new OAuthAccountResultProducer());
+            case GooglePhotosExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new GooglePhotosConfigurationPage()}, new GooglePhotosAccountResultProducer());
+            case GoogleDriveExporter.NAME -> WizardPage.createWizard(new WizardPage[]{new GoogleDriveConfigurationPage()}, new OAuthAccountResultProducer());
             default -> throw new IllegalStateException("Unknown exporter: " + selectedTarget.getExporter().getExporterName());
         };
 
@@ -238,7 +255,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
     @Override
     public void dispose() {
         // Unregister this window
-        starWindow.setTargetManagementFrame(null);
+        starWindow.clearTargetManagementFrame();
         starWindow.removeTargetChangeListener(this);
         super.dispose();
     }
@@ -264,12 +281,13 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             exporterWizardMap.put(DiskExporter.NAME, WizardPage.createWizard(new WizardPage[]{new DiskConfigurationPage()}, new TextResultProducer()));
             exporterWizardMap.put(ClipboardExporter.NAME, WizardPage.createWizard(new WizardPage[]{new ClipboardConfigurationPage()}, new TextResultProducer()));
             exporterWizardMap.put(DropboxExporter.NAME, WizardPage.createWizard(new WizardPage[]{new DropboxAuthorizePage(), new DropboxConfigurationPage()}, new OAuthAccountResultProducer()));
-            exporterWizardMap.put(GooglePhotosExporter.NAME, WizardPage.createWizard(new WizardPage[]{new GoogleAuthorizePage(), new GooglePhotosConfigurationPage()}, new GooglePhotosAccountResultProducer()));
+            exporterWizardMap.put(GooglePhotosExporter.NAME, WizardPage.createWizard(new WizardPage[]{new GooglePhotosAuthorizePage(), new GooglePhotosConfigurationPage()}, new GooglePhotosAccountResultProducer()));
+            exporterWizardMap.put(GoogleDriveExporter.NAME, WizardPage.createWizard(new WizardPage[]{new GoogleDriveAuthorizePage(), new GoogleDriveConfigurationPage()}, new OAuthAccountResultProducer()));
         }
 
         @SuppressWarnings("rawtypes")
         public Wizard getWizardForStep(String step, Map data) {
-//            System.err.println("Get Wizard For Step " + step + " with " + data);
+//            logger.info("Get Wizard For Step " + step + " with " + data);
             if (SELECT_TARGET_TYPE_STEP.equals(step)) {
                 //check data in the map to decide which wizard will follow
                 final Exporter exporter = (Exporter) data.get(TargetPrefs.EXPORTER_KEY);
@@ -384,8 +402,8 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                             isOK = true;
                         }
                     }
-                    catch (AuthorizationException | CommunicationException ex) {
-                        UI.alertException(OAuthAuthorizePage.this, "", "", ex);
+                    catch (AuthorizationException | CommunicationException e) {
+                        UI.alertException(OAuthAuthorizePage.this, "Authorisation error", "An error occurred while processing authorization", e, logger);
                     }
                     finally {
                         setBusy(false);
@@ -402,28 +420,6 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             };
         }
     }
-
-    public static class GoogleAuthorizePage extends OAuthAuthorizePage {
-
-        public GoogleAuthorizePage() {
-            super(GOOGLE_AUTHORIZE_STEP, "Authorize");
-        }
-
-        @Override
-        protected String getHelpText() {
-            return "To be able to upload captures to Google Photos, you must authorize " + Ginj.getAppName() + " to access your account.\n" + Ginj.getAppName() + " requests access to:\n" +
-                    "- read your profile to retrieve your name and e-mail\n" +
-                    "- create and share an album\n" +
-                    "- upload captures to that album.\n" +
-                    "Clicking the 'Next' button will open a browser to ask for your authorization (login may be required), and you will be taken to the next step once " + Ginj.getAppName() + " has been authorized.";
-        }
-
-        @Override
-        protected ImageIcon getConnectIcon() {
-            return UI.createIcon(getClass().getResource("/img/logo/googlephotos_connect.png"), 300);
-        }
-    }
-
 
     private static class DropboxAuthorizePage extends OAuthAuthorizePage {
 
@@ -446,111 +442,45 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
         }
     }
 
-    public static class GooglePhotosConfigurationPage extends WizardPage {
-        public GooglePhotosConfigurationPage() {
-            super(GOOGLE_PHOTOS_CONFIGURE_STEP, "Configure");
-        }
+    public static class GooglePhotosAuthorizePage extends OAuthAuthorizePage {
 
-        @SuppressWarnings("rawtypes")
-        @Override
-        public WizardPanelNavResult allowBack(String stepName, Map settings, Wizard wizard) {
-            // Prevent back button because re-authenticating throws an exception. TODO see why...
-            return WizardPanelNavResult.REMAIN_ON_PAGE;
+        public GooglePhotosAuthorizePage() {
+            super(GOOGLE_PHOTOS_AUTHORIZE_STEP, "Authorize");
         }
 
         @Override
-        protected void renderingPage() {
-            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
-            final OAuthAccount account = (OAuthAccount) getWizardData(TargetPrefs.ACCOUNT_KEY);
+        protected String getHelpText() {
+            return "To be able to upload captures to Google Photos, you must authorize " + Ginj.getAppName() + " to access your account.\n" + Ginj.getAppName() + " requests access to:\n" +
+                    "- read your profile to retrieve your name and e-mail\n" +
+                    "- create and share an album\n" +
+                    "- upload captures to that album.\n" +
+                    "Clicking the 'Next' button will open a browser to ask for your authorization (login may be required), and you will be taken to the next step once " + Ginj.getAppName() + " has been authorized.";
+        }
 
-            JPanel intermediatePanel = new JPanel();
-            intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
-
-            if (exporter != null && account != null) {
-
-                String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
-                if (displayName == null) {
-                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";;
-                }
-
-                final JCheckBox shareAlbumCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);
-                JPanel fieldsPanel = UI.getFieldPanel(
-                        "Username:", UI.createWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, getWizardDataMap(), account.getName(), false, true),
-                        "Email:", UI.createWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, getWizardDataMap(), account.getEmail(), false, true),
-                        "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
-                        "Create one album:", UI.createWizardList(ExportSettings.ALBUM_GRANULARITY_KEY, GooglePhotosExporter.Granularity.values(), getWizardDataMap(), 0, true, true),
-                        "Share album:", shareAlbumCheckbox,
-                        "Copy link to clipboard:", UI.createWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, getWizardDataMap(), true, shareAlbumCheckbox, true)
-                );
-
-                intermediatePanel.add(fieldsPanel);
-            }
-            add(intermediatePanel);
+        @Override
+        protected ImageIcon getConnectIcon() {
+            return UI.createIcon(getClass().getResource("/img/logo/googlephotos_connect.png"), 300);
         }
     }
 
-    private static class DropboxConfigurationPage extends WizardPage {
-        public DropboxConfigurationPage() {
-            super(DROPBOX_CONFIGURE_STEP, "Configure");
+    public static class GoogleDriveAuthorizePage extends OAuthAuthorizePage {
+
+        public GoogleDriveAuthorizePage() {
+            super(GOOGLE_DRIVE_AUTHORIZE_STEP, "Authorize");
         }
 
         @Override
-        protected void renderingPage() {
-            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
-            final OAuthAccount account = (OAuthAccount) getWizardData(TargetPrefs.ACCOUNT_KEY);
-
-            JPanel intermediatePanel = new JPanel();
-            intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
-
-            if (exporter != null && account != null) {
-                String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
-                if (displayName == null) {
-                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";;
-                }
-
-                final JCheckBox shareCaptureCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);
-                JPanel fieldsPanel = UI.getFieldPanel(
-                        "Username:", UI.createWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, getWizardDataMap(), account.getName(), false, true),
-                        "Email:", UI.createWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, getWizardDataMap(), account.getEmail(), false, true),
-                        "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
-                        "Share capture:", shareCaptureCheckbox,
-                        "Copy link to clipboard:", UI.createWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, getWizardDataMap(), true, shareCaptureCheckbox, true)
-                );
-
-                intermediatePanel.add(fieldsPanel);
-            }
-            add(intermediatePanel);
-        }
-    }
-
-    public static class ClipboardConfigurationPage extends WizardPage {
-        public ClipboardConfigurationPage() {
-            super(CLIPBOARD_CONFIGURE_STEP, "Configure");
+        protected String getHelpText() {
+            return "To be able to upload captures to Google Drive, you must authorize " + Ginj.getAppName() + " to access your account.\n" + Ginj.getAppName() + " requests access to:\n" +
+                    "- read your profile to retrieve your name and e-mail\n" +
+                    "- upload captures to your account.\n" +
+                    "- create shared links to those captures\n" +
+                    "Clicking the 'Next' button will open a browser to ask for your authorization (login may be required), and you will be taken to the next step once " + Ginj.getAppName() + " has been authorized.";
         }
 
         @Override
-        protected void renderingPage() {
-            String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
-            if (displayName == null) {
-                final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
-                if (exporter != null) {
-                    displayName = exporter.getDefaultShareText();
-                }
-                else {
-                    displayName = "";
-                }
-            }
-
-            JPanel fieldsPanel = UI.getFieldPanel(
-                    "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true)
-            );
-
-
-            JPanel intermediatePanel = new JPanel();
-            intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
-
-            intermediatePanel.add(fieldsPanel);
-            add(intermediatePanel);
+        protected ImageIcon getConnectIcon() {
+            return UI.createIcon(getClass().getResource("/img/logo/googledrive_connect.png"), 300);
         }
     }
 
@@ -581,7 +511,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
 
             final JCheckBox alwaysAskCheckBox = UI.createWizardCheckBox(ExportSettings.MUST_ALWAYS_ASK_LOCATION_KEY, getWizardDataMap(), false, true, true);
-            JPanel fieldsPanel = UI.getFieldPanel(
+            JPanel fieldsPanel = UI.createFieldPanel(
                     "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
                     "Save to:", UI.createWizardTextField(ExportSettings.DEST_LOCATION_KEY, getWizardDataMap(), defaultSaveDir, true, true),
                     "Always ask save location:", alwaysAskCheckBox,
@@ -594,6 +524,157 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
 
             intermediatePanel.add(fieldsPanel);
+            add(intermediatePanel);
+        }
+    }
+
+    public static class ClipboardConfigurationPage extends WizardPage {
+        public ClipboardConfigurationPage() {
+            super(CLIPBOARD_CONFIGURE_STEP, "Configure");
+        }
+
+        @Override
+        protected void renderingPage() {
+            String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
+            if (displayName == null) {
+                final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
+                if (exporter != null) {
+                    displayName = exporter.getDefaultShareText();
+                }
+                else {
+                    displayName = "";
+                }
+            }
+
+            JPanel fieldsPanel = UI.createFieldPanel(
+                    "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true)
+            );
+
+
+            JPanel intermediatePanel = new JPanel();
+            intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
+
+            intermediatePanel.add(fieldsPanel);
+            add(intermediatePanel);
+        }
+    }
+
+
+    private static class DropboxConfigurationPage extends WizardPage {
+        public DropboxConfigurationPage() {
+            super(DROPBOX_CONFIGURE_STEP, "Configure");
+        }
+
+        @Override
+        protected void renderingPage() {
+            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
+            final OAuthAccount account = (OAuthAccount) getWizardData(TargetPrefs.ACCOUNT_KEY);
+
+            JPanel intermediatePanel = new JPanel();
+            intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
+
+            if (exporter != null && account != null) {
+                String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
+                if (displayName == null) {
+                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";
+                }
+
+                final JCheckBox shareCaptureCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);
+                JPanel fieldsPanel = UI.createFieldPanel(
+                        "Username:", UI.createWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, getWizardDataMap(), account.getName(), false, true),
+                        "Email:", UI.createWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, getWizardDataMap(), account.getEmail(), false, true),
+                        "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
+                        "Share capture:", shareCaptureCheckbox,
+                        "Copy link to clipboard:", UI.createWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, getWizardDataMap(), true, shareCaptureCheckbox, true)
+                );
+
+                intermediatePanel.add(fieldsPanel);
+            }
+            add(intermediatePanel);
+        }
+    }
+
+    public static class GooglePhotosConfigurationPage extends WizardPage {
+        public GooglePhotosConfigurationPage() {
+            super(GOOGLE_PHOTOS_CONFIGURE_STEP, "Configure");
+        }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        public WizardPanelNavResult allowBack(String stepName, Map settings, Wizard wizard) {
+            // Prevent back button because re-authenticating throws an exception. TODO see why...
+            return WizardPanelNavResult.REMAIN_ON_PAGE;
+        }
+
+        @Override
+        protected void renderingPage() {
+            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
+            final OAuthAccount account = (OAuthAccount) getWizardData(TargetPrefs.ACCOUNT_KEY);
+
+            JPanel intermediatePanel = new JPanel();
+            intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
+
+            if (exporter != null && account != null) {
+
+                String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
+                if (displayName == null) {
+                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";
+                }
+
+                final JCheckBox shareAlbumCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);
+                JPanel fieldsPanel = UI.createFieldPanel(
+                        "Username:", UI.createWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, getWizardDataMap(), account.getName(), false, true),
+                        "Email:", UI.createWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, getWizardDataMap(), account.getEmail(), false, true),
+                        "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
+                        "Create one album:", UI.createWizardList(ExportSettings.ALBUM_GRANULARITY_KEY, GooglePhotosExporter.Granularity.values(), getWizardDataMap(), 0, true, true),
+                        "Share album:", shareAlbumCheckbox,
+                        "Copy link to clipboard:", UI.createWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, getWizardDataMap(), true, shareAlbumCheckbox, true)
+                );
+
+                intermediatePanel.add(fieldsPanel);
+            }
+            add(intermediatePanel);
+        }
+    }
+
+    public static class GoogleDriveConfigurationPage extends WizardPage {
+        public GoogleDriveConfigurationPage() {
+            super(GOOGLE_DRIVE_CONFIGURE_STEP, "Configure");
+        }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        public WizardPanelNavResult allowBack(String stepName, Map settings, Wizard wizard) {
+            // Prevent back button because re-authenticating throws an exception. TODO see why...
+            return WizardPanelNavResult.REMAIN_ON_PAGE;
+        }
+
+        @Override
+        protected void renderingPage() {
+            final Exporter exporter = (Exporter) getWizardData(TargetPrefs.EXPORTER_KEY);
+            final OAuthAccount account = (OAuthAccount) getWizardData(TargetPrefs.ACCOUNT_KEY);
+
+            JPanel intermediatePanel = new JPanel();
+            intermediatePanel.setPreferredSize(DETAIL_PANEL_PREFERRED_SIZE);
+
+            if (exporter != null && account != null) {
+
+                String displayName = (String) getWizardData(TargetPrefs.DISPLAY_NAME_KEY);
+                if (displayName == null) {
+                    displayName = exporter.getDefaultShareText() + " (" + account.getEmail() + ")";
+                }
+
+                final JCheckBox shareCaptureCheckbox = UI.createWizardCheckBox(ExportSettings.MUST_SHARE_KEY, getWizardDataMap(), true, true, true);
+                JPanel fieldsPanel = UI.createFieldPanel(
+                        "Username:", UI.createWizardTextField(TargetPrefs.ACCOUNT_USERNAME_KEY, getWizardDataMap(), account.getName(), false, true),
+                        "Email:", UI.createWizardTextField(TargetPrefs.ACCOUNT_EMAIL_KEY, getWizardDataMap(), account.getEmail(), false, true),
+                        "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
+                        "Share capture:", shareCaptureCheckbox,
+                        "Copy link to clipboard:", UI.createWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, getWizardDataMap(), true, shareCaptureCheckbox, true)
+                );
+
+                intermediatePanel.add(fieldsPanel);
+            }
             add(intermediatePanel);
         }
     }
@@ -640,7 +721,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
 
                     // Safeguard
                     if (!settingsMap.isEmpty()) {
-                        System.err.println("Unhandled settings in map: " + settingsMap);
+                        logger.warn("Unhandled settings in map: " + settingsMap);
                     }
 
                     final TargetPrefs targetPrefs = Ginj.getTargetPrefs();
@@ -654,13 +735,13 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                     return Summary.create("The following target was configured successfully:\n\n" + map.get(TargetPrefs.DISPLAY_NAME_KEY) + "\n\n" + getAdditionalFinishText(map), map);
                 }
                 else {
-                    System.err.println(map);
+                    logger.error("Error saving target, no exporter in map: " + map);
                     return Summary.create("There was an error saving target, no exporter in map.", map);
                 }
             }
             catch (Exception e) {
-                System.err.println(map);
-                e.printStackTrace();
+                logger.error("Error saving target", e);
+                logger.info("Map was " + map);
                 return Summary.create("There was an error saving target, please check the console", map);
             }
         }

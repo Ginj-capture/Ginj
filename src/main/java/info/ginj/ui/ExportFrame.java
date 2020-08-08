@@ -4,10 +4,15 @@ import info.ginj.Ginj;
 import info.ginj.export.ExportMonitor;
 import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
+import info.ginj.model.Export;
+import info.ginj.model.Prefs;
 import info.ginj.model.Target;
 import info.ginj.ui.component.YellowLabel;
+import info.ginj.util.Jaffree;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -21,22 +26,27 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 
 /**
  * This "small" progress window is responsible for starting, monitoring, and controlling an export in background.
  */
 public class ExportFrame extends JFrame implements ExportMonitor {
 
+    private static final Logger logger = LoggerFactory.getLogger(ExportFrame.class);
+
     private final JLabel stateLabel;
     private final JLabel sizeLabel;
     private final BoundedRangeModel progressModel;
     private final Window parentWindow;
+    private final StarWindow starWindow;
     private final Capture capture;
     private Exporter exporter;
 
-    public ExportFrame(Window parentWindow, Capture capture, Exporter exporter) {
+    public ExportFrame(Window parentWindow, StarWindow starWindow, Capture capture, Exporter exporter) {
         super();
         this.parentWindow = parentWindow;
+        this.starWindow = starWindow;
         this.capture = capture;
         this.exporter = exporter;
 
@@ -110,6 +120,8 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         pack();
         setSize(280,70);
 
+        UI.addEscKeyShortcut(this, e -> onCancel());
+
         // Position window
         Ginj.starWindow.positionFrameNextToStarIcon(this);
     }
@@ -163,8 +175,17 @@ public class ExportFrame extends JFrame implements ExportMonitor {
 
         closeExportWindow();
 
-        // Open the "capture completion" notification window with auto-hide
-        new ExportCompletionFrame(capture).setVisible(true);
+        final List<Export> exports = capture.getExports();
+        final Export export = exports.get(exports.size() - 1); // last export
+
+        if (Prefs.isTrue(Prefs.Key.USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION) && starWindow.isTrayAvailable()) {
+            starWindow.popupTrayNotification(export);
+        }
+        else {
+            // Open the "capture completion" notification window with auto-hide
+            new ExportCompletionFrame(export).setVisible(true);
+        }
+
     }
 
     @Override
@@ -215,7 +236,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         // Save the original file to history
         // ENHANCEMENT we store the source, not the rendered version !
         // Compute filename (no version involved here)
-        File originalFile = new File(historyFolder, capture.getId() + (capture.isVideo()? Misc.VIDEO_EXTENSION: Misc.IMAGE_EXTENSION));
+        File originalFile = new File(historyFolder, capture.getId() + capture.computeExtension());
         try {
             // Original file could be shared between multiple captures, only store it once
             if (!originalFile.exists()) {
@@ -225,16 +246,22 @@ public class ExportFrame extends JFrame implements ExportMonitor {
                     Files.move(capture.getOriginalFile().toPath(), originalFile.toPath());
                 }
                 else {
-                    // No original file on disk, write image from memory (should not be null !)
-                    if (!ImageIO.write(capture.getOriginalImage(), Misc.IMAGE_FORMAT_PNG, originalFile)) {
-                        UI.alertError(this, "Save error", "Writing capture to history failed (" + originalFile.getAbsolutePath() + ")");
+                    if (capture.isVideo()) {
+                        UI.alertError(this, "Save error", "Cannot move original video file to history: capture.getOriginalFile() is null!");
                         return false;
+                    }
+                    else {
+                        // No original file on disk, write image from memory (should not be null !)
+                        if (!ImageIO.write(capture.getOriginalImage(), Misc.IMAGE_FORMAT_PNG, originalFile)) {
+                            UI.alertError(this, "Save error", "Writing capture to history failed (" + originalFile.getAbsolutePath() + ")");
+                            return false;
+                        }
                     }
                 }
             }
         }
         catch (IOException e) {
-            UI.alertException(this, "Save error", "Saving capture to history failed (" + originalFile.getAbsolutePath() + ")", e);
+            UI.alertException(this, "Save error", "Saving capture to history failed (" + originalFile.getAbsolutePath() + ")", e, logger);
             return false;
         }
 
@@ -251,50 +278,54 @@ public class ExportFrame extends JFrame implements ExportMonitor {
 
 
         // Save thumbnail
+        BufferedImage thumbnailSourceImage;
         if (capture.isVideo()) {
-            throw new RuntimeException("TODO video thumbnail");
+            // TODO grab from rendered video, not from original
+            thumbnailSourceImage = Jaffree.grabImage(originalFile, 0);
         }
         else {
-            BufferedImage thumbnailSourceImage = capture.getRenderedImage();
-            BufferedImage thumbnailImage;
+            thumbnailSourceImage = capture.getRenderedImage();
+        }
 
-            int sourceImageWidth = thumbnailSourceImage.getWidth();
-            int sourceImageHeight = thumbnailSourceImage.getHeight();
-            int thumbnailWidth = HistoryFrame.THUMBNAIL_SIZE.width;
-            int thumbnailHeight = HistoryFrame.THUMBNAIL_SIZE.height;
+        BufferedImage thumbnailImage;
 
-            if (sourceImageWidth > thumbnailWidth || sourceImageHeight > thumbnailHeight) {
-                // Resize
-                double hScale = thumbnailWidth / ((double) sourceImageWidth);
-                double vScale = thumbnailHeight / ((double) sourceImageHeight);
-                double scale = Math.min(hScale, vScale);
+        int sourceImageWidth = thumbnailSourceImage.getWidth();
+        int sourceImageHeight = thumbnailSourceImage.getHeight();
+        int thumbnailWidth = HistoryFrame.THUMBNAIL_SIZE.width;
+        int thumbnailHeight = HistoryFrame.THUMBNAIL_SIZE.height;
 
-                int targetWidth = (int) (sourceImageWidth * scale);
-                int targetHeight = (int) (sourceImageHeight * scale);
+        if (sourceImageWidth > thumbnailWidth || sourceImageHeight > thumbnailHeight) {
+            // Resize
+            double hScale = thumbnailWidth / ((double) sourceImageWidth);
+            double vScale = thumbnailHeight / ((double) sourceImageHeight);
+            double scale = Math.min(hScale, vScale);
 
-                thumbnailImage = new BufferedImage(targetWidth, targetHeight, thumbnailSourceImage.getType());
-                AffineTransform scaleInstance = AffineTransform.getScaleInstance(scale, scale);
-                AffineTransformOp scaleOp = new AffineTransformOp(scaleInstance, AffineTransformOp.TYPE_BILINEAR);
-                scaleOp.filter(thumbnailSourceImage, thumbnailImage);
-            }
-            else {
-                thumbnailImage = thumbnailSourceImage;
-            }
+            int targetWidth = (int) (sourceImageWidth * scale);
+            int targetHeight = (int) (sourceImageHeight * scale);
 
-            // Write the thumbnail to disk
-            // Compute filename (including version)
-            File thumbnailFile = new File(historyFolder, capture.getBaseFilename() + Misc.THUMBNAIL_EXTENSION);
-            try {
-                if (!ImageIO.write(thumbnailImage, Misc.IMAGE_FORMAT_PNG, thumbnailFile)) {
-                    UI.alertError(this, "Save error", "Saving thumbnail to history failed (" + thumbnailFile.getAbsolutePath() + ")");
-                    return false;
-                }
-            }
-            catch (IOException e) {
-                UI.alertException(this, "Save error", "Saving thumbnail to history failed (" + thumbnailFile.getAbsolutePath() + ")", e);
+            thumbnailImage = new BufferedImage(targetWidth, targetHeight, thumbnailSourceImage.getType());
+            AffineTransform scaleInstance = AffineTransform.getScaleInstance(scale, scale);
+            AffineTransformOp scaleOp = new AffineTransformOp(scaleInstance, AffineTransformOp.TYPE_BILINEAR);
+            scaleOp.filter(thumbnailSourceImage, thumbnailImage);
+        }
+        else {
+            thumbnailImage = thumbnailSourceImage;
+        }
+
+        // Write the thumbnail to disk
+        // Compute filename (including version)
+        File thumbnailFile = new File(historyFolder, capture.getBaseFilename() + Misc.THUMBNAIL_EXTENSION);
+        try {
+            if (!ImageIO.write(thumbnailImage, Misc.IMAGE_FORMAT_PNG, thumbnailFile)) {
+                UI.alertError(this, "Save error", "Saving thumbnail to history failed (" + thumbnailFile.getAbsolutePath() + ")");
                 return false;
             }
         }
+        catch (IOException e) {
+            UI.alertException(this, "Save error", "Saving thumbnail to history failed (" + thumbnailFile.getAbsolutePath() + ")", e, logger);
+            return false;
+        }
+
 
         if (Ginj.starWindow.getHistoryFrame() != null) {
             Ginj.starWindow.getHistoryFrame().loadHistoryList();

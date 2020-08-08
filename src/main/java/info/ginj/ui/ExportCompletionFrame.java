@@ -1,8 +1,6 @@
 package info.ginj.ui;
 
 import info.ginj.Ginj;
-import info.ginj.export.clipboard.ClipboardExporter;
-import info.ginj.model.Capture;
 import info.ginj.model.Export;
 import info.ginj.model.Prefs;
 import info.ginj.ui.component.YellowLabel;
@@ -10,9 +8,9 @@ import info.ginj.util.UI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -26,9 +24,9 @@ public class ExportCompletionFrame extends JFrame {
     java.util.Timer autoHideTimer = null;
     int timeRemainingBeforeHide = AUTO_HIDE_DELAY_SECS;
 
-    private final JCheckBox autoHideCheckbox;
+    private JCheckBox autoHideCheckbox;
 
-    public ExportCompletionFrame(Capture capture) {
+    public ExportCompletionFrame(Export export) {
         super();
 
         // For Alt+Tab behaviour
@@ -43,8 +41,6 @@ public class ExportCompletionFrame extends JFrame {
         mainPanel.setLayout(new GridBagLayout());
 
         // Add main label
-        final List<Export> exports = capture.getExports();
-        final Export export = exports.get(exports.size() - 1); // last export
         JLabel stateLabel = new YellowLabel(export.getExporterName() + " export complete");
 
         GridBagConstraints c = new GridBagConstraints();
@@ -55,20 +51,12 @@ public class ExportCompletionFrame extends JFrame {
         c.insets = new Insets(16, 16, 8, 16);
         mainPanel.add(stateLabel, c);
 
-        // Add message label
-        String message;
-        if (ClipboardExporter.NAME.equals(export.getExporterName())) {
-            message = "Your capture was copied to the clipboard and is ready to be pasted";
-        }
-        else {
-            if (export.getLocation() != null && export.getLocation().length() > 0) {
-                message = "Your capture is available at the following location:\n" + export.getLocation();
+        // Let the "auto-hide" countdown active if the user clicks on the link in the message.
+        ActionListener linkClickListener = e -> {
+            if (autoHideCheckbox.isSelected()) {
+                startAutoHideTimer();
             }
-            else {
-                message = "Your capture is now available";
-            }
-        }
-        JLabel messageLabel = new YellowLabel(message);
+        };
 
         c = new GridBagConstraints();
         c.gridx = 0;
@@ -76,18 +64,16 @@ public class ExportCompletionFrame extends JFrame {
         c.gridwidth = 2;
         c.anchor = GridBagConstraints.CENTER;
         c.insets = new Insets(8, 16, 8, 16);
-        mainPanel.add(messageLabel, c);
+        mainPanel.add(UI.createClickableHtmlEditorPane(export.getMessage(true), linkClickListener), c);
 
         // Add joke label
-        JLabel jokelabel = new JLabel("Ginj will not be replaced - it's is here to stay :-).");
-
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 2;
         c.gridwidth = 2;
         c.anchor = GridBagConstraints.WEST;
         c.insets = new Insets(8, 16, 8, 16);
-        mainPanel.add(jokelabel, c);
+        mainPanel.add(new JLabel(Ginj.getAppName() + " will not be replaced - it's is here to stay :-)."), c);
 
         autoHideCheckbox = new JCheckBox();
         final boolean autoHide = Prefs.isTrue(Prefs.Key.EXPORT_COMPLETE_AUTOHIDE_KEY);
@@ -123,6 +109,8 @@ public class ExportCompletionFrame extends JFrame {
         addMouseBehaviour(mainPanel);
 
         pack();
+
+        UI.addEscKeyShortcut(this, e -> onClose());
 
         // Position window
         Ginj.starWindow.positionFrameNextToStarIcon(this);

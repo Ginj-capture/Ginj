@@ -3,9 +3,12 @@ package info.ginj.export.disk;
 import info.ginj.Ginj;
 import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
+import info.ginj.model.Export;
 import info.ginj.model.Target;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -19,6 +22,8 @@ import java.util.concurrent.ExecutionException;
  * This exporter saves the image as a PNG file to disk, and optionally copies its path to the clipboard
  */
 public class DiskExporter extends Exporter {
+
+    private static final Logger logger = LoggerFactory.getLogger(DiskExporter.class);
 
     public static final String NAME = "Disk";
     public static final int PROGRESS_SAVE_CALC_DESTINATION = 5;
@@ -93,7 +98,7 @@ public class DiskExporter extends Exporter {
             }
         }
         // Default file
-        destinationFile = new File(saveDirName, capture.getDefaultName() + Misc.IMAGE_EXTENSION);
+        destinationFile = new File(saveDirName, capture.computeUploadFilename());
 
         if (!askForLocation) {
             // OK, we're done.
@@ -101,20 +106,20 @@ public class DiskExporter extends Exporter {
         }
 
         // Ask for location
+        String extension = capture.computeExtension();
         JFileChooser fileChooser;
         try {
             // TODO does this bring real performance boost compared to fileChooser = new JFileChooser(); ?
             fileChooser = Ginj.futureFileChooser.get();
         }
         catch (InterruptedException | ExecutionException e) {
-            JOptionPane.showMessageDialog(parentFrame, "Error opening file chooser: " + e.getMessage());
-            e.printStackTrace();
+            UI.alertException(parentFrame, "Save error", "Error opening file chooser", e, logger);
             return false;
         }
         fileChooser.setDialogTitle("Save capture as...");
         fileChooser.setAcceptAllFileFilterUsed(false);
         fileChooser.setMultiSelectionEnabled(false);
-        fileChooser.setFileFilter(new FileNameExtensionFilter("PNG (*" + Misc.IMAGE_EXTENSION + ")", Misc.IMAGE_EXTENSION.substring(1)));
+        fileChooser.setFileFilter(new FileNameExtensionFilter(extension.substring(1).toUpperCase() + " (*" + extension + ")", extension.substring(1)));
         fileChooser.setSelectedFile(destinationFile);
 
         if (fileChooser.showSaveDialog(parentFrame) != JFileChooser.APPROVE_OPTION) {
@@ -123,6 +128,10 @@ public class DiskExporter extends Exporter {
         }
 
         destinationFile = fileChooser.getSelectedFile();
+        // Make sure it ends with the default extension
+        if (!destinationFile.getName().toLowerCase().endsWith(extension)) {
+            destinationFile = new File(destinationFile.getAbsolutePath() + extension);
+        }
         if (!destinationFile.exists()) {
             // Selected file does not exist, go ahead
             return true;
@@ -144,21 +153,16 @@ public class DiskExporter extends Exporter {
     public void exportCapture(Capture capture, Target target) {
         try {
             logProgress("Saving capture", PROGRESS_SAVE);
-            if (capture.isVideo()) {
-                throw new RuntimeException("TODO video");
+            if (capture.isVideo() || capture.getRenderedImage() == null) {
+                // TODO make this a block copy loop that it can be cancelled (and doesn't freeze the UI) for large files
+                Files.copy(capture.getRenderedFile().toPath(), destinationFile.toPath());
             }
             else {
-                if (capture.getRenderedImage() != null) {
-                    ImageIO.write(capture.getRenderedImage(), Misc.IMAGE_FORMAT_PNG, destinationFile);
-                }
-                else {
-                    // TODO make this a block copy loop that it can be cancelled
-                    Files.copy(capture.getRenderedFile().toPath(), destinationFile.toPath());
-                }
+                ImageIO.write(capture.getRenderedImage(), Misc.IMAGE_FORMAT_PNG, destinationFile);
             }
         }
         catch (IOException e) {
-            UI.alertException(parentFrame, "Save Error", "Encountered an error while saving image as\n'" + destinationFile.getAbsolutePath() + "'\n" + e.getMessage() + "\nMore info is available on the Java console", e);
+            UI.alertException(parentFrame, "Save Error", "Encountered an error while saving image as\n'" + destinationFile.getAbsolutePath() + "'\n" + e.getMessage() + "\nMore info is available on the Java console", e, logger);
             failed("Save error");
             return;
         }
@@ -169,13 +173,16 @@ public class DiskExporter extends Exporter {
             Ginj.getTargetPrefs().save();
         }
 
+        Export export = new Export(getExporterName(), destinationFile.getAbsolutePath(), destinationFile.getAbsolutePath(), false);
+
         String message = "Export completed successfully.";
         if (target.getSettings().getMustCopyPath()) {
-            copyTextToClipboard(destinationFile.getAbsolutePath());
+            copyTextToClipboard(export.getLocation());
+            export.setLocationCopied(true);
             message += "\nPath was copied to clipboard";
         }
 
-        capture.addExport(getExporterName(), destinationFile.getAbsolutePath(), null);
+        capture.addExport(export);
         complete(message);
     }
 

@@ -7,10 +7,13 @@ import info.ginj.ui.ImageEditorPane;
 
 import java.awt.*;
 
-public class HighlightTool implements GinjTool {
+public class HighlightTool extends GinjTool {
+
+    public static final String NAME = "Highlight";
+
     @Override
     public String getName() {
-        return "Highlight";
+        return NAME;
     }
 
     @Override

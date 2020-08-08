@@ -18,6 +18,9 @@
 
 package com.easynth.designer.laf;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.plaf.synth.SynthLookAndFeel;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -34,6 +37,8 @@ import java.util.regex.Pattern;
  * @author EASYNTH
  */
 public class EaSynthLookAndFeel extends SynthLookAndFeel {
+
+	private static final Logger logger = LoggerFactory.getLogger(EaSynthLookAndFeel.class);
 	
 	private static final long serialVersionUID = 6942508771080867071L;
 
@@ -45,7 +50,7 @@ public class EaSynthLookAndFeel extends SynthLookAndFeel {
 			// Load the "easynth.xml" file as the synth XML definition file
 			load(getClass().getResourceAsStream("easynth.xml"), getClass());
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Error loading synth xml", e);
 		}
 	}
 	

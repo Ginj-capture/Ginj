@@ -3,6 +3,8 @@ package info.ginj.model;
 import info.ginj.Ginj;
 import info.ginj.export.clipboard.ClipboardExporter;
 import info.ginj.export.disk.DiskExporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
@@ -11,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TargetPrefs {
+
+    private static final Logger logger = LoggerFactory.getLogger(TargetPrefs.class);
 
     // Suffixes (also used in Wizard)
     public static final String TARGET_KEY = "target";
@@ -27,13 +31,16 @@ public class TargetPrefs {
 
     public static synchronized TargetPrefs load() {
         final File targetPrefsFile = Ginj.getTargetPrefsFile();
-        try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(targetPrefsFile)))) {
-            return (TargetPrefs) xmlDecoder.readObject();
+        if (targetPrefsFile.exists()) {
+            // try to load it
+            try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(targetPrefsFile)))) {
+                return (TargetPrefs) xmlDecoder.readObject();
+            }
+            catch (Exception e) {
+                logger.error("Error loading targets from '" + targetPrefsFile.getAbsolutePath()  + "'. Creating new default targetPrefs.", e);
+            }
         }
-        catch (Exception e) {
-            System.err.println("Error loading targets from '" + targetPrefsFile.getAbsolutePath()  + "'. Creating new default targetPrefs.");
-            return getDefaultTargetPrefs();
-        }
+        return getDefaultTargetPrefs();
     }
 
     private static TargetPrefs getDefaultTargetPrefs() {
@@ -87,8 +94,7 @@ public class TargetPrefs {
             xmlEncoder.writeObject(this);
         }
         catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Cannot save targets to '" + targetPrefsFile.getAbsolutePath() + "'. Targets are note saved.");
+            logger.error("Cannot save targets to '" + targetPrefsFile.getAbsolutePath() + "'. Targets are note saved.", e);
         }
     }
 

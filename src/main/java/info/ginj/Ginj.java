@@ -5,6 +5,8 @@ import info.ginj.model.TargetPrefs;
 import info.ginj.ui.StarWindow;
 import info.ginj.ui.laf.GinjSynthLookAndFeel;
 import info.ginj.util.Misc;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.plaf.synth.SynthLookAndFeel;
@@ -19,7 +21,10 @@ import java.util.concurrent.FutureTask;
 import static java.awt.GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSLUCENT;
 
 public class Ginj {
-    public static final String APP_VERSION = "0.3.5";
+
+    private static final Logger logger = LoggerFactory.getLogger(Ginj.class);
+
+    public static final String APP_VERSION = "0.4.0";
 
     public static final String LAF_XML = "/synth.xml";
 
@@ -42,7 +47,7 @@ public class Ginj {
 
         //If translucent windows aren't supported, exit.
         if (!gd.isWindowTranslucencySupported(PERPIXEL_TRANSLUCENT)) {
-            System.err.println("Per-pixel translucency is not supported");
+            logger.error("Per-pixel translucency is not supported");
             System.exit(ERR_STATUS_TRANSPARENCY);
         }
 
@@ -54,8 +59,7 @@ public class Ginj {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         }
         catch (Exception e) {
-            System.err.println("Error loading Ginj look and feel");
-            e.printStackTrace();
+            logger.error("Error loading " + getAppName() + " look and feel", e);
             System.exit(ERR_STATUS_LAF);
         }
 
@@ -69,7 +73,8 @@ public class Ginj {
 
         javax.swing.SwingUtilities.invokeLater(() -> {
             starWindow = new StarWindow();
-            starWindow.setVisible(true);});
+            starWindow.setVisible(true);
+        });
 
     }
 
@@ -81,28 +86,56 @@ public class Ginj {
     public static File getTempDir() {
         if (tempDir == null) {
             // First invocation, check, clean or create temp dir
-            tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator + getAppName() + "_temp");
-            if (tempDir.exists()) {
-                // Cleanup
-                for (File file : tempDir.listFiles()) {
-                    file.delete();
+            String tempDirName = Prefs.get(Prefs.Key.TEMP_DIR);
+            if (tempDirName != null) {
+                tempDir = new File(tempDirName);
+                if (!tempDir.exists()) {
+                    if (!tempDir.mkdirs()) {
+                        logger.error(tempDirName + " declared as " + Prefs.Key.TEMP_DIR.getKey() + " option cannot be found nor created as a directory. Using a subdir of the system temp dir.");
+                        tempDir = null;
+                    }
+                }
+                else {
+                    if (!tempDir.isDirectory()) {
+                        logger.error(tempDirName + " declared as " + Prefs.Key.TEMP_DIR.getKey() + " option is not a directory. Using a subdir of the system temp dir.");
+                        tempDir = null;
+                    }
                 }
             }
-            else {
-                // Create
-                tempDir.mkdirs();
+            if (tempDir == null) {
+                tempDir = new File(System.getProperty("java.io.tmpdir") + File.separator + getAppName() + "_temp");
+                if (tempDir.exists()) {
+                    // Cleanup
+                    for (File file : Ginj.tempDir.listFiles()) {
+                        file.delete();
+                    }
+                }
+                else {
+                    // Create
+                    tempDir.mkdirs();
+                }
             }
         }
         // And return it
         return tempDir;
     }
 
+    private static File getAppFolder() {
+        File folder = new File(System.getProperty("user.home") + File.separator + "." + getAppName());
+        if (!folder.exists()) {
+            if (!folder.mkdirs()) {
+                logger.error("Could not create app folder ." + Ginj.getAppName());
+            }
+        }
+        return folder;
+    }
+
     public static File getHistoryFolder() {
         String historyPath = Prefs.get(Prefs.Key.CAPTURE_HISTORY_PATH);
         if (historyPath == null || historyPath.isBlank() || !new File(historyPath).exists()) {
-            historyPath = System.getProperty("user.home") + File.separator + "." + getAppName() + File.separator + "history";
-            //noinspection ResultOfMethodCallIgnored
-            new File(historyPath).mkdirs();
+            File historyFolder = new File(getAppFolder(), "history");
+            historyFolder.mkdirs();
+            historyPath = historyFolder.getAbsolutePath();
             Prefs.set(Prefs.Key.CAPTURE_HISTORY_PATH, historyPath);
             Prefs.save();
         }
@@ -110,11 +143,11 @@ public class Ginj {
     }
 
     public static File getPrefsFile() {
-        return new File(System.getProperty("user.home") + File.separator + "." + getAppName() + File.separator + "settings.properties");
+        return new File(getAppFolder(), "settings.properties");
     }
 
     public static File getTargetPrefsFile() {
-        return new File(System.getProperty("user.home") + File.separator + "." + getAppName() + File.separator + "targetPrefs.xml");
+        return new File(getAppFolder(), "targetPrefs.xml");
     }
 
     public static TargetPrefs getTargetPrefs() {

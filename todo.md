@@ -26,13 +26,15 @@
  - ~~Implement history with **editable** items~~
  - ~~Implement edit from history window~~
  - Finalize history window (export button should perform a "smart" re-export, performing only missing operations (reupload, reshare, or just re-copy link))
+ - Allow history window resizing
  - ~~Load history contents asynchronously~~
  - ~~Persist StarWindow position~~
  - ~~Position ExportFrame and ExportCompletionFrame next to Star Window~~
  - ~~Implement target editing~~
  - ~~In export completion window, replace plain text with html for the shared link to be clickable~~
  - ~~Improve "About" dialog (logo, clickable link to site, credits)~~
- - Implement video using ffmpeg & Jaffree
+ - ~~Implement video using ffmpeg & Jaffree~~
+ - Add audio support
  - ~~Implement "check for updates" from Java~~
  - Implement generic preference editor
  - Typing in a Text Overlay should make the overlay grow wider
@@ -41,7 +43,7 @@
  - Add FTP exporter :-)
  - ~~Implement tray icon and menu~~
  - ~~Implement global shortcut~~
- - Implement load on startup
+ - ~~Implement load on startup~~
  - Make sure to stop http server when aborting target configuration, and restarted it if user goes back
  - Implement windows detection (using JNA?)
  - ~~Close most frames with ESC (ex: History)~~
@@ -75,5 +77,8 @@
  - Add optional "Line" overlay (with CTRL to constrain)
  - ~~Add optional "Oval" overlay~~
  - Shift should constrain handle move horizontally/vertically, Ctrl should resize symmetrically
- - Add overlays on video
+ - Support trimming video
+ - Support overlays on video
+ - Support overlays on timeline
+
 

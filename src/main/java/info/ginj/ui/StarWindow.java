@@ -651,7 +651,7 @@ public class StarWindow extends JWindow {
             Border border = Border.valueOf(Prefs.get(Prefs.Key.STAR_WINDOW_POSTION_ON_BORDER));
             int distanceFromCorner;
             try {
-                // New way, store relative value
+                // New way, retrieve relative value
                 double distanceFromCornerPercent = Double.parseDouble(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER_PERCENT));
                 distanceFromCorner = switch (border) {
                     case TOP, BOTTOM -> (int) (currentDisplayBounds.width * distanceFromCornerPercent / 100);
@@ -659,7 +659,7 @@ public class StarWindow extends JWindow {
                 };
             }
             catch (NumberFormatException e) {
-                // Old way, store absolute value
+                // Old way, retrieve absolute value
                 distanceFromCorner = Integer.parseInt(Prefs.get(Prefs.Key.STAR_WINDOW_DISTANCE_FROM_CORNER));
             }
             switch (border) {

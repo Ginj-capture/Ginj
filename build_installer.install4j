@@ -206,7 +206,7 @@ return console.askOkCancel(message, true);
             <actions>
               <action id="297" beanClass="com.install4j.runtime.beans.actions.desktop.CreateStartMenuEntryAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
                 <serializedBean>
-                  <property name="entryName" type="string">StartMenu</property>
+                  <property name="entryName" type="string">Ginj</property>
                   <property name="file">
                     <object class="java.io.File">
                       <string>Ginj</string>
@@ -214,6 +214,17 @@ return console.askOkCancel(message, true);
                   </property>
                 </serializedBean>
                 <condition>!context.getBooleanVariable("sys.programGroupDisabled")</condition>
+              </action>
+              <action id="928" beanClass="com.install4j.runtime.beans.actions.desktop.CreateDesktopLinkAction" actionElevationType="elevated" rollbackBarrierExitCode="0">
+                <serializedBean>
+                  <property name="file">
+                    <object class="java.io.File">
+                      <string>Ginj</string>
+                    </object>
+                  </property>
+                  <property name="name" type="string">${compiler:sys.fullName}</property>
+                </serializedBean>
+                <condition>context.getBooleanVariable("createDesktopLinkAction")</condition>
               </action>
               <action id="156" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" actionElevationType="none" rollbackBarrierExitCode="0">
                 <serializedBean>
@@ -246,12 +257,17 @@ Please check the following options then click Finish to exit Setup</property>
                 </serializedBean>
               </formComponent>
               <formComponent id="295" beanClass="com.install4j.runtime.beans.formcomponents.SpacerComponent" />
+              <formComponent name="Add a desktop link" id="929" beanClass="com.install4j.runtime.beans.formcomponents.CheckboxComponent">
+                <serializedBean>
+                  <property name="checkboxText" type="string">${i18n:CreateDesktopIcon}</property>
+                  <property name="initiallySelected" type="boolean" value="true" />
+                  <property name="variableName" type="string">createDesktopLinkAction</property>
+                </serializedBean>
+              </formComponent>
+              <formComponent id="930" beanClass="com.install4j.runtime.beans.formcomponents.SpacerComponent" />
               <formComponent name="Run at startup" id="289" beanClass="com.install4j.runtime.beans.formcomponents.CheckboxComponent">
                 <serializedBean>
                   <property name="checkboxText" type="string">Run "${compiler:sys.fullName}" at startup (Windows and OS X)</property>
-                  <property name="coupledComponentIds">
-                    <add type="string">291</add>
-                  </property>
                   <property name="initiallySelected" type="boolean" value="true" />
                   <property name="variableName" type="string">addStartupExecutable</property>
                 </serializedBean>

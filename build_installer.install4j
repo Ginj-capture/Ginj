@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="8.0.7" transformSequenceNumber="8">
-  <directoryPresets config="./ffmpeg4.3.1/linux_amd64/readme.txt" />
+  <directoryPresets config="./ffmpeg4.3.1/GPLv3.txt" />
   <application name="Ginj" applicationId="2821-6917-3685-7854" mediaDir="./releases" compression="9" shortName="Ginj" publisher="Ginj" publisherWeb="http://www.ginj.info" version="0.4.0" allPathsRelative="true" backupOnSave="true" macVolumeId="2f8e78c917a76687" javaMinVersion="14" javaMaxVersion="14" jdkMode="jdk" jdkName="JDK 14.0">
     <jreBundles jdkProviderId="AdoptOpenJDK" release="openjdk14/jdk-14.0.1+7" />
   </application>
@@ -25,14 +25,18 @@
       <fileEntry mountPoint="58" file="./target/Ginj.jar" />
       <fileEntry mountPoint="765" file="./ffmpeg4.3.1/Win64/ffmpeg.exe" />
       <fileEntry mountPoint="765" file="./ffmpeg4.3.1/Win64/README.txt" />
+      <fileEntry mountPoint="765" file="./ffmpeg4.3.1/GPLv3.txt" />
       <fileEntry mountPoint="766" file="./ffmpeg4.3.1/MacOS/ffmpeg" />
       <fileEntry mountPoint="766" file="./ffmpeg4.3.1/MacOS/readme.txt" />
+      <fileEntry mountPoint="766" file="./ffmpeg4.3.1/GPLv3.txt" />
       <fileEntry mountPoint="767" file="./ffmpeg4.3.1/linux_amd64/ffmpeg" />
       <fileEntry mountPoint="767" file="./ffmpeg4.3.1/linux_amd64/readme.txt" />
+      <fileEntry mountPoint="767" file="./ffmpeg4.3.1/GPLv3.txt" />
     </entries>
     <components>
-      <component name="Ginj" id="605" displayDescription="true" hideHelpButton="true" changeable="false">
-        <description>This main component cannot be disabled. It contains Ginj classes, the JRE and a native launcher.</description>
+      <component name="Ginj" id="605" hideHelpButton="true" changeable="false">
+        <description>This is the main Ginj component. 
+It contains Ginj classes, a suitable Java Runtime Environment and a native launcher, and cannot be disabled.</description>
         <include>
           <entry defaultFileset="true" />
         </include>

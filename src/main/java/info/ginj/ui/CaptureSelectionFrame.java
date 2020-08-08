@@ -7,6 +7,7 @@ import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.ui.component.LowerButton;
 import info.ginj.ui.component.LowerButtonBar;
 import info.ginj.util.Coords;
+import info.ginj.util.Jaffree;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
@@ -517,9 +518,14 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     }
 
     private void onCaptureVideo() {
-        final VideoControlFrame videoControlFrame = new VideoControlFrame(starWindow, getCroppedSelection(), createNewCapture(true));
-        dispose();
-        videoControlFrame.setVisible(true);
+        if (Jaffree.IS_AVAILABLE) {
+            final VideoControlFrame videoControlFrame = new VideoControlFrame(starWindow, getCroppedSelection(), createNewCapture(true));
+            dispose();
+            videoControlFrame.setVisible(true);
+        }
+        else {
+            UI.alertError(this, "Cannot capture video", Ginj.getAppName() + " could not find FFmpeg during startup.\nPlease re-install " + Ginj.getAppName() + " and make sure you select ffmpeg during the installation.\nIf the problem persist, please open a Github issue.");
+        }
     }
 
     private void onRedo() {

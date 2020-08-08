@@ -4,6 +4,7 @@ import info.ginj.model.Prefs;
 import info.ginj.model.TargetPrefs;
 import info.ginj.ui.StarWindow;
 import info.ginj.ui.laf.GinjSynthLookAndFeel;
+import info.ginj.util.Jaffree;
 import info.ginj.util.Misc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +65,9 @@ public class Ginj {
         }
 
         Prefs.load();
+
+        // Check ffpmeg availability
+        Jaffree.checkAvailability();
 
         // Creating a JFileChooser can take time if you have network drives. So start loading one now, in a separate thread...
         // TODO check if this is really effective...

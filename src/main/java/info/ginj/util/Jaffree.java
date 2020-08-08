@@ -3,13 +3,18 @@ package info.ginj.util;
 import com.github.kokorin.jaffree.StreamType;
 import com.github.kokorin.jaffree.ffmpeg.Frame;
 import com.github.kokorin.jaffree.ffmpeg.*;
+import info.ginj.Ginj;
 import info.ginj.model.Prefs;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -21,6 +26,62 @@ import java.util.concurrent.atomic.AtomicLong;
  * This util class gathers all interaction with Jaffree for FFmpeg interaction
  */
 public class Jaffree {
+
+    private static final Logger logger = LoggerFactory.getLogger(Jaffree.class);
+
+    /**
+     * Indicates if video captures can be performed (filled by testing ffmpeg availability)
+     */
+    public static boolean IS_AVAILABLE = false;
+
+
+    public static void checkAvailability() {
+        String ffmpegExecutable = "ffmpeg";
+        if (SystemUtils.IS_OS_WINDOWS) {
+            ffmpegExecutable = "ffmpeg.exe";
+        }
+
+        // 1. folder specified in preference file ?
+        String ffmpegBinDirname = Prefs.get(Prefs.Key.FFMPEG_BIN_DIR);
+        if (ffmpegBinDirname != null) {
+            if ((new File(new File(ffmpegBinDirname), ffmpegExecutable)).exists()) {
+                logger.info("Ffmpeg found, specified in prefs file");
+                IS_AVAILABLE = true;
+                return;
+            }
+        }
+
+        // 2. distributed with Ginj ?
+        try {
+            File ffmpegBinDir = new File(new File(Jaffree.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParent(), "ffmpeg");
+            if ((new File(ffmpegBinDir, ffmpegExecutable)).exists()) {
+                logger.info("Ffmpeg found, installed with " + Ginj.getAppName());
+                IS_AVAILABLE = true;
+                // Remember it
+                Prefs.set(Prefs.Key.FFMPEG_BIN_DIR, ffmpegBinDir.getAbsolutePath());
+                return;
+            }
+        }
+        catch (URISyntaxException e) {
+            // Should never happen
+            logger.error("Error trying to run the version of ffmpeg installed with " + Ginj.getAppName(), e);
+        }
+
+        // 3. on the path? Just try and see
+        try {
+            // This does throw an exception because there's no output:
+//            FFmpeg.atPath().addArgument("-version").execute();
+            // Temporary alternative, run ffmpeg without Jaffree
+            Process process = Runtime.getRuntime().exec("ffmpeg -version");
+            BufferedReader output = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            logger.info("Ffmpeg found, on the path (" + output.readLine() + ")");
+            IS_AVAILABLE = true;
+        }
+        catch (Exception e) {
+            logger.warn("Error trying to execute ffmpeg from the path");
+        }
+    }
+
     public static FFmpeg getFFmpeg() {
         String ffmpegDir = Prefs.get(Prefs.Key.FFMPEG_BIN_DIR);
         FFmpeg ffmpeg;

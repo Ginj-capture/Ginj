@@ -1,5 +1,9 @@
 ![Ginj logo](www/logo.png "Ginj logo")
 
+#### tl;dr
+
+Download the .exe (Windows), .dmg (MacOS) or .sh (Linux) from [this page](https://github.com/Ginj-capture/Ginj/releases/latest).
+
 #### What is Ginj?
 
 Ginj is an open source multi-platform screen capture and recording tool.

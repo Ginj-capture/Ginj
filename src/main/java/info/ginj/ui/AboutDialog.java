@@ -43,7 +43,10 @@ public class AboutDialog extends JDialog {
 
 
         // Prepare logo
-        contentPane.add(new JLabel(new ImageIcon(getClass().getResource("/img/app-logo-180-opaque.png"))), BorderLayout.WEST);
+        final JLabel logoLabel = new JLabel(new ImageIcon(getClass().getResource("/img/app-logo-180-opaque.png")));
+        logoLabel.setBorder(new EmptyBorder(5,5,5,5));
+        logoLabel.setOpaque(false);
+        contentPane.add(logoLabel, BorderLayout.WEST);
 
         JEditorPane editorPane = UI.createClickableHtmlEditorPane("<b>" + Ginj.getAppName() + "</b> version " + Ginj.getVersion() + "<br/>" +
                 "For all information please visit <a href=\"http://ginj.info\">ginj.info</a><br/>" +

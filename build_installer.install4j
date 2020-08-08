@@ -17,23 +17,22 @@
     </roots>
     <mountPoints>
       <mountPoint id="58" />
-      <mountPoint id="438" root="433" />
-      <mountPoint id="439" root="435" />
-      <mountPoint id="440" root="437" />
+      <mountPoint id="765" root="433" location="ffmpeg" />
+      <mountPoint id="766" root="435" location="ffmpeg" />
+      <mountPoint id="767" root="437" location="ffmpeg" />
     </mountPoints>
     <entries>
       <fileEntry mountPoint="58" file="./target/Ginj.jar" />
-      <fileEntry mountPoint="438" file="./ffmpeg4.3.1/Win64/ffmpeg.exe" />
-      <fileEntry mountPoint="438" file="./ffmpeg4.3.1/Win64/README.txt" />
-      <fileEntry mountPoint="439" file="./ffmpeg4.3.1/MacOS/ffmpeg" />
-      <fileEntry mountPoint="439" file="./ffmpeg4.3.1/MacOS/readme.txt" />
-      <fileEntry mountPoint="440" file="./ffmpeg4.3.1/linux_amd64/ffmpeg" />
-      <fileEntry mountPoint="440" file="./ffmpeg4.3.1/linux_amd64/readme.txt" />
+      <fileEntry mountPoint="765" file="./ffmpeg4.3.1/Win64/ffmpeg.exe" />
+      <fileEntry mountPoint="765" file="./ffmpeg4.3.1/Win64/README.txt" />
+      <fileEntry mountPoint="766" file="./ffmpeg4.3.1/MacOS/ffmpeg" />
+      <fileEntry mountPoint="766" file="./ffmpeg4.3.1/MacOS/readme.txt" />
+      <fileEntry mountPoint="767" file="./ffmpeg4.3.1/linux_amd64/ffmpeg" />
+      <fileEntry mountPoint="767" file="./ffmpeg4.3.1/linux_amd64/readme.txt" />
     </entries>
     <components>
       <component name="Ginj" id="605" displayDescription="true" hideHelpButton="true" changeable="false">
-        <description>This is the main component.
-It contains the Ginj classes, the Java Runtime environment and a native launcher, and cannot be disabled.</description>
+        <description>This main component cannot be disabled. It contains Ginj classes, the JRE and a native launcher.</description>
         <include>
           <entry defaultFileset="true" />
         </include>

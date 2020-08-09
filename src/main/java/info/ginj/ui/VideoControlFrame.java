@@ -162,13 +162,13 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
         return Ginj.getTempDir().getAbsolutePath() + File.separator + capture.getId() + ".mp4";
     }
 
-    private void stopRecording() {
+    private boolean stopRecording() {
         // Restore hotkey handling
         removeGlobalRecordingHotkeys();
         starWindow.registerHotKey();
 
         // Wait and make sure the process has ended
-        Jaffree.stopRecording(ffmpegFutureResult, logger);
+        return Jaffree.stopRecording(ffmpegFutureResult, logger);
     }
 
     private void setGlobalRecordingHotkeys() {
@@ -209,12 +209,13 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
 
     private void onStop() {
         this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        stopRecording();
-        capture.setVideoDurationMs(Jaffree.getDuration(capture.getOriginalFile()));
+        if (stopRecording()) {
+            capture.setVideoDurationMs(Jaffree.getDuration(capture.getOriginalFile()));
+            // Open capture editing
+            final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
+            captureEditingFrame.setVisible(true);
+        }
         this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        // Open capture editing
-        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
-        captureEditingFrame.setVisible(true);
         dispose();
     }
 

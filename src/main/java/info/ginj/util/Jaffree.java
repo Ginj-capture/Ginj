@@ -128,14 +128,14 @@ public class Jaffree {
         }
     }
 
-    public static void stopRecording(FFmpegResultFuture ffmpegFutureResult, Logger logger) {
+    public static boolean stopRecording(FFmpegResultFuture ffmpegFutureResult, Logger logger) {
         // Gently request ffmpeg to end (by pressing "q")
         ffmpegFutureResult.graceStop();
 
-        long timeout = Prefs.getAsLong(Prefs.Key.FFMPEG_TERMINATION_TIMEOUT, 10);
+        long timeout = Prefs.getAsLong(Prefs.Key.FFMPEG_TERMINATION_TIMEOUT, 15);
         try {
             ffmpegFutureResult.get(timeout, TimeUnit.SECONDS);
-            return;
+            return true;
         }
         catch (InterruptedException | ExecutionException e) {
             UI.alertException(null, "Recording error", "There was an error waiting for recording to complete", e, logger);
@@ -151,12 +151,7 @@ public class Jaffree {
             // See https://github.com/kokorin/Jaffree/issues/91
             logger.error("Exception occurred during forceStop()", exception);
         }
-//        try {
-//            Thread.sleep(1000);
-//        }
-//        catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        return false;
     }
 
     public static BufferedImage grabImage(File file, long positionInMillis) {

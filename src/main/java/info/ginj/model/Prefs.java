@@ -24,26 +24,25 @@ public class Prefs {
 
     private static final Logger logger = LoggerFactory.getLogger(Prefs.class);
 
-    private static final String DEFAULT_TOOL_LIST = ArrowTool.NAME + "," + TextTool.NAME + "," + FrameTool.NAME + "," + HighlightTool.NAME;
     private static Set<GinjTool> toolSet;
 
     public enum Key {
         TOOL_COLOR_PREFIX("tool.color.", "The current color for the corresponding tool", false),
         FIXED_PALETTE_COLOR_PREFIX("fixed.palette.color.", "The color for the corresponding button in the fixed palette", true),
-        TOOL_LIST("tool.list", "The list of active overlays", false),
+        TOOL_LIST("tool.list", "The list of active overlays", false, ArrowTool.NAME + "," + TextTool.NAME + "," + FrameTool.NAME + "," + HighlightTool.NAME),
         CAPTURE_HISTORY_PATH("capture.history.path", "The folder where all capture history is stored", true),
-        USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS("use.small.buttons.for.online.target", "If set, small buttons like are shown for online targets, like for save and copy", true),
-        EXPORT_COMPLETE_AUTOHIDE_KEY("export.complete.autohide", "If set, the window displayed upon export completion will fade away and close when not hovered", true),
+        USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS("use.small.buttons.for.online.target", "If set, small buttons like are shown for online targets, like for save and copy", true, String.valueOf(false)),
+        EXPORT_COMPLETE_AUTOHIDE_KEY("export.complete.autohide", "If set, the window displayed upon export completion will fade away and close when not hovered", true, String.valueOf(false)),
         STAR_WINDOW_POSTION_ON_BORDER("star.window.position.on.border", "This indicates the screen border that the 'Star' icon is resting on", true),
         @Deprecated
         STAR_WINDOW_DISTANCE_FROM_CORNER("star.window.distance.from.corner", "This indicates the distance from the top or left edge of the screen to the 'Star' icon", true),
-        STAR_WINDOW_DISTANCE_FROM_CORNER_PERCENT("star.window.distance.from.corner.percent", "This indicates the distance from the top or left edge of the screen to the 'Star' icon", true),
-        STAR_WINDOW_DISPLAY_NUMBER("star.window.display.number", "This is the number of the display the 'Star' icon should be displayed on (0=Main, 1=Secondary, ...)", true),
+        STAR_WINDOW_DISTANCE_FROM_CORNER_PERCENT("star.window.distance.from.corner.percent", "This indicates the distance from the top or left edge of the screen to the 'Star' icon", true, String.valueOf(50)),
+        STAR_WINDOW_DISPLAY_NUMBER("star.window.display.number", "This is the number of the display the 'Star' icon should be displayed on (0=Main, 1=Secondary, ...)", true, String.valueOf(0)),
         CAPTURE_HOTKEY("capture.hotkey", "This is the combination to type to trigger a new capture", false),
         FFMPEG_BIN_DIR("ffmpeg.bin.dir", "Folder where the ffmpeg binary executable can be founs", true),
-        VIDEO_FRAMERATE("video.framerate", "The framerate of the video captures" , true),
+        VIDEO_FRAMERATE("video.framerate", "The framerate of the video captures" , true, String.valueOf(10)),
         VIDEO_CAPTURE_MOUSE_CURSOR("video.capture.mouse.cursor", "If true, the mouse cursor is captured in the video", true),
-        USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION("use.tray.notification.on.export.completion", "If enabled, the 'end of export' window is replaced by an OS tray notification", true),
+        USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION("use.tray.notification.on.export.completion", "If enabled, the 'end of export' window is replaced by an OS tray notification", true, String.valueOf(true)),
         TEMP_DIR("temp.dir", "The directory to store temporary captures", true),
         DEBUG_NO_OPACITY_CHANGE("debug.no.opacity.change", "Debug param to try to avoid the transparent grey background", true),
         DEBUG_NO_FAKE_TRANSPARENCY("debug.no.fake.transparency", "Debug param to avoid the slight opacity of the deployed widget" , true),
@@ -51,16 +50,25 @@ public class Prefs {
         DEBUG_NO_SETVISIBLE_TRUE_IN_RECOVERY("debug.no.setvisible.true.in.recovery", "Debug param to see what part really recovers the widget", true),
         DEBUG_NO_TO_FRONT_IN_RECOVERY("debug.no.to.front.in.recovery", "Debug param to see what part really recovers the widget", true),
         DEBUG_NO_REQUEST_FOCUS_IN_RECOVERY("debug.no.request.focus.in.recovery", "Debug param to see what part really recovers the widget", true),
-        FFMPEG_TERMINATION_TIMEOUT("ffmpeg.termination.timeout", "The max delay between a request to end an ffmpeg process and its actual response", true);
+        FFMPEG_TERMINATION_TIMEOUT("ffmpeg.termination.timeout", "The max delay between a request to end an ffmpeg process and its actual response", true, String.valueOf(15));
 
         private final String keyString;
         private final String help;
         private final boolean isEditable;
+        private final String defaultValue;
 
         Key(String keyString, String help, boolean isEditable) {
             this.keyString = keyString;
             this.help = help;
             this.isEditable = isEditable;
+            defaultValue = null;
+        }
+
+        Key(String keyString, String help, boolean isEditable, String defaultValue) {
+            this.keyString = keyString;
+            this.help = help;
+            this.isEditable = isEditable;
+            this.defaultValue = defaultValue;
         }
 
         public String getKey() {
@@ -73,6 +81,10 @@ public class Prefs {
 
         public boolean isEditable() {
             return isEditable;
+        }
+
+        public String getDefaultValue() {
+            return defaultValue;
         }
     }
 
@@ -89,7 +101,7 @@ public class Prefs {
         setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "6", new Color(0, 0, 255));
         setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "7", new Color(128, 0, 128));
         setColorWithSuffix(Key.FIXED_PALETTE_COLOR_PREFIX, "8", new Color(75, 0, 130));
-        set(Key.TOOL_LIST, DEFAULT_TOOL_LIST);
+        set(Key.TOOL_LIST, Key.TOOL_LIST.getDefaultValue());
     }
 
 
@@ -131,7 +143,12 @@ public class Prefs {
 
 
     public static String get(Key key) {
-        return preferences.getProperty(key.keyString);
+        String property = preferences.getProperty(key.keyString);
+        if (property == null || property.length() == 0) {
+            property = key.defaultValue;
+        }
+        return property;
+
     }
 
     public static String get(Key key, String defaultValue) {
@@ -160,6 +177,54 @@ public class Prefs {
             catch (NumberFormatException e) {
                 logger.error("Value '" + valueStr + "' cannot be converted into a number for key '" + key.getKey() + "'.", e);
                 return defaultValue;
+            }
+        }
+    }
+
+    public static long getAsLong(Key key) {
+        String valueStr = get(key);
+        if (valueStr == null || valueStr.length() == 0) {
+            return Long.parseLong(key.getDefaultValue());
+        }
+        else {
+            try {
+                return Long.parseLong(valueStr);
+            }
+            catch (NumberFormatException e) {
+                logger.error("Value '" + valueStr + "' cannot be converted into a number for key '" + key.getKey() + "'.", e);
+                return Long.parseLong(key.getDefaultValue());
+            }
+        }
+    }
+
+    public static long getAsInt(Key key, int defaultValue) {
+        String valueStr = get(key);
+        if (valueStr == null || valueStr.length() == 0) {
+            return defaultValue;
+        }
+        else {
+            try {
+                return Integer.parseInt(valueStr);
+            }
+            catch (NumberFormatException e) {
+                logger.error("Value '" + valueStr + "' cannot be converted into a number for key '" + key.getKey() + "'.", e);
+                return defaultValue;
+            }
+        }
+    }
+
+    public static long getAsInt(Key key) {
+        String valueStr = get(key);
+        if (valueStr == null || valueStr.length() == 0) {
+            return Integer.parseInt(key.defaultValue);
+        }
+        else {
+            try {
+                return Integer.parseInt(valueStr);
+            }
+            catch (NumberFormatException e) {
+                logger.error("Value '" + valueStr + "' cannot be converted into a number for key '" + key.getKey() + "'.", e);
+                return Integer.parseInt(key.defaultValue);
             }
         }
     }
@@ -216,9 +281,6 @@ public class Prefs {
         if (toolSet == null) {
             toolSet = new LinkedHashSet<>();
             String toolListStr = Prefs.get(Key.TOOL_LIST);
-            if (toolListStr == null || toolListStr.length() == 0) {
-                toolListStr = DEFAULT_TOOL_LIST;
-            }
             String[] toolNames = toolListStr.split(",");
             for (String toolName : toolNames) {
                 toolSet.add(GinjTool.getMap().get(toolName));

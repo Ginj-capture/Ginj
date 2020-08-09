@@ -132,7 +132,7 @@ public class Jaffree {
         // Gently request ffmpeg to end (by pressing "q")
         ffmpegFutureResult.graceStop();
 
-        long timeout = Prefs.getAsLong(Prefs.Key.FFMPEG_TERMINATION_TIMEOUT, 15);
+        long timeout = Prefs.getAsLong(Prefs.Key.FFMPEG_TERMINATION_TIMEOUT);
         try {
             ffmpegFutureResult.get(timeout, TimeUnit.SECONDS);
             return true;

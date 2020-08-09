@@ -87,6 +87,7 @@ The app makes use of the following libraries:
 - [SLF4j](http://www.slf4j.org/), Copyright © 2004-2017 QOS.ch
 - Wizard by Timothy Boudreau of Netbeans, originally hosted at https://wizard.dev.java.net , v1.1 saved from the internet drain by Lonzak and available at https://github.com/Lonzak/Wizard-API (in source version as it's pre-Maven).
 - [JKeyMaster](https://github.com/tulskiy/jkeymaster), Copyright © 2011 Denis Tulskiy
+- [Jaffree](https://github.com/kokorin/Jaffree), Copyright © 2017 Denis Kokorin
 
 The source code contains classes or snippets from:
 - The open source [EaSynth_Look_And_Feel_Bundle.zip](http://www.easynth.com/freewares/EaSynthLookAndFeel.html)
@@ -101,6 +102,8 @@ The user interface uses:
 - Undo icon by Denis Klyuchnikov from [The Noun Project](https://thenounproject.com/)
 - Laptop icon from [Icons8](https://icons8.com/)
 - FTP icon by Pixel perfect from [flaticon](http://www.flaticon.com)
+
+Video capture and processing is performed using [FFmpeg](http://ffmpeg.org) 
 
 Many thanks to: 
 - [ej-technologies](https://www.ej-technologies.com/) for providing free licences of [Install4J, the best multi-platform installer builder](https://www.ej-technologies.com/products/install4j/overview.html) for non-profit open source projects.

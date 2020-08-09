@@ -36,6 +36,8 @@ public class OptionsDialog extends JDialog {
     private final JTextField hotKeyTextField;
     private final JCheckBox useTrayNotificationsOnExportCompletion;
     private final JCheckBox ovalOverlayCheckBox;
+    private final JCheckBox videoCursorCheckBox;
+    private final JSpinner videoFramerateSpinner;
 
     private KeyStroke hotKey;
 
@@ -135,18 +137,30 @@ public class OptionsDialog extends JDialog {
         GinjTool ovalTool = GinjTool.getMap().get(OvalTool.NAME);
         ovalOverlayCheckBox.setSelected(Prefs.getToolSet().contains(ovalTool));
 
+        videoCursorCheckBox = new JCheckBox();
+        videoCursorCheckBox.setSelected(Prefs.isTrue(Prefs.Key.VIDEO_CAPTURE_MOUSE_CURSOR));
+
+        // Framerate spinner
+        SpinnerModel framerateModel = new SpinnerNumberModel(Integer.parseInt(Prefs.get(Prefs.Key.VIDEO_FRAMERATE)), //initial value
+                2, //min
+                60, //max
+                1); //step
+        videoFramerateSpinner = new JSpinner(framerateModel);
+        videoFramerateSpinner.setEditor(new JSpinner.NumberEditor(videoFramerateSpinner, "#"));
+
         // Add fields to main panel
         mainPanel.add(UI.createFieldPanel(
                 "Capture hotkey", hotKeyFieldPanel,
                 "Enable Oval Overlay", ovalOverlayCheckBox,
-                "Use tray notification on export", useTrayNotificationsOnExportCompletion
+                "Use tray notification on export", useTrayNotificationsOnExportCompletion,
+                "Capture mouse cursor in video", videoCursorCheckBox,
+                "Video frame rate", videoFramerateSpinner
         ));
 
-        // TODO add Capture folder
+        // TODO add Capture folder, ffmpeg folder, tmp folder, etc.
 
         // Add main panel to dialog
         contentPane.add(mainPanel, BorderLayout.CENTER);
-
 
         // Prepare lower panel
         JPanel lowerPanel = new JPanel();
@@ -211,6 +225,10 @@ public class OptionsDialog extends JDialog {
             toolSet.remove(ovalTool);
         }
         Prefs.setToolSet(toolSet);
+
+        Prefs.set(Prefs.Key.VIDEO_CAPTURE_MOUSE_CURSOR, String.valueOf(videoCursorCheckBox.isSelected()));
+
+        Prefs.set(Prefs.Key.VIDEO_FRAMERATE, String.valueOf(videoFramerateSpinner.getModel().getValue()));
 
         Prefs.save();
 

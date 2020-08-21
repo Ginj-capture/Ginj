@@ -707,7 +707,13 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         calculateActiveTrackRect();
         calculateTickRect();
         calculateLabelRect();
-        calculateThumbLocation();
+        calculateThumbLocations();
+    }
+
+    private void calculateThumbLocations() {
+        calculateThumbLocation(THUMB_CURRENT, slider.getValue());
+        calculateThumbLocation(THUMB_LOWER, slider.getLower());
+        calculateThumbLocation(THUMB_HIGHER, slider.getHigher());
     }
 
     /**
@@ -721,11 +727,13 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
     }
 
     /**
-     * Calculates the thumb size rectangle.
+     * Calculates the size of the thumb rectangles.
      */
     protected void calculateThumbSize() {
         Dimension size = getThumbSize();
         thumbRects[THUMB_CURRENT].setSize(size.width, size.height);
+        thumbRects[THUMB_LOWER].setSize(thumbImages[THUMB_LOWER].getWidth(), thumbImages[THUMB_LOWER].getHeight());
+        thumbRects[THUMB_HIGHER].setSize(thumbImages[THUMB_HIGHER].getWidth(), thumbImages[THUMB_HIGHER].getHeight());
     }
 
     /**
@@ -757,43 +765,44 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
 
     /**
      * Calculates the thumb location.
+     * @param thumbIndex
+     * @param value
      */
-    protected void calculateThumbLocation() {
+    protected void calculateThumbLocation(int thumbIndex, int value) {
         if ( slider.getSnapToTicks() ) {
-            int sliderValue = slider.getValue();
-            int snappedValue = sliderValue;
+            int snappedValue = value;
             int tickSpacing = getTickSpacing();
 
             if ( tickSpacing != 0 ) {
                 // If it's not on a tick, change the value
-                if ( (sliderValue - slider.getMinimum()) % tickSpacing != 0 ) {
-                    float temp = (float)(sliderValue - slider.getMinimum()) / (float)tickSpacing;
+                if ( (value - slider.getMinimum()) % tickSpacing != 0 ) {
+                    float temp = (float)(value - slider.getMinimum()) / (float)tickSpacing;
                     int whichTick = Math.round( temp );
 
                     // This is the fix for the bug #6401380
-                    if (temp - (int)temp == .5 && sliderValue < lastValue) {
+                    if (temp - (int)temp == .5 && value < lastValue) {
                         whichTick --;
                     }
                     snappedValue = slider.getMinimum() + (whichTick * tickSpacing);
                 }
 
-                if( snappedValue != sliderValue ) {
+                if( snappedValue != value ) {
                     slider.setValue( snappedValue );
                 }
             }
         }
 
         if ( slider.getOrientation() == JTimelineSlider.HORIZONTAL ) {
-            int valuePosition = xPositionForValue(slider.getValue());
+            int valuePosition = xPositionForValue(value);
 
-            thumbRects[THUMB_CURRENT].x = valuePosition - (thumbRects[THUMB_CURRENT].width / 2);
-            thumbRects[THUMB_CURRENT].y = trackRect.y;
+            thumbRects[thumbIndex].x = valuePosition - (thumbRects[thumbIndex].width / 2);
+            thumbRects[thumbIndex].y = trackRect.y;
         }
         else {
-            int valuePosition = yPositionForValue(slider.getValue());
+            int valuePosition = yPositionForValue(value);
 
-            thumbRects[THUMB_CURRENT].x = trackRect.x;
-            thumbRects[THUMB_CURRENT].y = valuePosition - (thumbRects[THUMB_CURRENT].height / 2);
+            thumbRects[thumbIndex].x = trackRect.x;
+            thumbRects[thumbIndex].y = valuePosition - (thumbRects[thumbIndex].height / 2);
         }
     }
 
@@ -864,16 +873,6 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         activeTrackRect.width = higherPosition - lowerPosition;
         activeTrackRect.y = trackRect.y;
         activeTrackRect.height = activeTrackImage.getHeight();
-
-        thumbRects[THUMB_LOWER].x = lowerPosition - thumbImages[THUMB_LOWER].getWidth()/2;
-        thumbRects[THUMB_LOWER].width = thumbImages[THUMB_LOWER].getWidth();
-        thumbRects[THUMB_LOWER].y = trackRect.y;
-        thumbRects[THUMB_LOWER].height = thumbImages[THUMB_LOWER].getHeight();
-
-        thumbRects[THUMB_HIGHER].x = higherPosition - thumbImages[THUMB_HIGHER].getWidth()/2;
-        thumbRects[THUMB_HIGHER].width = thumbImages[THUMB_HIGHER].getWidth();
-        thumbRects[THUMB_HIGHER].y = trackRect.y;
-        thumbRects[THUMB_HIGHER].height = thumbImages[THUMB_HIGHER].getHeight();
     }
 
     /**
@@ -1736,7 +1735,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         // Change Handler
         public void stateChanged(ChangeEvent e) {
             if (draggedThumb == THUMB_NONE) {
-                calculateThumbLocation(/*THUMB_CURRENT, BasicTimelineSliderUI.this.slider.getValue()*/);
+                calculateThumbLocation(THUMB_CURRENT, BasicTimelineSliderUI.this.slider.getValue());
                 slider.repaint();
             }
             lastValue = slider.getValue();
@@ -1783,7 +1782,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
                         changeListener);
                 ((BoundedRangeModel)e.getNewValue()).addChangeListener(
                         changeListener);
-                calculateThumbLocation();
+                calculateThumbLocation(THUMB_CURRENT, slider.getValue());
                 slider.repaint();
             }
         }
@@ -1835,6 +1834,11 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
 
             offset = 0;
             scrollTimer.stop();
+
+            if (draggedThumb != THUMB_CURRENT) {
+                calculateActiveTrackRect();
+                calculateThumbLocations();
+            }
 
             draggedThumb = THUMB_NONE;
             slider.setValueIsAdjusting(false);
@@ -2019,40 +2023,19 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
             slider.setValueIsAdjusting(true);
 
             switch (slider.getOrientation()) {
-                case JTimelineSlider.VERTICAL:
-                    int halfThumbHeight = thumbRects[draggedThumb].height / 2;
-                    int thumbTop = e.getY() - offset;
-                    int trackTop = trackRect.y;
-                    int trackBottom = trackRect.y + (trackRect.height - 1);
-                    int vMax = yPositionForValue(slider.getMaximum() -
-                            slider.getExtent());
-
-                    if (drawInverted()) {
-                        trackBottom = vMax;
-                    }
-                    else {
-                        trackTop = vMax;
-                    }
-                    thumbTop = Math.max(thumbTop, trackTop - halfThumbHeight);
-                    thumbTop = Math.min(thumbTop, trackBottom - halfThumbHeight);
-
-                    setThumbLocation(draggedThumb, thumbRects[draggedThumb].x, thumbTop);
-
-                    thumbMiddle = thumbTop + halfThumbHeight;
-                    slider.setValue( valueForYPosition( thumbMiddle ) );
-                    break;
                 case JTimelineSlider.HORIZONTAL:
                     int halfThumbWidth = thumbRects[draggedThumb].width / 2;
                     int thumbLeft = e.getX() - offset;
-                    int trackLeft = trackRect.x;
-                    int trackRight = trackRect.x + (trackRect.width - 1);
-                    int hMax = xPositionForValue(slider.getMaximum() -
-                            slider.getExtent());
+                    int trackLeft, trackRight;
+                    int hMin = xPositionForValue(getMinValueForThumbnail(draggedThumb));
+                    int hMax = xPositionForValue(getMaxValueForThumbnail(draggedThumb));
 
                     if (drawInverted()) {
                         trackLeft = hMax;
+                        trackRight = hMin;
                     }
                     else {
+                        trackLeft = hMin;
                         trackRight = hMax;
                     }
                     thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
@@ -2061,13 +2044,71 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
                     setThumbLocation(draggedThumb, thumbLeft, thumbRects[draggedThumb].y);
 
                     thumbMiddle = thumbLeft + halfThumbWidth;
-                    slider.setValue(valueForXPosition(thumbMiddle));
+                    setThumbValue(draggedThumb, valueForXPosition(thumbMiddle));
+                    break;
+                case JTimelineSlider.VERTICAL:
+                    int halfThumbHeight = thumbRects[draggedThumb].height / 2;
+                    int thumbTop = e.getY() - offset;
+                    int trackBottom, trackTop;
+                    int vMin = yPositionForValue(getMinValueForThumbnail(draggedThumb));
+                    int vMax = yPositionForValue(getMaxValueForThumbnail(draggedThumb));
+
+                    if (drawInverted()) {
+                        trackTop = vMin;
+                        trackBottom = vMax;
+                    }
+                    else {
+                        trackBottom = vMin;
+                        trackTop = vMax;
+                    }
+                    thumbTop = Math.max(thumbTop, trackTop - halfThumbHeight);
+                    thumbTop = Math.min(thumbTop, trackBottom - halfThumbHeight);
+
+                    setThumbLocation(draggedThumb, thumbRects[draggedThumb].x, thumbTop);
+
+                    thumbMiddle = thumbTop + halfThumbHeight;
+                    setThumbValue(draggedThumb, valueForYPosition( thumbMiddle ) );
                     break;
             }
         }
 
+        private int getMaxValueForThumbnail(int thumbIndex) {
+            return switch (thumbIndex) {
+                case THUMB_CURRENT -> slider.getHigher() - slider.getExtent();
+                case THUMB_LOWER -> slider.getHigher();
+                default -> slider.getMaximum();
+            };
+        }
+
+        private int getMinValueForThumbnail(int thumbIndex) {
+            return switch (thumbIndex) {
+                case THUMB_CURRENT, THUMB_HIGHER -> slider.getLower();
+                default -> slider.getMinimum();
+            };
+        }
+
         /** {@inheritDoc} */
         public void mouseMoved(MouseEvent e) { }
+    }
+
+    private void setThumbValue(int thumbIndex, int value) {
+        switch (thumbIndex) {
+            case THUMB_CURRENT -> slider.setValue(value);
+            case THUMB_LOWER -> {
+                slider.setLower(value);
+                // Value cannot be less than lower limit:
+                if (slider.getValue() < value) {
+                    slider.setValue(value);
+                }
+            }
+            case THUMB_HIGHER -> {
+                slider.setHigher(value);
+                // Value cannot be more than higher limit:
+                if (slider.getValue() > value) {
+                    slider.setValue(value);
+                }
+            }
+        }
     }
 
     /**

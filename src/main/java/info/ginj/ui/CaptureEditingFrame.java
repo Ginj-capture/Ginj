@@ -228,11 +228,11 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
             final BorderedLabel positionLabel = new BorderedLabel("00:00:00");
             transportPanel.add(positionLabel, BorderLayout.WEST);
 
-            final JSlider positionSlider = new JSlider(JSlider.HORIZONTAL, 0, (int) capture.getVideoDurationMs(), 0); // Note: this typecast limits videos to 600 hours :-)
+            final JTimelineSlider positionSlider = new JTimelineSlider(JSlider.HORIZONTAL, 0, (int) capture.getVideoDurationMs(), 0); // Note: this typecast limits videos to 600 hours :-)
             positionSlider.setMajorTickSpacing(1000);
             transportPanel.add(positionSlider, BorderLayout.CENTER);
             positionSlider.addChangeListener(e -> {
-                JSlider source = (JSlider)e.getSource();
+                JTimelineSlider source = (JTimelineSlider)e.getSource();
                 Duration position = Duration.ofMillis(positionSlider.getValue());
                 positionLabel.setText(String.format("%02d:%02d:%02d", position.toHours(), position.toMinutesPart(), position.toSecondsPart()));
                 if (source.getValueIsAdjusting()) {

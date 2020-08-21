@@ -198,7 +198,7 @@ public class HistoryFrame extends JFrame {
             historyList.add(new JLabel("Error"));
         }
         else {
-            Arrays.sort(files, (o1, o2) -> (int) (o2.lastModified() - o1.lastModified())); // Sort most recent first
+            Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed()); // Sort most recent first
 
             for (File file : files) {
                 historyList.add(new HistoryItemWidget(this, file));

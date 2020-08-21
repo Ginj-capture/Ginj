@@ -76,7 +76,15 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
     /** Maximum scroll */
     public static final int MAX_SCROLL = +2;
 
-    /** Scroll timer */
+    // constant indices for the thumbs
+    public static final int THUMB_NONE = -1;
+    public static final int THUMB_CURRENT = 0;
+    public static final int THUMB_LOWER = 1;
+    public static final int THUMB_HIGHER = 2;
+
+    /**
+     * Scroll timer
+     */
     protected Timer scrollTimer;
     /** Slider */
     protected JTimelineSlider slider;
@@ -99,17 +107,17 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
     protected Rectangle trackRect = null;
     /** Active area rectangle */
     protected Rectangle activeTrackRect = null;
-    /** Lower bound rectangle */
-    protected Rectangle lowerRect = null;
-    /** Higher bound rectangle */
-    protected Rectangle higherRect = null;
-    /** Thumb rectangle */
-    protected Rectangle thumbRect = null;
+    /**
+     * Thumb rectangles. A timeslider has at several thumbs:
+     * - the "classic" thumb which represents the current position
+     * - "lower" and "higher" bounds which limit the area in which the classic thumb can navigate
+     */
+    protected Rectangle[] thumbRects = new Rectangle[3];
 
     /** The distance that the track is from the side of the control */
     protected int trackBuffer = 0;
 
-    private transient boolean isDragging;
+    private transient int draggedThumb = THUMB_NONE;
 
     /** Track listener */
     protected TrackListener trackListener;
@@ -128,7 +136,6 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
 
     // Colors
     private Color shadowColor;
-    private Color highlightColor;
     private Color focusColor;
 
     /**
@@ -143,8 +150,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
 
     private BufferedImage trackImage;
     private BufferedImage activeTrackImage;
-    private BufferedImage limitThumbImage;
-    private BufferedImage thumbImage;
+    private final BufferedImage[] thumbImages = new BufferedImage[3];
 
     /**
      * Returns the shadow color.
@@ -152,14 +158,6 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
      */
     protected Color getShadowColor() {
         return shadowColor;
-    }
-
-    /**
-     * Returns the highlight color.
-     * @return the highlight color
-     */
-    protected Color getHighlightColor() {
-        return highlightColor;
     }
 
     /**
@@ -171,13 +169,13 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
     }
 
     /**
-     * Returns true if the user is dragging the slider.
+     * Returns true if the user is dragging a slider.
      *
      * @return true if the user is dragging the slider
      * @since 1.5
      */
     protected boolean isDragging() {
-        return isDragging;
+        return draggedThumb != THUMB_NONE;
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -200,8 +198,8 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         try {
             trackImage = ImageIO.read(getClass().getResource("/img/timelineslider/timelineslider_track.png"));
             activeTrackImage = ImageIO.read(getClass().getResource("/img/timelineslider/timelineslider_activetrack.png"));
-            limitThumbImage = ImageIO.read(getClass().getResource("/img/timelineslider/timelineslider_limitthumb.png"));
-            thumbImage = ImageIO.read(getClass().getResource("/img/timelineslider/timelineslider_thumb.png"));
+            thumbImages[THUMB_CURRENT] = ImageIO.read(getClass().getResource("/img/timelineslider/timelineslider_thumb.png"));
+            thumbImages[THUMB_LOWER] = thumbImages[THUMB_HIGHER] = ImageIO.read(getClass().getResource("/img/timelineslider/timelineslider_limitthumb.png"));
         }
         catch (IOException e) {
             UI.alertException(slider, "Timeslider error", "Error loading images", e, logger);
@@ -212,7 +210,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
      * Installs a UI.
      * @param c a component
      */
-    public void installUI(JComponent c)   {
+    public void installUI(JComponent c) {
         slider = (JTimelineSlider) c;
 
         checkedLabelBaselines = false;
@@ -220,7 +218,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         slider.setEnabled(slider.isEnabled());
         LookAndFeel.installProperty(slider, "opaque", Boolean.TRUE);
 
-        isDragging = false;
+        draggedThumb = THUMB_NONE;
         trackListener = createTrackListener( slider );
         changeListener = createChangeListener( slider );
         componentListener = createComponentListener( slider );
@@ -243,9 +241,9 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         tickRect = new Rectangle();
         trackRect = new Rectangle();
         activeTrackRect = new Rectangle();
-        lowerRect = new Rectangle();
-        higherRect = new Rectangle();
-        thumbRect = new Rectangle();
+        for (int i = 0; i < thumbRects.length; i++) {
+            thumbRects[i] = new Rectangle();
+        }
         lastValue = slider.getValue();
 
         calculateGeometry(); // This figures out where the labels, ticks, track, and thumb are.
@@ -266,7 +264,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         scrollTimer = null;
 
         uninstallDefaults(slider);
-        uninstallListeners( slider );
+        uninstallListeners(slider);
         uninstallKeyboardActions(slider);
 
         insetCache = null;
@@ -277,9 +275,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         tickRect = null;
         trackRect = null;
         activeTrackRect = null;
-        lowerRect = null;
-        higherRect = null;
-        thumbRect = null;
+        thumbRects = new Rectangle[3];
         trackListener = null;
         changeListener = null;
         componentListener = null;
@@ -297,7 +293,6 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         LookAndFeel.installBorder(slider, "Slider.border");
         LookAndFeel.installColorsAndFont(slider, "Slider.background",
                 "Slider.foreground", "Slider.font");
-        highlightColor = UIManager.getColor("Slider.highlight");
 
         shadowColor = UIManager.getColor("Slider.shadow");
         focusColor = UIManager.getColor("Slider.focus");
@@ -320,8 +315,9 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
 
     /**
      * Creates a track listener.
-     * @return a track listener
+     *
      * @param slider a slider
+     * @return a track listener
      */
     protected TrackListener createTrackListener(JTimelineSlider slider) {
         return new TrackListener();
@@ -329,8 +325,9 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
 
     /**
      * Creates a change listener.
-     * @return a change listener
+     *
      * @param slider a slider
+     * @return a change listener
      */
     protected ChangeListener createChangeListener(JTimelineSlider slider) {
         return getHandler();
@@ -728,7 +725,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
      */
     protected void calculateThumbSize() {
         Dimension size = getThumbSize();
-        thumbRect.setSize( size.width, size.height );
+        thumbRects[THUMB_CURRENT].setSize(size.width, size.height);
     }
 
     /**
@@ -789,14 +786,14 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         if ( slider.getOrientation() == JTimelineSlider.HORIZONTAL ) {
             int valuePosition = xPositionForValue(slider.getValue());
 
-            thumbRect.x = valuePosition - (thumbRect.width / 2);
-            thumbRect.y = trackRect.y;
+            thumbRects[THUMB_CURRENT].x = valuePosition - (thumbRects[THUMB_CURRENT].width / 2);
+            thumbRects[THUMB_CURRENT].y = trackRect.y;
         }
         else {
             int valuePosition = yPositionForValue(slider.getValue());
 
-            thumbRect.x = trackRect.x;
-            thumbRect.y = valuePosition - (thumbRect.height / 2);
+            thumbRects[THUMB_CURRENT].x = trackRect.x;
+            thumbRects[THUMB_CURRENT].y = valuePosition - (thumbRects[THUMB_CURRENT].height / 2);
         }
     }
 
@@ -810,19 +807,19 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
 
             if ( slider.getOrientation() == JTimelineSlider.HORIZONTAL ) {
                 trackBuffer = Math.max( highLabel.getBounds().width, lowLabel.getBounds().width ) / 2;
-                trackBuffer = Math.max( trackBuffer, thumbRect.width / 2 );
+                trackBuffer = Math.max( trackBuffer, thumbRects[THUMB_CURRENT].width / 2 );
             }
             else {
                 trackBuffer = Math.max( highLabel.getBounds().height, lowLabel.getBounds().height ) / 2;
-                trackBuffer = Math.max( trackBuffer, thumbRect.height / 2 );
+                trackBuffer = Math.max( trackBuffer, thumbRects[THUMB_CURRENT].height / 2 );
             }
         }
         else {
             if ( slider.getOrientation() == JTimelineSlider.HORIZONTAL ) {
-                trackBuffer = thumbRect.width / 2;
+                trackBuffer = thumbRects[THUMB_CURRENT].width / 2;
             }
             else {
-                trackBuffer = thumbRect.height / 2;
+                trackBuffer = thumbRects[THUMB_CURRENT].height / 2;
             }
         }
     }
@@ -834,16 +831,16 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
 
         int centerSpacing; // used to center sliders added using BorderLayout.CENTER (bug 4275631)
         if ( slider.getOrientation() == JTimelineSlider.HORIZONTAL ) {
-            centerSpacing = thumbRect.height;
+            centerSpacing = thumbRects[THUMB_CURRENT].height;
             if ( slider.getPaintTicks() ) centerSpacing += getTickLength();
             if ( slider.getPaintLabels() ) centerSpacing += getHeightOfTallestLabel();
             trackRect.x = contentRect.x + trackBuffer;
             trackRect.y = contentRect.y + (contentRect.height - centerSpacing - 1)/2;
             trackRect.width = contentRect.width - (trackBuffer * 2);
-            trackRect.height = trackImage.getHeight(); // TODO ? thumbRect.height;
+            trackRect.height = trackImage.getHeight();
         }
         else {
-            centerSpacing = thumbRect.width;
+            centerSpacing = thumbRects[THUMB_CURRENT].width;
             if (PublicSwingUtils.isLeftToRight(slider)) {
                 if ( slider.getPaintTicks() ) centerSpacing += getTickLength();
                 if ( slider.getPaintLabels() ) centerSpacing += getWidthOfWidestLabel();
@@ -853,7 +850,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
             }
             trackRect.x = contentRect.x + (contentRect.width - centerSpacing - 1)/2;
             trackRect.y = contentRect.y + trackBuffer;
-            trackRect.width = thumbRect.width;
+            trackRect.width = trackImage.getWidth();
             trackRect.height = contentRect.height - (trackBuffer * 2);
         }
 
@@ -868,16 +865,17 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         activeTrackRect.y = trackRect.y;
         activeTrackRect.height = activeTrackImage.getHeight();
 
-        lowerRect.x = lowerPosition - limitThumbImage.getWidth()/2;
-        lowerRect.width = limitThumbImage.getWidth();
-        lowerRect.y = trackRect.y;
-        lowerRect.height = limitThumbImage.getHeight();
+        thumbRects[THUMB_LOWER].x = lowerPosition - thumbImages[THUMB_LOWER].getWidth()/2;
+        thumbRects[THUMB_LOWER].width = thumbImages[THUMB_LOWER].getWidth();
+        thumbRects[THUMB_LOWER].y = trackRect.y;
+        thumbRects[THUMB_LOWER].height = thumbImages[THUMB_LOWER].getHeight();
 
-        higherRect.x = higherPosition - limitThumbImage.getWidth()/2;
-        higherRect.width = limitThumbImage.getWidth();
-        higherRect.y = trackRect.y;
-        higherRect.height = limitThumbImage.getHeight();
+        thumbRects[THUMB_HIGHER].x = higherPosition - thumbImages[THUMB_HIGHER].getWidth()/2;
+        thumbRects[THUMB_HIGHER].width = thumbImages[THUMB_HIGHER].getWidth();
+        thumbRects[THUMB_HIGHER].y = trackRect.y;
+        thumbRects[THUMB_HIGHER].height = thumbImages[THUMB_HIGHER].getHeight();
     }
+
     /**
      * Gets the height of the tick area for horizontal sliders and the width of
      * the tick area for vertical sliders. BasicTimelineSliderUI uses the returned value
@@ -966,21 +964,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
      * @return the thumb size
      */
     protected Dimension getThumbSize() {
-//
-//        Dimension size = new Dimension();
-//
-//        if ( slider.getOrientation() == JSlider.VERTICAL ) {
-//            size.width = 20; // TODO ? 10
-//            size.height = 11;
-//        }
-//        else {
-//            size.width = 11;
-//            size.height = 20; // TODO ? 10
-//        }
-//
-//        return size;
-//
-        return new Dimension(thumbImage.getWidth(), thumbImage.getHeight());
+        return new Dimension(thumbImages[THUMB_CURRENT].getWidth(), thumbImages[THUMB_CURRENT].getHeight());
     }
 
     /**
@@ -1215,7 +1199,6 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         }
         if ( slider.getPaintTrack() && clip.intersects(activeTrackRect) ) {
             paintActiveTrack( g );
-            paintActiveThumbs( g );
         }
         if ( slider.getPaintTicks() && clip.intersects( tickRect ) ) {
             paintTicks( g );
@@ -1226,8 +1209,11 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
         if ( slider.hasFocus() && clip.intersects( focusRect ) ) {
             paintFocus( g );
         }
-        if ( clip.intersects( thumbRect ) ) {
-            paintThumb( g );
+        // Paint background thumbs first
+        for (int thumbIndex = thumbRects.length - 1; thumbIndex >= 0; thumbIndex--) {
+            if ( clip.intersects( thumbRects[thumbIndex] ) ) {
+                paintThumb( g, thumbIndex );
+            }
         }
     }
 
@@ -1517,131 +1503,28 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
     /**
      * Paints the value thumb.
      * @param g the graphics
+     * @param thumbIndex the index of the thumb to paint
      */
-    public void paintThumb(Graphics g)  {
-        Rectangle knobBounds = thumbRect;
-        g.drawImage(thumbImage, knobBounds.x, knobBounds.y, knobBounds.width, knobBounds.height, null);
-    }
-
-    /**
-     * Paints an active area limit thumb.
-     * @param g the graphics
-     */
-    public void paintActiveThumbs(Graphics g)  {
-        Rectangle knobBounds = lowerRect;
-        g.drawImage(limitThumbImage, knobBounds.x, knobBounds.y, knobBounds.width, knobBounds.height, null);
-        knobBounds = higherRect;
-        g.drawImage(limitThumbImage, knobBounds.x, knobBounds.y, knobBounds.width, knobBounds.height, null);
-
-//        // TODO thumbRect should be resized instead to respond to mouse clicks only in its area
-//        int w, h;
-//        if ( slider.getOrientation() == JTimelineSlider.HORIZONTAL ) {
-//            w = knobBounds.width;
-//            h = knobBounds.height / 2 + 2;
-//        }
-//        else {
-//            w = knobBounds.width / 2 + 2;
-//            h = knobBounds.height;
-//        }
-//
-//        g.translate(position, knobBounds.y);
-//
-//        if ( slider.isEnabled() ) {
-//            g.setColor(slider.getBackground());
-//        }
-//        else {
-//            g.setColor(slider.getBackground().darker());
-//        }
-//
-//        // TimelineSlider has Arrow shaped thumbs by default
-//        if ( slider.getOrientation() == JTimelineSlider.HORIZONTAL ) {
-//            int cw = w / 2;
-//
-//            // Rectangle below
-//            g.fillRect(1, cw, w-3, h-1-cw);
-//            // "Triangle" above
-//            Polygon p = new Polygon();
-//            p.addPoint(1, cw);
-//            p.addPoint(cw-1, 1);
-//            p.addPoint(w-2, cw);
-//            g.fillPolygon(p);
-//
-//            g.setColor(highlightColor);
-//            g.drawLine(0, cw, cw-1, 1); // slant
-//            g.drawLine(0, cw + 1, 0, h-1); // vertical
-//
-//            g.setColor(Color.black);
-//            g.drawLine(w-1, cw + 1, w-1, h); // vertical
-//            g.drawLine(0, h, w-1, h); // horizontal
-//
-//            g.setColor(shadowColor);
-//            g.drawLine(cw, 1, w-2, cw); // slant
-//            g.drawLine(w-2, cw, w-2, h-1); // vertical
-//            g.drawLine(w-3, h-1, 1, h-1); // horizontal
-//
-//        }
-//        else {  // vertical
-//            int cw = h / 2;
-//            if (PublicSwingUtils.isLeftToRight(slider)) {
-//                g.fillRect(5, 1, w-1-cw, h-3);
-//                Polygon p = new Polygon();
-//                p.addPoint(cw, 0);
-//                p.addPoint(0, cw);
-//                p.addPoint(cw, h-2);
-//                g.fillPolygon(p);
-//
-//                g.setColor(highlightColor);
-//                g.drawLine(cw-1, 0, w-2, 0);             // top
-//                g.drawLine(0, cw, cw, 0);                // top slant
-//
-//                g.setColor(Color.black);
-//                g.drawLine(0, h-1-cw, cw, h-1 );         // bottom slant
-//                g.drawLine(cw, h-1, w-1, h-1);           // bottom
-//
-//                g.setColor(shadowColor);
-//                g.drawLine(cw, h-2, w-2,  h-2 );         // bottom
-//                g.drawLine(w-1, 1, w-1,  h-2 );          // right
-//            }
-//            else {
-//                g.fillRect(1, 1, w-1-cw, h-3);
-//                Polygon p = new Polygon();
-//                p.addPoint(w-cw-1, 0);
-//                p.addPoint(w-1, cw);
-//                p.addPoint(w-1-cw, h-2);
-//                g.fillPolygon(p);
-//
-//                g.setColor(highlightColor);
-//                g.drawLine(0, 0, 0, h - 2);                  // left
-//                g.drawLine(1, 0, w-1-cw, 0);                 // top
-//                g.drawLine(w-cw-1, 0, w-1, cw);              // top slant
-//
-//                g.setColor(Color.black);
-//                g.drawLine(0, h-1, w-2-cw, h-1);             // bottom
-//                g.drawLine(w-1-cw, h-1, w-1, h-1-cw);        // bottom slant
-//
-//                g.setColor(shadowColor);
-//                g.drawLine(1, h-2, w-2-cw,  h-2 );         // bottom
-//                g.drawLine(w-1-cw, h-2, w-2, h-cw-1 );     // bottom slant
-//            }
-//        }
-//
-//        g.translate(-knobBounds.x, -knobBounds.y);
+    public void paintThumb(Graphics g, int thumbIndex)  {
+        Rectangle knobBounds = thumbRects[thumbIndex];
+        g.drawImage(thumbImages[thumbIndex], knobBounds.x, knobBounds.y, knobBounds.width, knobBounds.height, null);
     }
 
     // Used exclusively by setThumbLocation()
-    private static Rectangle unionRect = new Rectangle();
+    private static final Rectangle unionRect = new Rectangle();
 
     /**
-     * Sets the thumb location.
+     * Sets a thumb location.
+     * @param thumbIndex the index to move
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setThumbLocation(int x, int y)  {
-        unionRect.setBounds( thumbRect );
+    public void setThumbLocation(int thumbIndex, int x, int y)  {
+        unionRect.setBounds( thumbRects[thumbIndex] );
 
-        thumbRect.setLocation( x, y );
+        thumbRects[thumbIndex].setLocation( x, y );
 
-        SwingUtilities.computeUnion( thumbRect.x, thumbRect.y, thumbRect.width, thumbRect.height, unionRect );
+        SwingUtilities.computeUnion( thumbRects[thumbIndex].x, thumbRects[thumbIndex].y, thumbRects[thumbIndex].width, thumbRects[thumbIndex].height, unionRect );
         slider.repaint( unionRect.x, unionRect.y, unionRect.width, unionRect.height );
     }
 
@@ -1852,8 +1735,8 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
             ComponentListener, FocusListener, PropertyChangeListener {
         // Change Handler
         public void stateChanged(ChangeEvent e) {
-            if (!isDragging) {
-                calculateThumbLocation();
+            if (draggedThumb == THUMB_NONE) {
+                calculateThumbLocation(/*THUMB_CURRENT, BasicTimelineSliderUI.this.slider.getValue()*/);
                 slider.repaint();
             }
             lastValue = slider.getValue();
@@ -1953,7 +1836,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
             offset = 0;
             scrollTimer.stop();
 
-            isDragging = false;
+            draggedThumb = THUMB_NONE;
             slider.setValueIsAdjusting(false);
             slider.repaint();
         }
@@ -1983,30 +1866,32 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
                 slider.requestFocus();
             }
 
-            // Clicked in the Thumb area?
-            if (thumbRect.contains(currentMouseX, currentMouseY)) {
-                if (UIManager.getBoolean("Slider.onlyLeftMouseButtonDrag")
-                        && !SwingUtilities.isLeftMouseButton(e)) {
+            // Clicked in a Thumb area?
+            for (int thumbIndex = 0; thumbIndex < thumbRects.length; thumbIndex++) {
+                if (thumbRects[thumbIndex].contains(currentMouseX, currentMouseY)) {
+                    if (UIManager.getBoolean("Slider.onlyLeftMouseButtonDrag")
+                            && !SwingUtilities.isLeftMouseButton(e)) {
+                        return;
+                    }
+
+                    switch (slider.getOrientation()) {
+                        case JTimelineSlider.VERTICAL:
+                            offset = currentMouseY - thumbRects[thumbIndex].y;
+                            break;
+                        case JTimelineSlider.HORIZONTAL:
+                            offset = currentMouseX - thumbRects[thumbIndex].x;
+                            break;
+                    }
+                    draggedThumb = thumbIndex;
                     return;
                 }
-
-                switch (slider.getOrientation()) {
-                    case JTimelineSlider.VERTICAL:
-                        offset = currentMouseY - thumbRect.y;
-                        break;
-                    case JTimelineSlider.HORIZONTAL:
-                        offset = currentMouseX - thumbRect.x;
-                        break;
-                }
-                isDragging = true;
-                return;
             }
 
             if (!SwingUtilities.isLeftMouseButton(e)) {
                 return;
             }
 
-            isDragging = false;
+            draggedThumb = THUMB_NONE;
             slider.setValueIsAdjusting(true);
 
             Dimension sbSize = slider.getSize();
@@ -2014,7 +1899,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
 
             switch (slider.getOrientation()) {
                 case JTimelineSlider.VERTICAL:
-                    if ( thumbRect.isEmpty() ) {
+                    if ( thumbRects[THUMB_CURRENT].isEmpty() ) {
                         int scrollbarCenter = sbSize.height / 2;
                         if ( !drawInverted() ) {
                             direction = (currentMouseY < scrollbarCenter) ?
@@ -2026,7 +1911,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
                         }
                     }
                     else {
-                        int thumbY = thumbRect.y;
+                        int thumbY = thumbRects[THUMB_CURRENT].y;
                         if ( !drawInverted() ) {
                             direction = (currentMouseY < thumbY) ?
                                     POSITIVE_SCROLL : NEGATIVE_SCROLL;
@@ -2038,7 +1923,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
                     }
                     break;
                 case JTimelineSlider.HORIZONTAL:
-                    if ( thumbRect.isEmpty() ) {
+                    if ( thumbRects[THUMB_CURRENT].isEmpty() ) {
                         int scrollbarCenter = sbSize.width / 2;
                         if ( !drawInverted() ) {
                             direction = (currentMouseX < scrollbarCenter) ?
@@ -2050,7 +1935,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
                         }
                     }
                     else {
-                        int thumbX = thumbRect.x;
+                        int thumbX = thumbRects[THUMB_CURRENT].x;
                         if ( !drawInverted() ) {
                             direction = (currentMouseX < thumbX) ?
                                     NEGATIVE_SCROLL : POSITIVE_SCROLL;
@@ -2079,7 +1964,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
          * @return if scrolling should occur
          */
         public boolean shouldScroll(int direction) {
-            Rectangle r = thumbRect;
+            Rectangle r = thumbRects[THUMB_CURRENT];
             if (slider.getOrientation() == JTimelineSlider.VERTICAL) {
                 if (drawInverted() ? direction < 0 : direction > 0) {
                     if (r.y  <= currentMouseY) {
@@ -2127,7 +2012,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
             currentMouseX = e.getX();
             currentMouseY = e.getY();
 
-            if (!isDragging) {
+            if (draggedThumb == THUMB_NONE) {
                 return;
             }
 
@@ -2135,7 +2020,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
 
             switch (slider.getOrientation()) {
                 case JTimelineSlider.VERTICAL:
-                    int halfThumbHeight = thumbRect.height / 2;
+                    int halfThumbHeight = thumbRects[draggedThumb].height / 2;
                     int thumbTop = e.getY() - offset;
                     int trackTop = trackRect.y;
                     int trackBottom = trackRect.y + (trackRect.height - 1);
@@ -2151,13 +2036,13 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
                     thumbTop = Math.max(thumbTop, trackTop - halfThumbHeight);
                     thumbTop = Math.min(thumbTop, trackBottom - halfThumbHeight);
 
-                    setThumbLocation(thumbRect.x, thumbTop);
+                    setThumbLocation(draggedThumb, thumbRects[draggedThumb].x, thumbTop);
 
                     thumbMiddle = thumbTop + halfThumbHeight;
                     slider.setValue( valueForYPosition( thumbMiddle ) );
                     break;
                 case JTimelineSlider.HORIZONTAL:
-                    int halfThumbWidth = thumbRect.width / 2;
+                    int halfThumbWidth = thumbRects[draggedThumb].width / 2;
                     int thumbLeft = e.getX() - offset;
                     int trackLeft = trackRect.x;
                     int trackRight = trackRect.x + (trackRect.width - 1);
@@ -2173,7 +2058,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
                     thumbLeft = Math.max(thumbLeft, trackLeft - halfThumbWidth);
                     thumbLeft = Math.min(thumbLeft, trackRight - halfThumbWidth);
 
-                    setThumbLocation(thumbLeft, thumbRect.y);
+                    setThumbLocation(draggedThumb, thumbLeft, thumbRects[draggedThumb].y);
 
                     thumbMiddle = thumbLeft + halfThumbWidth;
                     slider.setValue(valueForXPosition(thumbMiddle));

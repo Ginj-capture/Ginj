@@ -50,7 +50,8 @@ public class Prefs {
         DEBUG_NO_SETVISIBLE_TRUE_IN_RECOVERY("debug.no.setvisible.true.in.recovery", "Debug param to see what part really recovers the widget", true),
         DEBUG_NO_TO_FRONT_IN_RECOVERY("debug.no.to.front.in.recovery", "Debug param to see what part really recovers the widget", true),
         DEBUG_NO_REQUEST_FOCUS_IN_RECOVERY("debug.no.request.focus.in.recovery", "Debug param to see what part really recovers the widget", true),
-        FFMPEG_TERMINATION_TIMEOUT("ffmpeg.termination.timeout", "The max delay between a request to end an ffmpeg process and its actual response", true, String.valueOf(15));
+        FFMPEG_TERMINATION_TIMEOUT("ffmpeg.termination.timeout", "The max delay between a request to end an ffmpeg process and its actual response", true, String.valueOf(15)),
+        VIDEO_IMAGE_UPDATE_DELAY_MS("video.image.update.delay.ms", "Delay before update of the image when dragging the slider on the timeline of a video capture" , true, String.valueOf(150));
 
         private final String keyString;
         private final String help;
@@ -213,7 +214,7 @@ public class Prefs {
         }
     }
 
-    public static long getAsInt(Key key) {
+    public static int getAsInt(Key key) {
         String valueStr = get(key);
         if (valueStr == null || valueStr.length() == 0) {
             return Integer.parseInt(key.defaultValue);

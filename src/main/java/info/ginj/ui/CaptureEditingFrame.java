@@ -23,6 +23,8 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.time.Duration;
@@ -55,6 +57,10 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
     GinjTool currentTool;
     private final JPanel actionPanel;
+    private Timer videoImageUpdateTimer = null;
+    private int displayedVideoImagePositionMs = 0;
+    // Delay of slider pause between image refresh
+    private int videoImageUpdateMs = 150;
 
 
     public CaptureEditingFrame(StarWindow starWindow, Capture capture) {
@@ -76,6 +82,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         // Add default "draggable window" behaviour
         UI.addDraggableWindowMouseBehaviour(this, this);
 
+        videoImageUpdateMs = Prefs.getAsInt(Prefs.Key.VIDEO_IMAGE_UPDATE_DELAY_MS);
 
         // Prepare main image panel first because it will be needed in ActionHandlers
         BufferedImage originalImage;
@@ -239,12 +246,23 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
                 positionLabel.setText(String.format("%02d:%02d:%02d", position.toHours(), position.toMinutesPart(), position.toSecondsPart()));
                 if (source.getAdjustingThumbIndex() != THUMB_NONE) {
                     // During drag, wait for value to settle
+                    if (videoImageUpdateTimer == null) {
+                        videoImageUpdateTimer = new Timer(videoImageUpdateMs, new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                updateVideoImage(capture, positionSlider.getThumbValue(positionSlider.getAdjustingThumbIndex()));
+                            }
+                        });
+                    }
+                    else {
+                        videoImageUpdateTimer.stop();
+                    }
+                    videoImageUpdateTimer.start();
                 }
                 else {
-                    // update image
-                    imagePane.setCapturedImg(Jaffree.grabImage(capture.getOriginalFile(), positionSlider.getValue()));
-                    imagePane.invalidate();
-                    imagePane.repaint();
+                    videoImageUpdateTimer.stop();
+                    videoImageUpdateTimer = null;
+                    updateVideoImage(capture, positionSlider.getValue());
                 }
             });
 
@@ -362,6 +380,16 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
         // Center window
         starWindow.centerFrameOnStarIconDisplay(this);
+    }
+
+    private void updateVideoImage(Capture capture, int positionInMillis) {
+        if (positionInMillis != displayedVideoImagePositionMs) {
+            // update image
+            imagePane.setCapturedImg(Jaffree.grabImage(capture.getOriginalFile(), positionInMillis));
+            imagePane.invalidate();
+            imagePane.repaint();
+            displayedVideoImagePositionMs = positionInMillis;
+        }
     }
 
     @Override

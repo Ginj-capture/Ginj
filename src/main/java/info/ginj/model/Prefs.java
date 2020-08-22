@@ -42,6 +42,7 @@ public class Prefs {
         FFMPEG_BIN_DIR("ffmpeg.bin.dir", "Folder where the ffmpeg binary executable can be founs", true),
         VIDEO_FRAMERATE("video.framerate", "The framerate of the video captures" , true, String.valueOf(10)),
         VIDEO_CAPTURE_MOUSE_CURSOR("video.capture.mouse.cursor", "If true, the mouse cursor is captured in the video", true),
+        VIDEO_IMAGE_UPDATE_DELAY_MS("video.image.update.delay.ms", "Delay before update of the image when dragging the slider on the timeline of a video capture" , true, String.valueOf(150)),
         USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION("use.tray.notification.on.export.completion", "If enabled, the 'end of export' window is replaced by an OS tray notification", true, String.valueOf(true)),
         TEMP_DIR("temp.dir", "The directory to store temporary captures", true),
         DEBUG_NO_OPACITY_CHANGE("debug.no.opacity.change", "Debug param to try to avoid the transparent grey background", true),
@@ -50,8 +51,7 @@ public class Prefs {
         DEBUG_NO_SETVISIBLE_TRUE_IN_RECOVERY("debug.no.setvisible.true.in.recovery", "Debug param to see what part really recovers the widget", true),
         DEBUG_NO_TO_FRONT_IN_RECOVERY("debug.no.to.front.in.recovery", "Debug param to see what part really recovers the widget", true),
         DEBUG_NO_REQUEST_FOCUS_IN_RECOVERY("debug.no.request.focus.in.recovery", "Debug param to see what part really recovers the widget", true),
-        FFMPEG_TERMINATION_TIMEOUT("ffmpeg.termination.timeout", "The max delay between a request to end an ffmpeg process and its actual response", true, String.valueOf(15)),
-        VIDEO_IMAGE_UPDATE_DELAY_MS("video.image.update.delay.ms", "Delay before update of the image when dragging the slider on the timeline of a video capture" , true, String.valueOf(150));
+        FFMPEG_TERMINATION_TIMEOUT("ffmpeg.termination.timeout", "The max delay between a request to end an ffmpeg process and its actual response", true, String.valueOf(15));
 
         private final String keyString;
         private final String help;

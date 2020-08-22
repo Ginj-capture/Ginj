@@ -563,6 +563,18 @@ public class JTimelineSlider extends JComponent implements SwingConstants, Acces
     }
 
     /**
+     * Returns the current value of the given thumb of the slider
+     * from the {@code BoundedTimelineRangeModel}.
+     *
+     * @param   thumbIndex the index of the thumb we want to get the value of
+     * @return  the current value of the given thumb of the slider
+     * @see     BoundedTimelineRangeModel#getThumbValue
+     */
+    public int getThumbValue(int thumbIndex) {
+        return getModel().getThumbValue(thumbIndex);
+    }
+
+    /**
      * Sets the slider's current value to {@code n}.  This method
      * forwards the new value to the model.
      * <p>

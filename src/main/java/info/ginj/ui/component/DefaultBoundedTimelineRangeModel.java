@@ -166,6 +166,21 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
 
 
     /**
+     * Returns the current value of the given thumb of the slider
+     *
+     * @param   thumbIndex the index of the thumb we want to get the value of
+     * @return  the current value of the given thumb of the model
+     */
+    public int getThumbValue(int thumbIndex) {
+        return switch (thumbIndex) {
+            case BoundedTimelineRangeModel.THUMB_LOWER -> getLower();
+            case BoundedTimelineRangeModel.THUMB_HIGHER -> getHigher();
+            default -> getValue();
+        };
+    }
+
+
+    /**
      * Returns the model's extent.
      * @return the model's extent
      * @see #setExtent

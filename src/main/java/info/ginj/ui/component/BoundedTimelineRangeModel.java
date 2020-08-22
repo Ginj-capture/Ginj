@@ -190,6 +190,15 @@ public interface BoundedTimelineRangeModel
 
 
     /**
+     * Returns the current value of the given thumb of the slider
+     *
+     * @param   thumbIndex the index of the thumb we want to get the value of
+     * @return  the current value of the given thumb of the model
+     */
+    int getThumbValue(int thumbIndex);
+
+
+    /**
      * Sets the model's current value to <code>newValue</code> if <code>newValue</code>
      * satisfies the model's constraints. Those constraints are:
      * <pre>

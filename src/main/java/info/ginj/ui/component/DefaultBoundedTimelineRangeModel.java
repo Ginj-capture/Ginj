@@ -68,7 +68,7 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
     private int lower = 0;
     private int higher = 100;
     private int max = 100;
-    private boolean isAdjusting = false;
+    private int adjustingThumbIndex = THUMB_NONE;
 
 
     /**
@@ -236,7 +236,7 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
         if (newValue + extent > higher) {
             newValue = higher - extent;
         }
-        setRangeProperties(newValue, extent, min, max, lower, higher, isAdjusting);
+        setRangeProperties(newValue, extent, min, max, lower, higher, adjustingThumbIndex);
     }
 
 
@@ -255,7 +255,7 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
         if(value + newExtent > higher) {
             newExtent = higher - value;
         }
-        setRangeProperties(value, newExtent, min, max, lower, higher, isAdjusting);
+        setRangeProperties(value, newExtent, min, max, lower, higher, adjustingThumbIndex);
     }
 
     /**
@@ -274,7 +274,7 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
         int newValue = Math.max(n, value);
         int newExtent = Math.min(newHigher - newValue, extent);
         int newLower = Math.max(n, lower);
-        setRangeProperties(newValue, newExtent, n, newMax, newLower, newHigher, isAdjusting);
+        setRangeProperties(newValue, newExtent, n, newMax, newLower, newHigher, adjustingThumbIndex);
     }
 
 
@@ -293,7 +293,7 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
         int newExtent = Math.min(n - newLower, extent);
         int newValue = Math.min(n - newExtent, value);
         int newHigher = Math.min(n, higher);
-        setRangeProperties(newValue, newExtent, newMin, n, newLower, newHigher, isAdjusting);
+        setRangeProperties(newValue, newExtent, newMin, n, newLower, newHigher, adjustingThumbIndex);
     }
 
     /**
@@ -313,7 +313,7 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
         int newHigher = Math.max(n, higher);
         int newValue = Math.max(n, value);
         int newExtent = Math.min(newHigher - n, extent);
-        setRangeProperties(newValue, newExtent, min, max, n, newHigher, isAdjusting);
+        setRangeProperties(newValue, newExtent, min, max, n, newHigher, adjustingThumbIndex);
     }
 
     /**
@@ -333,32 +333,32 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
         int newLower = Math.min(n, lower);
         int newExtent = Math.min(n - newLower, extent);
         int newValue = Math.min(n - newExtent, value);
-        setRangeProperties(newValue, newExtent, min, max, newLower, n, isAdjusting);
+        setRangeProperties(newValue, newExtent, min, max, newLower, n, adjustingThumbIndex);
     }
 
 
     /**
-     * Sets the <code>valueIsAdjusting</code> property.
+     * Sets the <code>adjustingThumbIndex</code> property.
      *
-     * @see #getValueIsAdjusting
+     * @see #getAdjustingThumbIndex
      * @see #setValue
-     * @see BoundedTimelineRangeModel#setValueIsAdjusting
+     * @see BoundedTimelineRangeModel#setAdjustingThumbIndex
      */
-    public void setValueIsAdjusting(boolean b) {
-        setRangeProperties(value, extent, min, max, lower, higher, b);
+    public void setAdjustingThumbIndex(int adjustingThumbIndex) {
+        setRangeProperties(value, extent, min, max, lower, higher, adjustingThumbIndex);
     }
 
-
     /**
-     * Returns true if the value is in the process of changing
-     * as a result of actions being taken by the user.
+     * Returns the index of the thumb being adjusted if the current changes to the value property are part
+     * of a series of changes, or THUMB_NONE if no thumb is adjusting
      *
-     * @return the value of the <code>valueIsAdjusting</code> property
+     * @return the value of the <code>adjustingThumbIndex</code> property
      * @see #setValue
-     * @see BoundedTimelineRangeModel#getValueIsAdjusting
+     * @see BoundedTimelineRangeModel#getAdjustingThumbIndex
      */
-    public boolean getValueIsAdjusting() {
-        return isAdjusting;
+    @Override
+    public int getAdjustingThumbIndex() {
+        return adjustingThumbIndex;
     }
 
 
@@ -376,9 +376,9 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
      * @see #setExtent
      * @see #setMinimum
      * @see #setMaximum
-     * @see #setValueIsAdjusting
+     * @see #setAdjustingThumbIndex
      */
-    public void setRangeProperties(int newValue, int newExtent, int newMin, int newMax, int newLower, int newHigher, boolean adjusting)
+    public void setRangeProperties(int newValue, int newExtent, int newMin, int newMax, int newLower, int newHigher, int newAdjustingThumbIndex)
     {
         // max has priority over min
         newMin = Math.min(newMin, newMax);
@@ -399,7 +399,7 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
             (newMax != max) ||
             (newLower != lower) ||
             (newHigher != higher) ||
-            (adjusting != isAdjusting);
+            (newAdjustingThumbIndex != adjustingThumbIndex);
 
         if (isChange) {
             value = newValue;
@@ -408,7 +408,7 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
             max = newMax;
             lower = newLower;
             higher = newHigher;
-            isAdjusting = adjusting;
+            adjustingThumbIndex = newAdjustingThumbIndex;
 
             fireStateChanged();
         }
@@ -490,7 +490,7 @@ public class DefaultBoundedTimelineRangeModel implements BoundedTimelineRangeMod
             "max=" + getMaximum() + ", " +
             "lower=" + getLower() + ", " +
             "higher=" + getHigher() + ", " +
-            "adj=" + getValueIsAdjusting();
+            "adj=" + getAdjustingThumbIndex();
 
         return getClass().getName() + "[" + modelString + "]";
     }

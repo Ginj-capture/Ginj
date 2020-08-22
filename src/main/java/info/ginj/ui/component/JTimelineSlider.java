@@ -46,6 +46,8 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import static info.ginj.ui.component.BoundedTimelineRangeModel.THUMB_NONE;
+
 /**
  * A component that lets the user graphically select several values by sliding
  * knobs within a bounded interval. The knob are always positioned
@@ -756,34 +758,34 @@ public class JTimelineSlider extends JComponent implements SwingConstants, Acces
      * documentation.
      *
      * @return the value of the model's {@code valueIsAdjusting} property
-     * @see #setValueIsAdjusting
+     * @see #setAdjustingThumbIndex
      */
-    public boolean getValueIsAdjusting() {
-        return getModel().getValueIsAdjusting();
+    public int getAdjustingThumbIndex() {
+        return getModel().getAdjustingThumbIndex();
     }
 
 
     /**
      * Sets the model's {@code valueIsAdjusting} property.  Slider look and
-     * feel implementations should set this property to {@code true} when
-     * a knob drag begins, and to {@code false} when the drag ends.
+     * feel implementations should set this property to the value of theumb being adjusted when
+     * a knob drag begins, and to THUMB_NONE when the drag ends.
      *
-     * @param b the new value for the {@code valueIsAdjusting} property
-     * @see   #getValueIsAdjusting
-     * @see   BoundedTimelineRangeModel#setValueIsAdjusting
+     * @param thumbIndex the new value for the {@code adjustingThumbIndex} property
+     * @see   #getAdjustingThumbIndex
+     * @see   BoundedTimelineRangeModel#setAdjustingThumbIndex
      */
     @BeanProperty(bound = false, expert = true, description
-            = "True if the slider knob is being dragged.")
-    public void setValueIsAdjusting(boolean b) {
+            = "The index of the slider knob being dragged, or THUMB_NONE if not adjusting.")
+    public void setAdjustingThumbIndex(int thumbIndex) {
         BoundedTimelineRangeModel m = getModel();
-        boolean oldValue = m.getValueIsAdjusting();
-        m.setValueIsAdjusting(b);
+        int oldValue = m.getAdjustingThumbIndex();
+        m.setAdjustingThumbIndex(thumbIndex);
 
-        if ((oldValue != b) && (accessibleContext != null)) {
+        if ((oldValue != thumbIndex) && (accessibleContext != null)) {
             accessibleContext.firePropertyChange(
                     AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-                    ((oldValue) ? AccessibleState.BUSY : null),
-                    ((b) ? AccessibleState.BUSY : null));
+                    ((oldValue != THUMB_NONE) ? AccessibleState.BUSY : null),
+                    ((thumbIndex != THUMB_NONE) ? AccessibleState.BUSY : null));
         }
     }
 
@@ -1553,7 +1555,7 @@ public class JTimelineSlider extends JComponent implements SwingConstants, Acces
          */
         public AccessibleStateSet getAccessibleStateSet() {
             AccessibleStateSet states = super.getAccessibleStateSet();
-            if (getValueIsAdjusting()) {
+            if (getAdjustingThumbIndex() != THUMB_NONE) {
                 states.add(AccessibleState.BUSY);
             }
             if (getOrientation() == VERTICAL) {

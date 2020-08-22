@@ -84,6 +84,12 @@ import javax.swing.event.ChangeListener;
  */
 public interface BoundedTimelineRangeModel
 {
+    // constant indices for the thumbs
+    int THUMB_NONE = -1;
+    int THUMB_CURRENT = 0;
+    int THUMB_LOWER = 1;
+    int THUMB_HIGHER = 2;
+
     /**
      * Returns the minimum acceptable value.
      *
@@ -211,26 +217,25 @@ public interface BoundedTimelineRangeModel
     /**
      * This attribute indicates that any upcoming changes to the value
      * of the model should be considered a single event. This attribute
-     * will be set to true at the start of a series of changes to the value,
-     * and will be set to false when the value has finished changing.  Normally
+     * will be set to a value != THUMBS_NONE at the start of a series of changes to the value,
+     * and will be set to THUMBS_NONE when the value has finished changing.  Normally
      * this allows a listener to only take action when the final value change in
      * committed, instead of having to do updates for all intermediate values.
      * <p>
      * Sliders and scrollbars use this property when a drag is underway.
      *
-     * @param b true if the upcoming changes to the value property are part of a series
+     * @param thumbIndex THUMBS_NONE if the upcoming changes to the value property are not part of a series. Index of the thumb otherwise.
      */
-    void setValueIsAdjusting(boolean b);
-
+    void setAdjustingThumbIndex(int thumbIndex);
 
     /**
-     * Returns true if the current changes to the value property are part
-     * of a series of changes.
+     * Returns the index of the thumb being adjusted if the current changes to the value property are part
+     * of a series of changes, or THUMB_NONE if no thumb is adjusting
      *
-     * @return the valueIsAdjustingProperty.
-     * @see #setValueIsAdjusting
+     * @return the adjustingThumbIndex property.
+     * @see #setAdjustingThumbIndex
      */
-    boolean getValueIsAdjusting();
+    int getAdjustingThumbIndex();
 
 
     /**
@@ -276,16 +281,16 @@ public interface BoundedTimelineRangeModel
      * @param extent an int giving the amount by which the value can "jump"
      * @param min    an int giving the minimum value
      * @param max    an int giving the maximum value
-     * @param adjusting a boolean, true if a series of changes are in
-     *                    progress
+     * @param adjustingThumbIndex an int, THUMB_NONE if no change is in progress, or index of the adjusting thumb
+     *                           if a series of changes are in progress
      *
      * @see #setValue
      * @see #setExtent
      * @see #setMinimum
      * @see #setMaximum
-     * @see #setValueIsAdjusting
+     * @see #setAdjustingThumbIndex
      */
-    void setRangeProperties(int value, int extent, int min, int max, int lower, int higher, boolean adjusting);
+    void setRangeProperties(int value, int extent, int min, int max, int lower, int higher, int adjustingThumbIndex);
 
 
     /**

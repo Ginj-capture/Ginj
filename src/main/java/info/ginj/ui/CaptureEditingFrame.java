@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static info.ginj.ui.component.BoundedTimelineRangeModel.THUMB_NONE;
+
 public class CaptureEditingFrame extends JFrame implements TargetListChangeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(CaptureEditingFrame.class);
@@ -235,7 +237,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
                 JTimelineSlider source = (JTimelineSlider)e.getSource();
                 Duration position = Duration.ofMillis(positionSlider.getValue());
                 positionLabel.setText(String.format("%02d:%02d:%02d", position.toHours(), position.toMinutesPart(), position.toSecondsPart()));
-                if (source.getValueIsAdjusting()) {
+                if (source.getAdjustingThumbIndex() != THUMB_NONE) {
                     // During drag, wait for value to settle
                 }
                 else {

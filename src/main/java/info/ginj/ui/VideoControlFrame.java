@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.time.Duration;
 
@@ -31,8 +32,15 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(VideoControlFrame.class);
 
-    public static final int SELECTED_AREA_STROKE_WIDTH = 4;
-    public static final BasicStroke SELECTED_AREA_STROKE = new BasicStroke(SELECTED_AREA_STROKE_WIDTH, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f, new float[]{10, 10}, 0.0f);
+    public static final int SELECTED_AREA_STROKE_WIDTH = 2;
+
+    public static final int FILM_PERFORATION_BAND_WIDTH_PX = 16;
+    public static final int FILM_PERFORATION_WIDTH_PX = 8;
+    public static final int FILM_PERFORATION_HEIGHT_PX = 10;
+    public static final int FILM_PERFORATION_SPACE_PX = 6;
+    public static final int FILM_PERFORATION_VERTICAL_INTERVAL = FILM_PERFORATION_HEIGHT_PX + FILM_PERFORATION_SPACE_PX;
+    public static final int SELECTION_TOP_BOTTOM_BORDER_WIDTH = 2;
+    public static final BasicStroke SELECTION_TOP_BOTTOM_STROKE = new BasicStroke(2);
 
 
     private JLabel captureDurationLabel;
@@ -40,12 +48,40 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     private FFmpegResultFuture ffmpegFutureResult = null;
     private final Capture capture;
 
+    private final Timer cellPerforationAnimationTimer;
+    private final BufferedImage perforationImage;
+    private int perforationOffset = 0;
+
     public VideoControlFrame(StarWindow starWindow, Rectangle selection, Capture capture) {
         super(starWindow, Ginj.getAppName() + " recording");
         this.selection = selection;
         this.capture = capture;
 
         capture.setOriginalFile(new File(getTempVideoFilename()));
+
+
+        // Prepare film perforations animation
+
+        perforationImage = new BufferedImage(FILM_PERFORATION_BAND_WIDTH_PX, FILM_PERFORATION_VERTICAL_INTERVAL, BufferedImage.TYPE_INT_RGB);
+        final Graphics2D perforationGraphics = (Graphics2D) perforationImage.getGraphics();
+        // Background
+        perforationGraphics.setColor(UI.AREA_SELECTION_COLOR);
+        perforationGraphics.fillRect(0, 0, perforationImage.getWidth(), perforationImage.getHeight());
+        // Perforations
+        perforationGraphics.setColor(Color.BLACK);
+        perforationGraphics.setRenderingHints(UI.ANTI_ALIASING_ON);
+        perforationGraphics.fillRoundRect((FILM_PERFORATION_BAND_WIDTH_PX - FILM_PERFORATION_WIDTH_PX) / 2, 0, FILM_PERFORATION_WIDTH_PX, FILM_PERFORATION_HEIGHT_PX, 6, 6);
+        perforationGraphics.dispose();
+
+        cellPerforationAnimationTimer = new Timer(50, e -> {
+            perforationOffset++;
+            if (perforationOffset >= FILM_PERFORATION_HEIGHT_PX + FILM_PERFORATION_SPACE_PX) {
+                perforationOffset = 0;
+            }
+            repaint();
+        });
+        cellPerforationAnimationTimer.start();
+
 
         // Hide the widget
         starWindow.setVisible(false);
@@ -67,6 +103,7 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     }
 
     public class RecordingMainPane extends JPanel {
+
         public RecordingMainPane() {
             super();
             setOpaque(false);
@@ -78,9 +115,17 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g;
             g2d.setColor(UI.AREA_SELECTION_COLOR);
-            g2d.setStroke(SELECTED_AREA_STROKE);
-            g2d.drawRect(selection.x - SELECTED_AREA_STROKE_WIDTH / 2, selection.y - SELECTED_AREA_STROKE_WIDTH / 2, selection.width + SELECTED_AREA_STROKE_WIDTH, selection.height + SELECTED_AREA_STROKE_WIDTH);
-            // TODO animate border, see http://zetcode.com/javagames/animation/
+
+            // top/bottom borders
+            g2d.setStroke(SELECTION_TOP_BOTTOM_STROKE);
+            g2d.drawLine(selection.x, selection.y - SELECTION_TOP_BOTTOM_BORDER_WIDTH/2, selection.x + selection.width, selection.y - SELECTION_TOP_BOTTOM_BORDER_WIDTH/2);
+            g2d.drawLine(selection.x, selection.y + selection.height + SELECTION_TOP_BOTTOM_BORDER_WIDTH/2, selection.x + selection.width, selection.y + selection.height + SELECTION_TOP_BOTTOM_BORDER_WIDTH/2);
+
+            // left/right perforations
+            g2d.setPaint(new TexturePaint(perforationImage, new Rectangle(selection.x - FILM_PERFORATION_BAND_WIDTH_PX, -perforationOffset, perforationImage.getWidth(), perforationImage.getHeight())));
+            g2d.fillRect(selection.x - FILM_PERFORATION_BAND_WIDTH_PX, selection.y - SELECTION_TOP_BOTTOM_BORDER_WIDTH, FILM_PERFORATION_BAND_WIDTH_PX, selection.height + 2 * SELECTION_TOP_BOTTOM_BORDER_WIDTH);
+            g2d.setPaint(new TexturePaint(perforationImage, new Rectangle(selection.x + selection.width, -perforationOffset, perforationImage.getWidth(), perforationImage.getHeight())));
+            g2d.fillRect(selection.x + selection.width, selection.y - SELECTION_TOP_BOTTOM_BORDER_WIDTH, FILM_PERFORATION_BAND_WIDTH_PX, selection.height + 2 * SELECTION_TOP_BOTTOM_BORDER_WIDTH);
         }
 
         @Override
@@ -185,6 +230,8 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
 
     @Override
     public void dispose() {
+        cellPerforationAnimationTimer.stop();
+        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         // Restore Widget
         starWindow.setVisible(true);
         super.dispose();
@@ -195,9 +242,8 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     // Event handlers
 
     private void onCancel() {
-        this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         stopRecording();
-        this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         File videoFile = capture.getOriginalFile();
         if (videoFile.exists()) {
             if (!videoFile.delete()) {
@@ -208,7 +254,7 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     }
 
     private void onStop() {
-        this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         if (stopRecording()) {
             final long videoDurationMs = Jaffree.getDuration(capture.getOriginalFile());
             capture.setVideoDurationMs(videoDurationMs);
@@ -217,7 +263,6 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
             final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
             captureEditingFrame.setVisible(true);
         }
-        this.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         dispose();
     }
 

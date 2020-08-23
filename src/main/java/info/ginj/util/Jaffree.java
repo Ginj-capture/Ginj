@@ -155,17 +155,12 @@ public class Jaffree {
     }
 
     public static BufferedImage grabImage(File file, long positionInMillis) {
-        final AtomicLong trackCounter = new AtomicLong();
-        final AtomicLong frameCounter = new AtomicLong();
-
         // Use an array to pass a final variable although its contents will be changed
         final BufferedImage[] images = new BufferedImage[1];
 
         FrameConsumer consumer = new FrameConsumer() {
             @Override
-            public void consumeStreams(List<Stream> tracks) {
-                trackCounter.set(tracks.size());
-            }
+            public void consumeStreams(List<Stream> tracks) {}
 
             @Override
             public void consume(Frame frame) {

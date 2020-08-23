@@ -259,9 +259,11 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
                     videoImageUpdateTimer.start();
                 }
                 else {
-                    videoImageUpdateTimer.stop();
-                    videoImageUpdateTimer = null;
-                    updateVideoImage(capture, positionSlider.getValue());
+                    if (videoImageUpdateTimer != null) {
+                        videoImageUpdateTimer.stop();
+                        videoImageUpdateTimer = null;
+                        updateVideoImage(capture, positionSlider.getValue());
+                    }
                 }
             });
 

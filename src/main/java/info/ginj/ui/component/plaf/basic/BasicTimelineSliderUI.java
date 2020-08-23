@@ -29,13 +29,11 @@ package info.ginj.ui.component.plaf.basic;
 import info.ginj.ui.component.BoundedTimelineRangeModel;
 import info.ginj.ui.component.JTimelineSlider;
 import info.ginj.ui.component.PublicSwingUtils;
+import info.ginj.ui.component.UIAction;
 import info.ginj.ui.component.plaf.TimelineSliderUI;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.swing.DefaultLookup;
-import sun.swing.SwingUtilities2;
-import sun.swing.UIAction;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -411,20 +409,20 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
     }
 
     InputMap getInputMap(int condition, JTimelineSlider slider) {
-        if (condition == JComponent.WHEN_FOCUSED) {
-            InputMap keyMap = (InputMap)DefaultLookup.get(slider, this,
-                    "Slider.focusInputMap");
-            InputMap rtlKeyMap;
-
-            if (slider.getComponentOrientation().isLeftToRight() ||
-                    ((rtlKeyMap = (InputMap)DefaultLookup.get(slider, this,
-                            "Slider.focusInputMap.RightToLeft")) == null)) {
-                return keyMap;
-            } else {
-                rtlKeyMap.setParent(keyMap);
-                return rtlKeyMap;
-            }
-        }
+//        if (condition == JComponent.WHEN_FOCUSED) {
+//            InputMap keyMap = (InputMap)DefaultLookup.get(slider, this,
+//                    "Slider.focusInputMap");
+//            InputMap rtlKeyMap;
+//
+//            if (slider.getComponentOrientation().isLeftToRight() ||
+//                    ((rtlKeyMap = (InputMap)DefaultLookup.get(slider, this,
+//                            "Slider.focusInputMap.RightToLeft")) == null)) {
+//                return keyMap;
+//            } else {
+//                rtlKeyMap.setParent(keyMap);
+//                return rtlKeyMap;
+//            }
+//        }
         return null;
     }
 
@@ -577,8 +575,9 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
      * @return the preferred horizontal size
      */
     public Dimension getPreferredHorizontalSize() {
-        Dimension horizDim = (Dimension)DefaultLookup.get(slider,
-                this, "Slider.horizontalSize");
+//        Dimension horizDim = (Dimension)DefaultLookup.get(slider,
+//                this, "Slider.horizontalSize");
+        Dimension horizDim = null;
         if (horizDim == null) {
             horizDim = new Dimension(200, 21);
         }
@@ -590,8 +589,9 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
      * @return the preferred vertical size
      */
     public Dimension getPreferredVerticalSize() {
-        Dimension vertDim = (Dimension)DefaultLookup.get(slider,
-                this, "Slider.verticalSize");
+//        Dimension vertDim = (Dimension)DefaultLookup.get(slider,
+//                this, "Slider.verticalSize");
+        Dimension vertDim = null;
         if (vertDim == null) {
             vertDim = new Dimension(21, 200);
         }
@@ -603,8 +603,9 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
      * @return the minimum horizontal size
      */
     public Dimension getMinimumHorizontalSize() {
-        Dimension minHorizDim = (Dimension)DefaultLookup.get(slider,
-                this, "Slider.minimumHorizontalSize");
+//        Dimension minHorizDim = (Dimension)DefaultLookup.get(slider,
+//                this, "Slider.minimumHorizontalSize");
+        Dimension minHorizDim = null;
         if (minHorizDim == null) {
             minHorizDim = new Dimension(36, 21);
         }
@@ -616,8 +617,9 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
      * @return the minimum vertical size
      */
     public Dimension getMinimumVerticalSize() {
-        Dimension minVertDim = (Dimension)DefaultLookup.get(slider,
-                this, "Slider.minimumVerticalSize");
+//        Dimension minVertDim = (Dimension)DefaultLookup.get(slider,
+//                this, "Slider.minimumVerticalSize");
+        Dimension minVertDim = null;
         if (minVertDim == null) {
             minVertDim = new Dimension(21, 36);
         }
@@ -1270,7 +1272,8 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
     public void paintTicks(Graphics g)  {
         Rectangle tickBounds = tickRect;
 
-        g.setColor(DefaultLookup.getColor(slider, this, "Slider.tickColor", Color.black));
+//        g.setColor(DefaultLookup.getColor(slider, this, "Slider.tickColor", Color.black));
+        g.setColor(Color.black);
 
         if ( slider.getOrientation() == JTimelineSlider.HORIZONTAL ) {
             g.translate(0, tickBounds.y);
@@ -1760,7 +1763,7 @@ public class BasicTimelineSliderUI extends TimelineSliderUI {
                     propertyName == "paintTicks" ||
                     propertyName == "paintTrack" ||
                     propertyName == "font" ||
-                    SwingUtilities2.isScaleChanged(e) ||
+                    PublicSwingUtils.isScaleChanged(e) ||
                     propertyName == "paintLabels" ||
                     propertyName == "Slider.paintThumbArrowShape") {
                 checkedLabelBaselines = false;

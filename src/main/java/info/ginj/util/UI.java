@@ -518,7 +518,7 @@ public class UI {
                         + screenBounds.width + "x" + screenBounds.height + "@" + screenBounds.x + "," + screenBounds.y
                         + " minus "
                         + screenInsets.top + "/" + screenInsets.left + "/" + screenInsets.bottom + "/" + screenInsets.right
-                        + " insets.";
+                        + " insets. ";
             }
         }
         return displayDetails;

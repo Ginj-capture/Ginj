@@ -460,10 +460,14 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     }
 
     @Override
-    protected int getSelectedAreaStrokeWidth() {
+    protected int getSelectedAreaHorizontalStrokeWidth() {
         return SELECTED_AREA_STROKE_WIDTH;
     }
 
+    @Override
+    protected int getSelectedAreaVerticalStrokeWidth() {
+        return SELECTED_AREA_STROKE_WIDTH;
+    }
 
     private void setActionPanelVisible(boolean visible) {
         if (visible) {

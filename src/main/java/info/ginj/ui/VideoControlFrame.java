@@ -167,8 +167,13 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     }
 
     @Override
-    protected int getSelectedAreaStrokeWidth() {
-        return SELECTED_AREA_STROKE_WIDTH;
+    protected int getSelectedAreaHorizontalStrokeWidth() {
+        return SELECTION_TOP_BOTTOM_BORDER_WIDTH;
+    }
+
+    @Override
+    protected int getSelectedAreaVerticalStrokeWidth() {
+        return FILM_PERFORATION_BAND_WIDTH_PX;
     }
 
     private void startRecording(Rectangle croppedSelection) {

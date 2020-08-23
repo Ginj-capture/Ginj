@@ -79,21 +79,22 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
         final int barWidth = actionPanel.getWidth();
         final int barHeight = actionPanel.getHeight();
 
-        final int halfStrokeWidth = getSelectedAreaStrokeWidth() / 2;
+        final int halfHorizontalStrokeWidth = getSelectedAreaHorizontalStrokeWidth() / 2;
+        final int halfVerticalStrokeWidth = getSelectedAreaVerticalStrokeWidth() / 2;
 
         // Find the best position according to selection and bar size
         // Note: not the exact same strategy as the original, but close...
         // Note: all points are in the coordinates system of the "mega-window" so all are positive (top left is 0,0)
         // Note: these positions can probably be improved... later
         Point[] candidatePositions = new Point[]{
-                new Point(selection.x, selection.y + selection.height + halfStrokeWidth), // Below bottom left
-                new Point(selection.x, selection.y - barHeight - halfStrokeWidth), // Above top left
-                new Point(selection.x - barWidth - halfStrokeWidth, selection.y), // Next to top left
-                new Point(selection.x + selection.width + halfStrokeWidth, selection.y + selection.height - barHeight), // Next to bottom right
+                new Point(selection.x, selection.y + selection.height + halfHorizontalStrokeWidth), // Below bottom left
+                new Point(selection.x, selection.y - barHeight - halfHorizontalStrokeWidth), // Above top left
+                new Point(selection.x - barWidth - halfVerticalStrokeWidth, selection.y), // Next to top left
+                new Point(selection.x + selection.width + halfVerticalStrokeWidth, selection.y + selection.height - barHeight), // Next to bottom right
                 new Point( /* TODO probably wrong when on secondary display */0, selection.y + selection.height), // Below, on left screen edge
                 new Point( /* TODO probably wrong when on secondary display */0, selection.y - barHeight), // Above, on left screen edge
-                new Point(selection.x + halfStrokeWidth, selection.y + selection.height - barHeight - 1), // Over, at bottom left of selection
-                new Point(selection.x + halfStrokeWidth, selection.y + halfStrokeWidth), // Over, at top left of selection
+                new Point(selection.x + halfVerticalStrokeWidth, selection.y + selection.height - barHeight - 1), // Over, at bottom left of selection
+                new Point(selection.x + halfVerticalStrokeWidth, selection.y + halfHorizontalStrokeWidth), // Over, at top left of selection
                 new Point( /* TODO probably wrong when on secondary display */0, allDisplaysBounds.height - barHeight), // Over, at bottom left of captured area
                 new Point( /* TODO probably wrong when on secondary display */0, allDisplaysBounds.height - barHeight), // Over, at top left of 1st screen
                 new Point( /* TODO probably wrong when on secondary display */(int) (-allDisplaysBounds.x + (visibleAreas.get(0).getWidth() - barWidth) / 2), (int) (-allDisplaysBounds.y + (visibleAreas.get(0).getHeight() - barHeight) / 2)) // Last resort: at center of main screen
@@ -132,5 +133,7 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
         actionPanel.setBounds(new Rectangle(bestPosition.x, bestPosition.y, barWidth, barHeight));
     }
 
-    protected abstract int getSelectedAreaStrokeWidth();
+    protected abstract int getSelectedAreaHorizontalStrokeWidth();
+
+    protected abstract int getSelectedAreaVerticalStrokeWidth();
 }

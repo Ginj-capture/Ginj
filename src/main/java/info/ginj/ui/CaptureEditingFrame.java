@@ -23,8 +23,6 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.time.Duration;
@@ -60,7 +58,8 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     private Timer videoImageUpdateTimer = null;
     private int displayedVideoImagePositionMs = 0;
     // Delay of slider pause between image refresh
-    private int videoImageUpdateMs = 150;
+    private final int videoImageUpdateMs;
+    private JTimelineSlider positionSlider = null;
 
 
     public CaptureEditingFrame(StarWindow starWindow, Capture capture) {
@@ -87,9 +86,9 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         // Prepare main image panel first because it will be needed in ActionHandlers
         BufferedImage originalImage;
         if (capture.isVideo()) {
-            originalImage = Jaffree.grabImage(capture.getOriginalFile(), 0);
+            originalImage = Jaffree.grabImage(capture.getOriginalFile(), capture.getVideoLowerBoundMs());
 
-            // For video playback, JaxaFX could be an option...:
+            // For video playback, JavaFX could be an option...:
             // (from https://stackoverflow.com/questions/52038982/how-to-play-mp4-video-in-java-swing-app )
 //            final JFXPanel VFXPanel = new JFXPanel();
 //
@@ -237,7 +236,12 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
             final BorderedLabel positionLabel = new BorderedLabel("00:00:00");
             transportPanel.add(positionLabel, BorderLayout.WEST);
 
-            final JTimelineSlider positionSlider = new JTimelineSlider(JSlider.HORIZONTAL, 0, (int) capture.getVideoDurationMs(), 0); // Note: this typecast limits videos to 600 hours :-)
+            // Prepare slider. Note: typecasts limit videos to 600 hours. Should be enough :-)
+            positionSlider = new JTimelineSlider(JSlider.HORIZONTAL, 0,
+                    (int) capture.getVideoDurationMs(),
+                    (int) capture.getVideoLowerBoundMs(),
+                    (int) capture.getVideoHigherBoundMs(),
+                    (int) capture.getVideoLowerBoundMs());
             positionSlider.setMajorTickSpacing(1000);
             transportPanel.add(positionSlider, BorderLayout.CENTER);
             positionSlider.addChangeListener(e -> {
@@ -247,12 +251,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
                 if (source.getAdjustingThumbIndex() != THUMB_NONE) {
                     // During drag, wait for value to settle
                     if (videoImageUpdateTimer == null) {
-                        videoImageUpdateTimer = new Timer(videoImageUpdateMs, new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                updateVideoImage(capture, positionSlider.getThumbValue(positionSlider.getAdjustingThumbIndex()));
-                            }
-                        });
+                        videoImageUpdateTimer = new Timer(videoImageUpdateMs, e1 -> updateVideoImage(capture, positionSlider.getThumbValue(positionSlider.getAdjustingThumbIndex())));
                     }
                     else {
                         videoImageUpdateTimer.stop();
@@ -550,11 +549,8 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         // 1. Render image and overlays, but no handles
         imagePane.setSelectedOverlay(null);
         if (capture.isVideo()) {
-            // TODO should "render" video file if it has overlays or was otherwise edited (trim)
-            // TODO this should be made in a separate thread (or be part of the export?) to avoid freezing the UI
-            // renderVideo();
-            // TODO for now, just point to the same file
-            capture.setRenderedFile(capture.getOriginalFile());
+            capture.setVideoLowerBoundMs(positionSlider.getLower());
+            capture.setVideoHigherBoundMs(positionSlider.getHigher());
         }
         else {
             BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);

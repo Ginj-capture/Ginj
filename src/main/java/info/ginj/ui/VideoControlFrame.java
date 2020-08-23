@@ -210,7 +210,9 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     private void onStop() {
         this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         if (stopRecording()) {
-            capture.setVideoDurationMs(Jaffree.getDuration(capture.getOriginalFile()));
+            final long videoDurationMs = Jaffree.getDuration(capture.getOriginalFile());
+            capture.setVideoDurationMs(videoDurationMs);
+            capture.setVideoHigherBoundMs(videoDurationMs);
             // Open capture editing
             final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
             captureEditingFrame.setVisible(true);

@@ -29,6 +29,8 @@ public class Capture implements Cloneable {
     File renderedFile;
     BufferedImage renderedImage;
     long videoDurationMs;
+    long videoLowerBoundMs;
+    long videoHigherBoundMs;
 
     public Capture() {
     }
@@ -103,6 +105,21 @@ public class Capture implements Cloneable {
         return videoDurationMs;
     }
 
+    public long getVideoLowerBoundMs() {
+        return videoLowerBoundMs;
+    }
+
+    public void setVideoLowerBoundMs(long videoLowerBoundMs) {
+        this.videoLowerBoundMs = videoLowerBoundMs;
+    }
+
+    public long getVideoHigherBoundMs() {
+        return videoHigherBoundMs;
+    }
+
+    public void setVideoHigherBoundMs(long videoHigherBoundMs) {
+        this.videoHigherBoundMs = videoHigherBoundMs;
+    }
 
     // Note: Transient to prevent being saved to disk
 

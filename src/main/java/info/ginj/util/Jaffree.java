@@ -207,4 +207,19 @@ public class Jaffree {
                 .execute();
         return durationMillis.get();
     }
+
+    public static void trim(File sourceFile, long startInMillis, long endInMillis, File targetFile) {
+        getFFmpeg()
+                .addInput(
+                        UrlInput.fromPath(sourceFile.toPath())
+                                .setPosition(startInMillis, TimeUnit.MILLISECONDS)
+                                .setDuration(endInMillis - startInMillis, TimeUnit.MILLISECONDS)
+                )
+                .addOutput(
+                        UrlOutput.toPath(targetFile.toPath())
+
+                )
+                .setOverwriteOutput(true)
+                .execute();
+    }
 }

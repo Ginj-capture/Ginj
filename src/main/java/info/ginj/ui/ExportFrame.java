@@ -212,7 +212,10 @@ public class ExportFrame extends JFrame implements ExportMonitor {
      */
     public boolean startExport(Target target) {
         if (exporter.prepare(capture, target)) {
-            Thread exportThread = new Thread(() -> exporter.exportCapture(capture, target));
+            Thread exportThread = new Thread(() -> {
+                renderCapture(capture);
+                exporter.exportCapture(capture, target);
+            });
             exportThread.start();
             return true;
         }
@@ -220,6 +223,22 @@ public class ExportFrame extends JFrame implements ExportMonitor {
             closeExportWindow();
             return false;
         }
+    }
+
+    private void renderCapture(Capture capture) {
+        if (capture.isVideo()) {
+            // By default, just point to the original file
+            File renderedFile = capture.getOriginalFile();
+
+            if (capture.getVideoLowerBoundMs() > 0 || capture.getVideoHigherBoundMs() < capture.getVideoDurationMs()) {
+                // TODO should also "render" video file if it has overlays
+                renderedFile = new File(Ginj.getTempDir(), capture.getId() + "_trim" +  Misc.VIDEO_EXTENSION);
+                Jaffree.trim(capture.getOriginalFile(), capture.getVideoLowerBoundMs(), capture.getVideoHigherBoundMs(), renderedFile);
+            }
+
+            capture.setRenderedFile(renderedFile);
+        }
+
     }
 
 

@@ -306,7 +306,7 @@ public class HistoryFrame extends JFrame {
         // TODO if re-exported captures point to the same source, only delete the source media when it's the last one
         final List<Capture> sharingCaptures = getCapturesSharingSourceFile(capture);
         String message = "The selected capture will be deleted from the history.\n";
-        message += "(For now, the exported version (if any) will remain untouched.)\n";
+        message += "The exported version (if any) will remain untouched.\n";
         if (!sharingCaptures.isEmpty()) {
             message += "NOTE: the source file will remain on disk because it is shared with the following capture(s): " + sharingCaptures.stream().map(Capture::getName).collect(Collectors.toList()) + "\n";
         }

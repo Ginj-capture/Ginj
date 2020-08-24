@@ -184,8 +184,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
 
 
         String uploadUrl;
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
+        try (CloseableHttpResponse response = client.execute(httpPost)) {
             if (isStatusOK(response.getCode())) {
                 try {
                     final Header locationHeader = response.getHeader("Location");
@@ -308,8 +307,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
         ));
 
         // Send request
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
+        try (CloseableHttpResponse response = client.execute(httpPost)) {
             if (isStatusOK(response.getCode())) {
                 try {
                     String responseText = EntityUtils.toString(response.getEntity());

@@ -333,8 +333,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
 
         httpPost.setEntity(new StringEntity(jsonString));
 
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
+        try (CloseableHttpResponse response = client.execute(httpPost)) {
             if (isStatusOK(response.getCode())) {
                 final String responseText;
                 try {
@@ -426,8 +425,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
 
         httpPost.setEntity(new StringEntity(jsonString));
 
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
+        try (CloseableHttpResponse response = client.execute(httpPost)) {
             if (isStatusOK(response.getCode())) {
                 final String responseText;
                 try {
@@ -471,8 +469,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
 //        httpPost.addHeader("X-Goog-Upload-Protocol", "raw");
 //
 //        httpPost.setEntity(new FileEntity(file, ContentType.APPLICATION_OCTET_STREAM));
-//        try {
-//            CloseableHttpResponse response = client.execute(httpPost);
+//        try (CloseableHttpResponse response = client.execute(httpPost)) {
 //            if (isStatusOK(response.getCode())) {
 //                try {
 //                    uploadToken = EntityUtils.toString(response.getEntity());
@@ -524,8 +521,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
 
         String uploadUrl;
         int chunkGranularityBytes;
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
+        try (CloseableHttpResponse response = client.execute(httpPost)) {
             if (isStatusOK(response.getCode())) {
                 try {
                     final Header uploadUrlHeader = response.getHeader("X-Goog-Upload-URL");
@@ -585,8 +581,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
 
                 httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
 
-                try {
-                    CloseableHttpResponse response = client.execute(httpPost);
+                try (CloseableHttpResponse response = client.execute(httpPost)) {
                     if (isStatusOK(response.getCode())) {
                         try {
                             uploadToken = EntityUtils.toString(response.getEntity());
@@ -666,8 +661,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
 
         httpPost.setEntity(new StringEntity(jsonString));
 
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
+        try (CloseableHttpResponse response = client.execute(httpPost)) {
             if (isStatusOK(response.getCode())) {
                 final String responseText;
                 try {

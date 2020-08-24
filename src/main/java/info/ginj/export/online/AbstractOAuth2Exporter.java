@@ -204,8 +204,7 @@ public abstract class AbstractOAuth2Exporter extends AbstractOnlineExporter {
         }
         httpPost.setEntity(new UrlEncodedFormEntity(params, UTF_8));
 
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
+        try (CloseableHttpResponse response = client.execute(httpPost)) {
 
             if (isStatusOK(response.getCode())) {
                 final String responseText;
@@ -373,8 +372,7 @@ public abstract class AbstractOAuth2Exporter extends AbstractOnlineExporter {
         }
         httpPost.setEntity(new UrlEncodedFormEntity(params));
 
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
+        try (CloseableHttpResponse response = client.execute(httpPost)) {
             if (isStatusOK(response.getCode())) {
                 final String responseText;
                 try {

@@ -180,8 +180,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
         httpPost.addHeader("Authorization", "Bearer " + accessToken);
 
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
+        try (CloseableHttpResponse response = client.execute(httpPost)) {
             if (isStatusOK(response.getCode())) {
                 final String responseText;
                 try {
@@ -272,8 +271,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
 
             // Send request
-            try {
-                CloseableHttpResponse response = client.execute(httpPost);
+            try (CloseableHttpResponse response = client.execute(httpPost)) {
                 if (isStatusOK(response.getCode())) {
                     final String responseText;
                     try {
@@ -326,8 +324,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                 httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
 
                 // Send request
-                try {
-                    CloseableHttpResponse response = client.execute(httpPost);
+                try (CloseableHttpResponse response = client.execute(httpPost)) {
                     if (!isStatusOK(response.getCode())) {
                         final String responseError = getResponseError(response);
                         if ((response.getCode() / 100) == 5) {
@@ -373,8 +370,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             httpPost.setEntity(new ByteArrayEntity(buffer, 0, bytesRead, ContentType.APPLICATION_OCTET_STREAM));
 
             // Send request
-            try {
-                CloseableHttpResponse response = client.execute(httpPost);
+            try (CloseableHttpResponse response = client.execute(httpPost)) {
                 if (isStatusOK(response.getCode())) {
                     final String responseText;
                     try {
@@ -497,8 +493,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         ));
 
         // Send request
-        try {
-            CloseableHttpResponse response = client.execute(httpPost);
+        try (CloseableHttpResponse response = client.execute(httpPost)) {
             if (isStatusOK(response.getCode())) {
                 final String responseText;
                 try {

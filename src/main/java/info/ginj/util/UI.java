@@ -1,7 +1,9 @@
 package info.ginj.util;
 
 import com.github.jjYBdx4IL.utils.awt.Desktop;
+import com.github.kokorin.jaffree.OS;
 import info.ginj.Ginj;
+import info.ginj.jna.DisplayInfo;
 import info.ginj.ui.layout.SpringLayoutUtilities;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
 import org.slf4j.Logger;
@@ -26,6 +28,7 @@ import java.awt.image.ColorConvertOp;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 public class UI {
@@ -39,8 +42,8 @@ public class UI {
     public static final Color SELECTION_SIZE_BOX_COLOR = new Color(0, 0, 0, 128);
     public static final Color UNSELECTED_AREA_DIMMED_COLOR = new Color(144, 144, 144, 112);
 
-    public static final Color ICON_ENABLED_COLOR = new Color(243,205,77);
-    public static final Color TOOLBAR_ICON_ENABLED_COLOR = new Color(238,179,8);
+    public static final Color ICON_ENABLED_COLOR = new Color(243, 205, 77);
+    public static final Color TOOLBAR_ICON_ENABLED_COLOR = new Color(238, 179, 8);
     public static final Color TEXT_TOOL_DEFAULT_FOREGROUND_COLOR = Color.BLACK;
 
     public static final Color HISTORY_SELECTED_ITEM_BACKGROUND_COLOR = new Color(255, 208, 42);
@@ -64,6 +67,7 @@ public class UI {
      * Lay out components of a Panel and compute its size, like pack() for a Window.
      * This method computes the size of the given panel by adding it to a temporary window.
      * Warning, must be called before adding the panel to its final parent, because it will be removed from it otherwise
+     *
      * @return the size of the panel when packed
      */
     public static Dimension packPanel(JPanel panel) {
@@ -78,9 +82,10 @@ public class UI {
 
     /**
      * Create an ImageIcon of the given width x height from an image loaded from the given URL
+     *
      * @param resource the URL of the source image
-     * @param width the desired width
-     * @param height the desired height
+     * @param width    the desired width
+     * @param height   the desired height
      * @return the scaled ImageIcon
      */
     public static ImageIcon createIcon(URL resource, int width, int height) {
@@ -89,8 +94,9 @@ public class UI {
 
     /**
      * Create an ImageIcon of the given width (and scaled proportionally) from an image loaded from the given URL
+     *
      * @param resource the URL of the source image
-     * @param width the desired width
+     * @param width    the desired width
      * @return the scaled ImageIcon
      */
     public static ImageIcon createIcon(URL resource, int width) {
@@ -99,12 +105,13 @@ public class UI {
 
     /**
      * Create an ImageIcon of the given width x height and with the given base color from an image loaded from the given URL
+     *
      * @param resource the URL of the source image
-     * @param width the desired width
-     * @param height the desired height (if -1, image is scaled proportionally to reach the desired width)
-     * @param color the desired base color to shift this image to (if null, no tint change is applied)
-     * @see #tint(BufferedImage, Color) for more info about color shift
+     * @param width    the desired width
+     * @param height   the desired height (if -1, image is scaled proportionally to reach the desired width)
+     * @param color    the desired base color to shift this image to (if null, no tint change is applied)
      * @return the scaled ImageIcon
+     * @see #tint(BufferedImage, Color) for more info about color shift
      */
     public static ImageIcon createIcon(URL resource, int width, int height, Color color) {
         try {
@@ -127,8 +134,9 @@ public class UI {
     /**
      * Apply the given color shift to the given image.
      * Basically, the given color will replace black in the source image, and all greyscale levels in the source will be be mapped between this color and white
+     *
      * @param source the source image
-     * @param color the base color to shift to
+     * @param color  the base color to shift to
      * @return the colored image
      */
     public static BufferedImage tint(BufferedImage source, Color color) {
@@ -149,7 +157,7 @@ public class UI {
                 int b = (int) (minBlue + (pixelColor.getBlue() * blueFactor));
                 int a = pixelColor.getAlpha();
 
-                result.setRGB(x, y, new Color(r,g,b,a).getRGB());
+                result.setRGB(x, y, new Color(r, g, b, a).getRGB());
             }
         }
         return result;
@@ -158,6 +166,7 @@ public class UI {
     /**
      * Convert an image to greyscale and apply a dim effect to it.
      * Used to show unselected area when drawing selection
+     *
      * @param image the source image
      * @return the dimmed result
      */
@@ -167,13 +176,14 @@ public class UI {
         final BufferedImage greyScale = op.filter(image, null);
         final Graphics graphics = greyScale.getGraphics();
         graphics.setColor(UNSELECTED_AREA_DIMMED_COLOR);
-        graphics.fillRect(0,0,image.getWidth(), image.getHeight());
+        graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
         graphics.dispose();
         return greyScale;
     }
 
     /**
      * Make a color translucent, that is the same RGB but with half opacity
+     *
      * @param color the source color
      * @return the translucent color
      */
@@ -233,9 +243,10 @@ public class UI {
     /**
      * Converts a color to its hex representation.
      * <p>
-     * @see java.awt.Color#decode(String) is the opposite operation
+     *
      * @param color the color to convert
      * @return the hex value in the form #RRGGBB
+     * @see java.awt.Color#decode(String) is the opposite operation
      */
     public static String colorToHex(Color color) {
         return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
@@ -306,7 +317,8 @@ public class UI {
 
     /**
      * Creates a panel representing the title bar
-     * @param title text to display at the middle of the window
+     *
+     * @param title         text to display at the middle of the window
      * @param closeListener if specified, a close button (X) is added on the right, and this listener is called upon click.
      *                      if null, no close button is displayed
      * @return the title bar component
@@ -358,10 +370,11 @@ public class UI {
 
     /**
      * Create a panel containing a series of label/field pairs, arranged in two columns.
+     *
      * @param keyValues must alternate between String (the label to display) and value (the component for users to enter value)
      * @return a panel with the given fields
      */
-    public static JPanel createFieldPanel(Object ... keyValues) {
+    public static JPanel createFieldPanel(Object... keyValues) {
         if (keyValues.length % 2 != 0) {
             throw new RuntimeException("Field panels expect an even number of components");
         }
@@ -369,7 +382,7 @@ public class UI {
         JPanel fieldsPanel = new JPanel(new BorderLayout());
         JPanel fieldsInnerPanel = new JPanel(new SpringLayout());
         int componentNumber = 0;
-        while(componentNumber < keyValues.length) {
+        while (componentNumber < keyValues.length) {
             try {
                 String key = (String) keyValues[componentNumber];
                 JLabel keyLabel = new JLabel(key, JLabel.TRAILING);
@@ -386,7 +399,7 @@ public class UI {
             }
             componentNumber += 2;
         }
-        SpringLayoutUtilities.makeCompactGrid(fieldsInnerPanel, keyValues.length/2, 2, 6, 6, 6, 6);
+        SpringLayoutUtilities.makeCompactGrid(fieldsInnerPanel, keyValues.length / 2, 2, 6, 6, 6, 6);
 
         fieldsPanel.add(fieldsInnerPanel, BorderLayout.NORTH);
         return fieldsPanel;
@@ -397,11 +410,11 @@ public class UI {
     /**
      * Create a new JTextField for use in a Wizard.
      *
-     * @param name Will be used to initialize the field value from the map, and later by the wizard to put the field back in the map
-     * @param map If the field is present in this map, its value will be used as default value
+     * @param name        Will be used to initialize the field value from the map, and later by the wizard to put the field back in the map
+     * @param map         If the field is present in this map, its value will be used as default value
      * @param defaultText If the field is not present in the map, this will be the default value
-     * @param isEnabled if true, the field is enabled
-     * @param isVisible if true, the field is visible
+     * @param isEnabled   if true, the field is enabled
+     * @param isVisible   if true, the field is visible
      * @return the created JTextField
      */
     @SuppressWarnings("rawtypes")
@@ -420,11 +433,11 @@ public class UI {
     /**
      * Create a new JCheckBox for use in a Wizard.
      *
-     * @param name Will be used to initialize the field value from the map, and later by the wizard to put the field back in the map
-     * @param map If the field is present in this map, its value will be used as default value
+     * @param name            Will be used to initialize the field value from the map, and later by the wizard to put the field back in the map
+     * @param map             If the field is present in this map, its value will be used as default value
      * @param defaultSelected If the field is not present in the map, this will be the default value
-     * @param isEnabled if true, the field is enabled
-     * @param isVisible if true, the field is visible
+     * @param isEnabled       if true, the field is enabled
+     * @param isVisible       if true, the field is visible
      * @return the created JCheckBox
      */
     @SuppressWarnings("rawtypes")
@@ -444,11 +457,11 @@ public class UI {
      * Create a new JCheckBox for use in a Wizard.
      * This version is for a "master-detail" presentation, where this "detail" box is only enabled if a "master" box is selected
      *
-     * @param name Will be used to initialize the field value from the map, and later by the wizard to put the field back in the map
-     * @param map If the field is present in this map, its value will be used as default value
+     * @param name            Will be used to initialize the field value from the map, and later by the wizard to put the field back in the map
+     * @param map             If the field is present in this map, its value will be used as default value
      * @param defaultSelected If the field is not present in the map, this will be the default value
-     * @param masterCheckBox this field will be enabled only when the masterCheckbox will be enabled and selected (ticked)
-     * @param isVisible if true, the field is visible
+     * @param masterCheckBox  this field will be enabled only when the masterCheckbox will be enabled and selected (ticked)
+     * @param isVisible       if true, the field is visible
      * @return the created JCheckBox
      */
     @SuppressWarnings("rawtypes")
@@ -469,19 +482,19 @@ public class UI {
     /**
      * Create a new JList for use in a Wizard.
      *
-     * @param name Will be used to initialize the selected value from the map, and later by the wizard to put the selected value back in the map
-     * @param values The different values to display in the list
-     * @param map If the field is present in this map, its value will be used as default selection
+     * @param name         Will be used to initialize the selected value from the map, and later by the wizard to put the selected value back in the map
+     * @param values       The different values to display in the list
+     * @param map          If the field is present in this map, its value will be used as default selection
      * @param defaultIndex If the field is not present in the map, this will be the default selected index
-     * @param isEnabled if true, the field is enabled
-     * @param isVisible if true, the field is visible
+     * @param isEnabled    if true, the field is enabled
+     * @param isVisible    if true, the field is visible
      * @return the created JList
      */
     @SuppressWarnings("rawtypes")
     public static <T> JList<T> createWizardList(String name, T[] values, Map map, int defaultIndex, boolean isEnabled, boolean isVisible) {
         final Object object = map.get(name);
         DefaultListModel<T> model = new DefaultListModel<>();
-        for (T value: values) {
+        for (T value : values) {
             model.addElement(value);
         }
         JList<T> list = new JList<>(model);
@@ -505,21 +518,45 @@ public class UI {
 
     public static String readDisplayDetails() {
         String displayDetails = "";
+
+        List<Rectangle> monitorList = null;
+        // Physical
+        if (OS.IS_WINDOWS) {
+            monitorList = DisplayInfo.getMonitorList();
+            for (int currentMonitor = 0; currentMonitor < monitorList.size(); currentMonitor++) {
+                final Rectangle physicalBounds = monitorList.get(currentMonitor);
+                displayDetails += "Physical monitor #" + currentMonitor + ": " + physicalBounds.width + "x" + physicalBounds.height + "@" + physicalBounds.x + "," + physicalBounds.y + "\n";
+            }
+        }
+        // Logical
         GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screenDevices = graphicsEnvironment.getScreenDevices();
+
+        if (monitorList != null && monitorList.size() != screenDevices.length) {
+            displayDetails += "ERROR: " + monitorList.size() + " monitors vs " + screenDevices.length + " configurations.\n";
+        }
+
         for (int currentDisplay = 0; currentDisplay < screenDevices.length; currentDisplay++) {
-            GraphicsConfiguration[] screenConfigurations = screenDevices[currentDisplay].getConfigurations();
-            for (int currentConfiguration = 0; currentConfiguration < screenConfigurations.length; currentConfiguration++) {
-                GraphicsConfiguration screenConfiguration = screenConfigurations[currentConfiguration];
-                final Rectangle screenBounds = screenConfiguration.getBounds();
-                // determine the "borders" (taskbars, menus):
-                final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
-                displayDetails += "Screen.config " + currentDisplay + "." + currentConfiguration + ": "
-                        + screenBounds.width + "x" + screenBounds.height + "@" + screenBounds.x + "," + screenBounds.y
-                        + " minus "
-                        + screenInsets.top + "/" + screenInsets.left + "/" + screenInsets.bottom + "/" + screenInsets.right
-                        + " insets. ";
+            GraphicsConfiguration screenConfiguration = screenDevices[currentDisplay].getDefaultConfiguration();
+            final Rectangle screenBounds = screenConfiguration.getBounds();
+            // determine the "borders" (taskbars, menus):
+            final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
+            displayDetails += "Logical screen.config #" + currentDisplay + ": "
+                    + screenBounds.width + "x" + screenBounds.height + "@" + screenBounds.x + "," + screenBounds.y
+                    + " minus "
+                    + screenInsets.top + "/" + screenInsets.left + "/" + screenInsets.bottom + "/" + screenInsets.right
+                    + " insets";
+            if (monitorList != null && monitorList.size() == screenDevices.length) {
+                final int horizontalScaling = (100 * monitorList.get(currentDisplay).width) / screenBounds.width;
+                final int verticalScaling = (100 * monitorList.get(currentDisplay).height) / screenBounds.height;
+                if (horizontalScaling == verticalScaling) {
+                    displayDetails += ", scaling: " + horizontalScaling + "%";
+                }
+                else {
+                    displayDetails += ", scaling: " + horizontalScaling + "% horizontal - " + verticalScaling + "% vertical";
+                }
             }
+            displayDetails += "\n";
         }
         return displayDetails;
     }

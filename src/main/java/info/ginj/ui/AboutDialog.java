@@ -50,8 +50,8 @@ public class AboutDialog extends JDialog {
 
         JEditorPane editorPane = UI.createClickableHtmlEditorPane("<b>" + Ginj.getAppName() + "</b> version " + Ginj.getVersion() + "<br/>" +
                 "For all information please visit <a href=\"http://ginj.info\">ginj.info</a><br/>" +
-                "Configuration:<br/>" +
-                UI.readDisplayDetails());
+                "<br/>Display configuration:<br/>" +
+                UI.readDisplayDetails().replace("\n","<br/>"));
         editorPane.setBorder(new EmptyBorder(new Insets(20, 20, 20, 20)));
         contentPane.add(editorPane, BorderLayout.CENTER);
 

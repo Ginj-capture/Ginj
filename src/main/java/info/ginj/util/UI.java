@@ -4,6 +4,7 @@ import com.github.jjYBdx4IL.utils.awt.Desktop;
 import com.github.kokorin.jaffree.OS;
 import info.ginj.Ginj;
 import info.ginj.jna.DisplayInfo;
+import info.ginj.model.DisplayConfiguration;
 import info.ginj.ui.layout.SpringLayoutUtilities;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
 import org.slf4j.Logger;
@@ -516,48 +517,79 @@ public class UI {
                 JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
 
-    public static String readDisplayDetails() {
-        String displayDetails = "";
+    public static DisplayConfiguration getDisplayConfiguration() {
+        DisplayConfiguration configuration = new DisplayConfiguration();
 
-        List<Rectangle> monitorList = null;
-        // Physical
-        if (OS.IS_WINDOWS) {
-            monitorList = DisplayInfo.getMonitorList();
-            for (int currentMonitor = 0; currentMonitor < monitorList.size(); currentMonitor++) {
-                final Rectangle physicalBounds = monitorList.get(currentMonitor);
-                displayDetails += "Physical monitor #" + currentMonitor + ": " + physicalBounds.width + "x" + physicalBounds.height + "@" + physicalBounds.x + "," + physicalBounds.y + "\n";
-            }
-        }
         // Logical
         GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice[] screenDevices = graphicsEnvironment.getScreenDevices();
 
-        if (monitorList != null && monitorList.size() != screenDevices.length) {
-            displayDetails += "ERROR: " + monitorList.size() + " monitors vs " + screenDevices.length + " configurations.\n";
-        }
-
-        for (int currentDisplay = 0; currentDisplay < screenDevices.length; currentDisplay++) {
-            GraphicsConfiguration screenConfiguration = screenDevices[currentDisplay].getDefaultConfiguration();
+        for (GraphicsDevice screenDevice : screenDevices) {
+            GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
             final Rectangle screenBounds = screenConfiguration.getBounds();
             // determine the "borders" (taskbars, menus):
             final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
+            configuration.addDisplay(screenBounds, screenInsets);
+        }
+
+        // Physical
+        if (OS.IS_WINDOWS) {
+            List<Rectangle> monitorList = DisplayInfo.getWindowsMonitorList();
+            if (monitorList.size() != screenDevices.length) {
+                logger.warn("Native call does not report the same number of physical monitors (" + monitorList.size() + ") as Java (" + screenDevices.length + ")! Ignoring JNA.");
+            }
+            else {
+                configuration.setNativeInfoAvailable(true);
+                for (int currentMonitor = 0; currentMonitor < monitorList.size(); currentMonitor++) {
+                    configuration.getDisplayList().get(currentMonitor).setPhysicalRectangle(monitorList.get(currentMonitor));
+                }
+            }
+        }
+
+        return configuration;
+    }
+
+
+    public static String getDisplayConfigurationAsString() {
+        return getDisplayConfigurationAsString("\n");
+    }
+
+    public static String getDisplayConfigurationAsString(String newLineSeparator) {
+        String displayDetails = "";
+
+        final DisplayConfiguration configuration = getDisplayConfiguration();
+        final List<DisplayConfiguration.Display> displayList = configuration.getDisplayList();
+
+        // Physical
+        if (configuration.getNativeInfoAvailable()) {
+            for (int currentDisplay = 0; currentDisplay < displayList.size(); currentDisplay++) {
+                final Rectangle physicalBounds = displayList.get(currentDisplay).getPhysicalRectangle();
+                displayDetails += "Physical monitor #" + currentDisplay + ": " + physicalBounds.width + "x" + physicalBounds.height + "@" + physicalBounds.x + "," + physicalBounds.y + newLineSeparator;
+            }
+        }
+        // Logical
+
+        for (int currentDisplay = 0; currentDisplay < displayList.size(); currentDisplay++) {
+            final Rectangle screenBounds = displayList.get(currentDisplay).getLogicalRectangle();
+            final Insets screenInsets = displayList.get(currentDisplay).getInsets();
             displayDetails += "Logical screen.config #" + currentDisplay + ": "
                     + screenBounds.width + "x" + screenBounds.height + "@" + screenBounds.x + "," + screenBounds.y
                     + " minus "
                     + screenInsets.top + "/" + screenInsets.left + "/" + screenInsets.bottom + "/" + screenInsets.right
                     + " insets";
-            if (monitorList != null && monitorList.size() == screenDevices.length) {
-                final int horizontalScaling = (100 * monitorList.get(currentDisplay).width) / screenBounds.width;
-                final int verticalScaling = (100 * monitorList.get(currentDisplay).height) / screenBounds.height;
-                if (horizontalScaling == verticalScaling) {
-                    displayDetails += ", scaling: " + horizontalScaling + "%";
+            if (configuration.getNativeInfoAvailable()) {
+                final int xScaling = (int) (100 * displayList.get(currentDisplay).getXScalingFactor());
+                final int yScaling = (int) (100 * displayList.get(currentDisplay).getYScalingFactor());
+                if (xScaling == yScaling) {
+                    displayDetails += ", scaling: " + xScaling + "%";
                 }
                 else {
-                    displayDetails += ", scaling: " + horizontalScaling + "% horizontal - " + verticalScaling + "% vertical";
+                    displayDetails += ", X-scaling: " + xScaling + "%, Y-scaling: " + yScaling + "%";
                 }
             }
-            displayDetails += "\n";
+            displayDetails += newLineSeparator;
         }
         return displayDetails;
     }
+
 }

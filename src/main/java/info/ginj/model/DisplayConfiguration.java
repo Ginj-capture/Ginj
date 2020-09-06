@@ -20,7 +20,7 @@ public class DisplayConfiguration {
         this.nativeInfoAvailable = nativeInfoAvailable;
     }
 
-    public boolean getNativeInfoAvailable() {
+    public boolean isNativeInfoAvailable() {
         return nativeInfoAvailable;
     }
 

@@ -561,7 +561,7 @@ public class UI {
         final List<DisplayConfiguration.Display> displayList = configuration.getDisplayList();
 
         // Physical
-        if (configuration.getNativeInfoAvailable()) {
+        if (configuration.isNativeInfoAvailable()) {
             for (int currentDisplay = 0; currentDisplay < displayList.size(); currentDisplay++) {
                 final Rectangle physicalBounds = displayList.get(currentDisplay).getPhysicalRectangle();
                 displayDetails += "Physical monitor #" + currentDisplay + ": " + physicalBounds.width + "x" + physicalBounds.height + "@" + physicalBounds.x + "," + physicalBounds.y + newLineSeparator;
@@ -577,7 +577,7 @@ public class UI {
                     + " minus "
                     + screenInsets.top + "/" + screenInsets.left + "/" + screenInsets.bottom + "/" + screenInsets.right
                     + " insets";
-            if (configuration.getNativeInfoAvailable()) {
+            if (configuration.isNativeInfoAvailable()) {
                 final int xScaling = (int) (100 * displayList.get(currentDisplay).getXScalingFactor());
                 final int yScaling = (int) (100 * displayList.get(currentDisplay).getYScalingFactor());
                 if (xScaling == yScaling) {

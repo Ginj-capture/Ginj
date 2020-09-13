@@ -1,12 +1,16 @@
 package info.ginj.ui;
 
+import com.github.kokorin.jaffree.OS;
+import info.ginj.jna.DisplayInfo;
+import info.ginj.model.Prefs;
 import info.ginj.util.UI;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+
+import static info.ginj.model.Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS;
 
 /**
  * This class represents a frame that spans all available displays, a kind of "mega-full-screen window".
@@ -16,8 +20,8 @@ import java.util.List;
  */
 public abstract class AbstractAllDisplaysFrame extends JFrame {
     // Caching
-    protected final List<Rectangle> visibleAreas = new ArrayList<>();
-    protected final Rectangle allDisplaysBounds;
+    protected List<Rectangle> visibleAreas;
+    protected Rectangle allDisplaysBounds;
 
     protected StarWindow starWindow;
     protected JPanel actionPanel;
@@ -28,16 +32,7 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
     public AbstractAllDisplaysFrame(StarWindow starWindow, String windowTitle) {
         this.starWindow = starWindow;
 
-        // Compute display list and union
-        Rectangle2D allDisplaysRectangle = new Rectangle2D.Double(0, 0, -1, -1);
-        GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
-            GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
-            //logger.info("" + screenConfiguration.getBounds());
-            visibleAreas.add(screenConfiguration.getBounds());
-            Rectangle2D.union(allDisplaysRectangle, screenConfiguration.getBounds(), allDisplaysRectangle);
-        }
-        allDisplaysBounds = allDisplaysRectangle.getBounds();
+        computeAllDisplayBounds();
 
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
@@ -64,6 +59,37 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
 
         setAlwaysOnTop(true);
 
+    }
+
+    // TODO this method should be called at regular interval to adjust coordinates in "real-time" when config changes
+    private void computeAllDisplayBounds() {
+        // List "visible areas" of all monitors
+        if (OS.IS_WINDOWS && Prefs.isTrue(USE_JNA_FOR_WINDOWS_MONITORS)) {
+            // Use JNA for Windows, to work around bug https://bugs.openjdk.java.net/browse/JDK-8211999 with scaled monitors
+            visibleAreas = DisplayInfo.getWindowsMonitorList();
+        }
+        else {
+            // Standard Java for other platforms
+            visibleAreas = new ArrayList<>();
+            GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
+                GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
+                //logger.info("" + screenConfiguration.getBounds());
+                visibleAreas.add(screenConfiguration.getBounds());
+            }
+        }
+
+        // And Union them in a "mega-rectangle"
+        allDisplaysBounds = null;
+        for (Rectangle area : visibleAreas) {
+            if (allDisplaysBounds == null) {
+                // First rectangle, make a copy
+                allDisplaysBounds = new Rectangle(area);
+            }
+            else {
+                allDisplaysBounds.add(area);
+            }
+        }
     }
 
 

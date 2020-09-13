@@ -1,8 +1,10 @@
 package info.ginj.ui;
 
+import com.github.kokorin.jaffree.OS;
 import info.ginj.Ginj;
 import info.ginj.jna.DisplayInfo;
 import info.ginj.model.Capture;
+import info.ginj.model.Prefs;
 import info.ginj.ui.component.BorderedLabel;
 import info.ginj.ui.component.DoubleBorderedPanel;
 import info.ginj.ui.component.LowerButton;
@@ -159,7 +161,13 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
-            Point mousePosition = getMousePosition();
+            Point mousePosition;
+            if (OS.IS_WINDOWS && Prefs.isTrue(Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS)) {
+                mousePosition = DisplayInfo.getMousePosition();
+            }
+            else {
+                mousePosition = getMousePosition();
+            }
             Rectangle rectangleToDraw = null;
 
             // Determine rectangle to draw (if any)

@@ -161,6 +161,7 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g.create();
+
             Point mousePosition;
             if (OS.IS_WINDOWS && Prefs.isTrue(Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS)) {
                 mousePosition = DisplayInfo.getMousePosition();
@@ -168,6 +169,11 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
             else {
                 mousePosition = getMousePosition();
             }
+            if (mousePosition != null) {
+                // If the bounds extend to negative coordinates, fix the returned (always >0) returned position
+                mousePosition.translate(-allDisplaysBounds.x, -allDisplaysBounds.y);
+            }
+
             Rectangle rectangleToDraw = null;
 
             // Determine rectangle to draw (if any)

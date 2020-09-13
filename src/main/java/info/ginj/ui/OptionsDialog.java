@@ -38,6 +38,7 @@ public class OptionsDialog extends JDialog {
     private final JCheckBox ovalOverlayCheckBox;
     private final JCheckBox videoCursorCheckBox;
     private final JSpinner videoFramerateSpinner;
+    private final JCheckBox useJNACheckbox;
 
     private KeyStroke hotKey;
 
@@ -124,6 +125,7 @@ public class OptionsDialog extends JDialog {
                 }
             }
         });
+        hotKeyTextField.setToolTipText("Click here then press the key combination that will trigger a capture");
         hotKeyFieldPanel.add(hotKeyTextField);
 
         JButton hotKeyDefineButton = new JButton("Clear");
@@ -132,13 +134,16 @@ public class OptionsDialog extends JDialog {
 
         useTrayNotificationsOnExportCompletion = new JCheckBox();
         useTrayNotificationsOnExportCompletion.setSelected(Prefs.isTrue(Prefs.Key.USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION));
+        useTrayNotificationsOnExportCompletion.setToolTipText(Prefs.Key.USE_TRAY_NOTIFICATION_ON_EXPORT_COMPLETION.getHelp());
 
         ovalOverlayCheckBox = new JCheckBox();
         GinjTool ovalTool = GinjTool.getMap().get(OvalTool.NAME);
         ovalOverlayCheckBox.setSelected(Prefs.getToolSet().contains(ovalTool));
+        ovalOverlayCheckBox.setToolTipText("If true, an additional 'Oval' tool is made available in the overlay bar");
 
         videoCursorCheckBox = new JCheckBox();
         videoCursorCheckBox.setSelected(Prefs.isTrue(Prefs.Key.VIDEO_CAPTURE_MOUSE_CURSOR));
+        videoCursorCheckBox.setToolTipText(Prefs.Key.VIDEO_CAPTURE_MOUSE_CURSOR.getHelp());
 
         // Framerate spinner
         SpinnerModel framerateModel = new SpinnerNumberModel(Integer.parseInt(Prefs.get(Prefs.Key.VIDEO_FRAMERATE)), //initial value
@@ -147,6 +152,11 @@ public class OptionsDialog extends JDialog {
                 1); //step
         videoFramerateSpinner = new JSpinner(framerateModel);
         videoFramerateSpinner.setEditor(new JSpinner.NumberEditor(videoFramerateSpinner, "#"));
+        videoFramerateSpinner.setToolTipText(Prefs.Key.VIDEO_FRAMERATE.getHelp());
+
+        useJNACheckbox = new JCheckBox();
+        useJNACheckbox.setSelected(Prefs.isTrue(Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS));
+        useJNACheckbox.setToolTipText(Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS.getHelp());
 
         // Add fields to main panel
         mainPanel.add(UI.createFieldPanel(
@@ -154,7 +164,8 @@ public class OptionsDialog extends JDialog {
                 "Enable Oval Overlay", ovalOverlayCheckBox,
                 "Use tray notification on export", useTrayNotificationsOnExportCompletion,
                 "Capture mouse cursor in video", videoCursorCheckBox,
-                "Video frame rate", videoFramerateSpinner
+                "Video frame rate", videoFramerateSpinner,
+                "Use JNA on Windows", useJNACheckbox
         ));
 
         // TODO add Capture folder, ffmpeg folder, tmp folder, etc.
@@ -229,6 +240,8 @@ public class OptionsDialog extends JDialog {
         Prefs.set(Prefs.Key.VIDEO_CAPTURE_MOUSE_CURSOR, String.valueOf(videoCursorCheckBox.isSelected()));
 
         Prefs.set(Prefs.Key.VIDEO_FRAMERATE, String.valueOf(videoFramerateSpinner.getModel().getValue()));
+
+        Prefs.set(Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS, String.valueOf(useJNACheckbox.isSelected()));
 
         Prefs.save();
 

@@ -1,6 +1,7 @@
 package info.ginj.ui;
 
 import info.ginj.Ginj;
+import info.ginj.jna.DisplayInfo;
 import info.ginj.model.Capture;
 import info.ginj.ui.component.BorderedLabel;
 import info.ginj.ui.component.DoubleBorderedPanel;
@@ -53,9 +54,10 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(CaptureSelectionFrame.class);
 
-    public static final int SIZE_BOX_WIDTH = 75;
-    public static final int SIZE_BOX_HEIGHT = 18;
-    public static final int SIZE_BOX_OFFSET = 8;
+    public static final int CURSOR_BOX_MIN_WIDTH = 75;
+    public static final int CURSOR_BOX_HEIGHT = 18;
+    public static final int CURSOR_BOX_OFFSET = 8;
+    public static final int CURSOR_BOX_MARGIN_WIDTH = 5;
 
     private static final int RESIZE_AREA_IN_MARGIN = 5;
     private static final int RESIZE_AREA_OUT_MARGIN = 10;
@@ -74,6 +76,7 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     private Point rememberedReferenceOffset = null; // filled when selecting or dragging
     private int currentOperation = OPERATION_NONE;
     private boolean isInitialSelectionDone;
+    private boolean isShiftDown = false;
 
     private BorderedLabel captureSizeLabel;
     private JButton imageButton;
@@ -82,7 +85,7 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     public CaptureSelectionFrame(StarWindow starWindow) {
         super(starWindow, Ginj.getAppName() + " Selection");
 
-        UI.addEscKeyShortcut(this, e -> onCancel());
+        addKeyboardBehaviour();
 
         addMouseBehaviour();
 
@@ -190,40 +193,37 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
                 g2d.drawLine(allDisplaysBounds.x, mousePosition.y, (int) allDisplaysBounds.getWidth(), mousePosition.y);
             }
 
-            // Determine size to print in size box
-            String sizeText = null;
+            // Determine cursorText to print in size box
+            String cursorText = null;
             if (selection == null) {
-                if (rectangleToDraw == null) {
-                    // No (partial) selection yet, show screen size
-                    // TODO : "capturedArea" to be replaced by "hovered window" when window detection is implemented
-                    sizeText = allDisplaysBounds.width + " x " + allDisplaysBounds.height;
+                if (isShiftDown && mousePosition != null) {
+                    cursorText = mousePosition.x + "," + mousePosition.y;
+                    Point jnaPosition = DisplayInfo.getMousePosition();
+                    if (jnaPosition != null) {
+                        cursorText += " / " + jnaPosition.x + "," + jnaPosition.y;
+                    }
                 }
                 else {
-                    // We're dragging, show current size
-                    sizeText = rectangleToDraw.width + " x " + rectangleToDraw.height;
+                    if (rectangleToDraw == null) {
+                        // No (partial) selection yet, show screen size
+                        // TODO : "capturedArea" to be replaced by "hovered window" when window detection is implemented
+                        cursorText = allDisplaysBounds.width + " x " + allDisplaysBounds.height;
+                    }
+                    else {
+                        // We're dragging, show current size
+                        cursorText = rectangleToDraw.width + " x " + rectangleToDraw.height;
+                    }
                 }
             }
             else if (currentOperation != OPERATION_NONE && currentOperation != Cursor.DEFAULT_CURSOR && currentOperation != Cursor.MOVE_CURSOR) {
-                sizeText = selection.width + " x " + selection.height;
+                cursorText = selection.width + " x " + selection.height;
             }
 
-            if (sizeText != null && mousePosition != null) {
+            if (cursorText != null && mousePosition != null) {
                 // Use antialiasing
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // Draw the selection size box
-                g2d.setColor(UI.SELECTION_SIZE_BOX_COLOR);
-                int sizeBoxX = mousePosition.x + SIZE_BOX_OFFSET;
-                if (sizeBoxX + SIZE_BOX_WIDTH > allDisplaysBounds.width) {
-                    sizeBoxX = mousePosition.x - SIZE_BOX_OFFSET - SIZE_BOX_WIDTH;
-                }
-                int sizeBoxY = mousePosition.y + SIZE_BOX_OFFSET;
-                if (sizeBoxY + SIZE_BOX_HEIGHT > allDisplaysBounds.height) {
-                    sizeBoxY = mousePosition.y - SIZE_BOX_OFFSET - SIZE_BOX_HEIGHT;
-                }
-                g2d.fillRoundRect(sizeBoxX, sizeBoxY, SIZE_BOX_WIDTH, SIZE_BOX_HEIGHT, 4, 4);
 
-                // And print size
-                g2d.setColor(UI.AREA_SELECTION_COLOR);
+                // Prepare font
                 if (font == null) {
                     font = g2d.getFont();
                     fontRenderContext = g2d.getFontRenderContext();
@@ -234,17 +234,46 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
                     font = Font.getFont(attributes);
                 }
                 g2d.setFont(font);
-                int textWidth = (int) font.getStringBounds(sizeText, fontRenderContext).getWidth();
-                LineMetrics ln = font.getLineMetrics(sizeText, fontRenderContext);
+
+                // Compute text size
+                int textWidth = (int) font.getStringBounds(cursorText, fontRenderContext).getWidth();
+                LineMetrics ln = font.getLineMetrics(cursorText, fontRenderContext);
                 int textHeight = (int) (ln.getAscent() + ln.getDescent());
-                int x1 = sizeBoxX + (SIZE_BOX_WIDTH - textWidth) / 2;
-                int y1 = sizeBoxY + (int) ((SIZE_BOX_HEIGHT + textHeight) / 2 - ln.getDescent());
-                g2d.drawString(sizeText, x1, y1);
+
+                // Compute the cursor text box
+                int cursorBoxWidth = Integer.max(CURSOR_BOX_MIN_WIDTH, textWidth + 2 * CURSOR_BOX_MARGIN_WIDTH);
+                int cursorBoxX = mousePosition.x + CURSOR_BOX_OFFSET;
+                if (cursorBoxX + cursorBoxWidth > allDisplaysBounds.width) {
+                    cursorBoxX = mousePosition.x - CURSOR_BOX_OFFSET - cursorBoxWidth;
+                }
+                int cursorBoxY = mousePosition.y + CURSOR_BOX_OFFSET;
+                if (cursorBoxY + CURSOR_BOX_HEIGHT > allDisplaysBounds.height) {
+                    cursorBoxY = mousePosition.y - CURSOR_BOX_OFFSET - CURSOR_BOX_HEIGHT;
+                }
+
+                // Compute text position
+                int textX = cursorBoxX + (cursorBoxWidth - textWidth) / 2;
+                int textY = cursorBoxY + (int) ((CURSOR_BOX_HEIGHT + textHeight) / 2 - ln.getDescent());
+
+
+                g2d.setColor(UI.SELECTION_SIZE_BOX_COLOR);
+                g2d.fillRoundRect(cursorBoxX, cursorBoxY, cursorBoxWidth, CURSOR_BOX_HEIGHT, 4, 4);
+
+                g2d.setColor(UI.AREA_SELECTION_COLOR);
+                g2d.drawString(cursorText, textX, textY);
             }
 
             g2d.dispose();
         }
+    }
 
+    private void addKeyboardBehaviour() {
+        UI.addEscKeyShortcut(this, e -> onCancel());
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+            isShiftDown = e.isShiftDown();
+            return false;
+        });
     }
 
     private void addMouseBehaviour() {

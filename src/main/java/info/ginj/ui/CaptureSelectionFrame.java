@@ -135,6 +135,10 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
 //capturedArea = new Rectangle(0,0,800,600);
 //visibleAreas.clear();
 //visibleAreas.add(capturedArea);
+                logger.info("Free memory: about "
+                        // See https://stackoverflow.com/a/12807848/13551878
+                        + (Runtime.getRuntime().maxMemory() - (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()))
+                        + "bytes. Capturing area: " + allDisplaysBounds);
 
                 capturedScreenImg = robot.createScreenCapture(allDisplaysBounds);
             }

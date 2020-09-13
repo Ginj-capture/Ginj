@@ -66,4 +66,14 @@ public class DisplayInfo {
 
         return monitors;
     }
+
+    public static Point getMousePosition() {
+        final WinDef.POINT point = new WinDef.POINT();
+        if (User32.INSTANCE.GetCursorPos(point)) {
+            return new Point(point.x, point.y);
+        }
+        else {
+            return null;
+        }
+    }
 }

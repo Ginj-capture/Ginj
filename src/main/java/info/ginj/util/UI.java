@@ -517,6 +517,10 @@ public class UI {
                 JComponent.WHEN_IN_FOCUSED_WINDOW);
     }
 
+    public static void removeEscKeyShortcut(RootPaneContainer window) {
+        window.getRootPane().unregisterKeyboardAction(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0));
+    }
+
     public static DisplayConfiguration getDisplayConfiguration() {
         DisplayConfiguration configuration = new DisplayConfiguration();
 

@@ -23,6 +23,7 @@ import java.awt.event.MouseEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 import java.awt.font.TextAttribute;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -83,15 +84,29 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     private BorderedLabel captureSizeLabel;
     private JButton imageButton;
     private JButton videoButton;
+    private KeyEventDispatcher keyEventDispatcher;
+    private MouseAdapter mouseAdapter;
 
     public CaptureSelectionFrame(StarWindow starWindow) {
         super(starWindow, Ginj.getAppName() + " Selection");
+        init();
+    }
+
+    public void init() {
+        setContentPane(new CaptureMainPane());
+
+        prepareAndShow();
 
         addKeyboardBehaviour();
-
         addMouseBehaviour();
 
         resetSelection();
+    }
+
+    public void close() {
+        removeKeyboardBehaviour();
+        removeMouseBehaviour();
+        setVisible(false);
     }
 
     protected JPanel createActionPanel() {
@@ -137,12 +152,9 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
 //capturedArea = new Rectangle(0,0,800,600);
 //visibleAreas.clear();
 //visibleAreas.add(capturedArea);
-                logger.info("Free memory: about "
-                        // See https://stackoverflow.com/a/12807848/13551878
-                        + (Runtime.getRuntime().maxMemory() - (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()))
-                        + "bytes. Capturing area: " + allDisplaysBounds);
-
+                logger.info("Capturing area: " + allDisplaysBounds);
                 capturedScreenImg = robot.createScreenCapture(allDisplaysBounds);
+                logRam("After capture");
             }
             catch (AWTException e) {
                 logger.error("Error performing robot capture", e);
@@ -165,12 +177,27 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
             Point mousePosition;
             if (OS.IS_WINDOWS && Prefs.isTrue(Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS)) {
                 mousePosition = DisplayInfo.getMousePosition();
+//                System.out.println("mousePosition = " + mousePosition);
+                if (areTransformsUniform) {
+                    // Robot does not transform capture if all screens have the same scaling factor.
+                    // In that case, we have to "fix" the physical point
+                    try {
+                        currentTransform.inverseTransform(mousePosition, mousePosition);
+                    }
+                    catch (NoninvertibleTransformException e) {
+                        logger.error("Cannot invert transform...");
+                    }
+                }
+                // Otherwise, Robot falls back to "full capture" mode. keep JNA mouseposition unchanged
+//                System.out.println("areTransformUniform = " + areTransformsUniform);
+//                System.out.println("currentTransform = " + currentTransform);
+//                System.out.println("mousePosition = " + mousePosition);
             }
             else {
                 mousePosition = getMousePosition();
             }
             if (mousePosition != null) {
-                // If the bounds extend to negative coordinates, fix the returned (always >0) returned position
+                // If the bounds extend to negative coordinates, fix the (always >0) returned position
                 mousePosition.translate(-allDisplaysBounds.x, -allDisplaysBounds.y);
             }
 
@@ -285,226 +312,251 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
         }
     }
 
+    private void logRam(String msg) {
+        // See https://stackoverflow.com/a/12807848/13551878
+        logger.info(msg + " - about "
+                + (Runtime.getRuntime().maxMemory() - (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()))
+                + "bytes free.");
+    }
+
     private void addKeyboardBehaviour() {
         UI.addEscKeyShortcut(this, e -> onCancel());
 
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
-            isShiftDown = e.isShiftDown();
-            return false;
-        });
+        if (keyEventDispatcher == null) {
+            keyEventDispatcher = e -> {
+                isShiftDown = e.isShiftDown();
+                return false;
+            };
+        }
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(keyEventDispatcher);
+    }
+
+    private void removeKeyboardBehaviour() {
+        UI.removeEscKeyShortcut(this);
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(keyEventDispatcher);
     }
 
     private void addMouseBehaviour() {
         Window window = this;
-        MouseAdapter mouseAdapter = new MouseAdapter() {
 
-            @Override
-            public void mouseExited(MouseEvent e) {
-                window.repaint();
-            }
+        if (mouseAdapter == null) {
+            mouseAdapter = new MouseAdapter() {
 
-            @Override
-            public void mousePressed(MouseEvent e) {
-                Point mousePosition = e.getPoint();
-                // See if there was a previous selection
-                if (selection != null) {
-                    final Rectangle actionPanelBounds = actionPanel.getBounds();
-                    // There's already a selection.
-                    // Hide the button bar during drag
-                    setActionPanelVisible(false);
-
-                    // Can happen if selection is so large that actionPanel is over selection
-                    if (!actionPanelBounds.contains(mousePosition)) {
-
-                        // See where the mouse press happened
-                        currentOperation = getHoverOperation(mousePosition, selection);
-
-                        //noinspection EnhancedSwitchMigration
-                        switch (currentOperation) {
-                            case Cursor.DEFAULT_CURSOR:
-                                // We clicked outside selection, restart selection (ENHANCEMENT ? USEFUL ?)
-                                resetSelection();
-                                break;
-                            case Cursor.MOVE_CURSOR:
-                            case Cursor.NW_RESIZE_CURSOR:
-                            case Cursor.N_RESIZE_CURSOR:
-                            case Cursor.W_RESIZE_CURSOR:
-                                // Remember offset between click position and reference (top-left corner of the selection)
-                                rememberedReferenceOffset = new Point(mousePosition.x - selection.x, mousePosition.y - selection.y);
-                                break;
-                            case Cursor.NE_RESIZE_CURSOR:
-                            case Cursor.E_RESIZE_CURSOR:
-                                // Remember offset between click position and reference (top-right corner of the selection)
-                                rememberedReferenceOffset = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - selection.y);
-                                break;
-                            case Cursor.SW_RESIZE_CURSOR:
-                            case Cursor.S_RESIZE_CURSOR:
-                                // Remember offset between click position and reference (bottom-left corner of the selection)
-                                rememberedReferenceOffset = new Point(mousePosition.x - selection.x, mousePosition.y - (selection.y + selection.height));
-                                break;
-                            case Cursor.SE_RESIZE_CURSOR:
-                                // Remember offset between click position and reference (bottom-right corner of the selection)
-                                rememberedReferenceOffset = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - (selection.y + selection.height));
-                                break;
-                        }
-                    }
-                }
-                if (selection == null) {
-                    // Start of new selection. Remember offset between click position and reference ("opposite" corner)
-                    // Creating a selection is like resizing a selection of 0,0
-                    selection = new Rectangle(mousePosition.x, mousePosition.y, 0, 0);
-                    currentOperation = Cursor.SW_RESIZE_CURSOR;
-                    rememberedReferenceOffset = new Point(0, 0);
-                    isInitialSelectionDone = false; // TODO redundant ?
-                }
-                window.repaint();
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                if (selection.width == 0 && selection.height == 0) {
-                    // Just a click in fact
-                    selection = new Rectangle(0, 0, allDisplaysBounds.width, allDisplaysBounds.height);
-                    // TODO should become "hovered window", if any, when detection is implemented
-                }
-                currentOperation = OPERATION_NONE;
-                isInitialSelectionDone = true;
-                window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-                setActionPanelVisible(true);
-                window.repaint();
-            }
-
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                if (selection != null) {
-                    // ENHANCEMENT: resize cursor changes when it goes over the edge
-                    // Note: rememberedReferenceOffset has different meanings according to currentOperation. See mousePressed
-                    final int newX = e.getX() - rememberedReferenceOffset.x;
-                    final int newY = e.getY() - rememberedReferenceOffset.y;
-                    int previousOperation = currentOperation;
-                    switch (currentOperation) {
-                        // Move selection rectangle
-                        case Cursor.MOVE_CURSOR -> selection.setLocation(newX, newY);
-                        // Move only one edge or one corner
-                        case Cursor.W_RESIZE_CURSOR -> currentOperation = Coords.setX1(selection, newX, currentOperation);
-                        case Cursor.N_RESIZE_CURSOR -> currentOperation = Coords.setY1(selection, newY, currentOperation);
-                        case Cursor.NW_RESIZE_CURSOR -> {
-                            currentOperation = Coords.setX1(selection, newX, currentOperation);
-                            currentOperation = Coords.setY1(selection, newY, currentOperation);
-                        }
-                        case Cursor.E_RESIZE_CURSOR -> currentOperation = Coords.setX2(selection, newX, currentOperation);
-                        case Cursor.NE_RESIZE_CURSOR -> {
-                            currentOperation = Coords.setY1(selection, newY, currentOperation);
-                            currentOperation = Coords.setX2(selection, newX, currentOperation);
-                        }
-                        case Cursor.S_RESIZE_CURSOR -> currentOperation = Coords.setY2(selection, newY, currentOperation);
-                        case Cursor.SW_RESIZE_CURSOR -> {
-                            currentOperation = Coords.setX1(selection, newX, currentOperation);
-                            currentOperation = Coords.setY2(selection, newY, currentOperation);
-                        }
-                        case Cursor.SE_RESIZE_CURSOR -> {
-                            currentOperation = Coords.setX2(selection, newX, currentOperation);
-                            currentOperation = Coords.setY2(selection, newY, currentOperation);
-                        }
-                    }
-                    if (previousOperation != currentOperation) {
-                        updateMouseCursor();
-                    }
-                }
-                // Paint rectangle (and cross lines if making selection)
-                window.repaint();
-            }
-
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                if (selection == null) {
-                    // Selection not done yet
-                    // Paint cross lines
+                @Override
+                public void mouseExited(MouseEvent e) {
                     window.repaint();
                 }
-                else {
-                    // Selection done
-                    final Rectangle actionPanelBounds = actionPanel.getBounds();
-                    // Can happen if selection is so large that actionPanel is over selection
-                    if (actionPanelBounds.contains(e.getPoint())) {
-                        window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    Point mousePosition = e.getPoint();
+                    // See if there was a previous selection
+                    if (selection != null) {
+                        final Rectangle actionPanelBounds = actionPanel.getBounds();
+                        // There's already a selection.
+                        // Hide the button bar during drag
+                        setActionPanelVisible(false);
+
+                        // Can happen if selection is so large that actionPanel is over selection
+                        if (!actionPanelBounds.contains(mousePosition)) {
+
+                            // See where the mouse press happened
+                            currentOperation = getHoverOperation(mousePosition, selection);
+
+                            //noinspection EnhancedSwitchMigration
+                            switch (currentOperation) {
+                                case Cursor.DEFAULT_CURSOR:
+                                    // We clicked outside selection, restart selection (ENHANCEMENT ? USEFUL ?)
+                                    resetSelection();
+                                    break;
+                                case Cursor.MOVE_CURSOR:
+                                case Cursor.NW_RESIZE_CURSOR:
+                                case Cursor.N_RESIZE_CURSOR:
+                                case Cursor.W_RESIZE_CURSOR:
+                                    // Remember offset between click position and reference (top-left corner of the selection)
+                                    rememberedReferenceOffset = new Point(mousePosition.x - selection.x, mousePosition.y - selection.y);
+                                    break;
+                                case Cursor.NE_RESIZE_CURSOR:
+                                case Cursor.E_RESIZE_CURSOR:
+                                    // Remember offset between click position and reference (top-right corner of the selection)
+                                    rememberedReferenceOffset = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - selection.y);
+                                    break;
+                                case Cursor.SW_RESIZE_CURSOR:
+                                case Cursor.S_RESIZE_CURSOR:
+                                    // Remember offset between click position and reference (bottom-left corner of the selection)
+                                    rememberedReferenceOffset = new Point(mousePosition.x - selection.x, mousePosition.y - (selection.y + selection.height));
+                                    break;
+                                case Cursor.SE_RESIZE_CURSOR:
+                                    // Remember offset between click position and reference (bottom-right corner of the selection)
+                                    rememberedReferenceOffset = new Point(mousePosition.x - (selection.x + selection.width), mousePosition.y - (selection.y + selection.height));
+                                    break;
+                            }
+                        }
+                    }
+                    if (selection == null) {
+                        // Start of new selection. Remember offset between click position and reference ("opposite" corner)
+                        // Creating a selection is like resizing a selection of 0,0
+                        selection = new Rectangle(mousePosition.x, mousePosition.y, 0, 0);
+                        currentOperation = Cursor.SW_RESIZE_CURSOR;
+                        rememberedReferenceOffset = new Point(0, 0);
+                        isInitialSelectionDone = false; // TODO redundant ?
+                    }
+                    window.repaint();
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    if (selection.width == 0 && selection.height == 0) {
+                        // Just a click in fact
+                        selection = new Rectangle(0, 0, allDisplaysBounds.width, allDisplaysBounds.height);
+                        // TODO should become "hovered window", if any, when detection is implemented
+                    }
+                    currentOperation = OPERATION_NONE;
+                    isInitialSelectionDone = true;
+                    window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                    setActionPanelVisible(true);
+                    window.repaint();
+                }
+
+                @Override
+                public void mouseDragged(MouseEvent e) {
+                    if (selection != null) {
+                        // ENHANCEMENT: resize cursor changes when it goes over the edge
+                        // Note: rememberedReferenceOffset has different meanings according to currentOperation. See mousePressed
+                        final int newX = e.getX() - rememberedReferenceOffset.x;
+                        final int newY = e.getY() - rememberedReferenceOffset.y;
+                        int previousOperation = currentOperation;
+                        switch (currentOperation) {
+                            // Move selection rectangle
+                            case Cursor.MOVE_CURSOR -> selection.setLocation(newX, newY);
+                            // Move only one edge or one corner
+                            case Cursor.W_RESIZE_CURSOR -> currentOperation = Coords.setX1(selection, newX, currentOperation);
+                            case Cursor.N_RESIZE_CURSOR -> currentOperation = Coords.setY1(selection, newY, currentOperation);
+                            case Cursor.NW_RESIZE_CURSOR -> {
+                                currentOperation = Coords.setX1(selection, newX, currentOperation);
+                                currentOperation = Coords.setY1(selection, newY, currentOperation);
+                            }
+                            case Cursor.E_RESIZE_CURSOR -> currentOperation = Coords.setX2(selection, newX, currentOperation);
+                            case Cursor.NE_RESIZE_CURSOR -> {
+                                currentOperation = Coords.setY1(selection, newY, currentOperation);
+                                currentOperation = Coords.setX2(selection, newX, currentOperation);
+                            }
+                            case Cursor.S_RESIZE_CURSOR -> currentOperation = Coords.setY2(selection, newY, currentOperation);
+                            case Cursor.SW_RESIZE_CURSOR -> {
+                                currentOperation = Coords.setX1(selection, newX, currentOperation);
+                                currentOperation = Coords.setY2(selection, newY, currentOperation);
+                            }
+                            case Cursor.SE_RESIZE_CURSOR -> {
+                                currentOperation = Coords.setX2(selection, newX, currentOperation);
+                                currentOperation = Coords.setY2(selection, newY, currentOperation);
+                            }
+                        }
+                        if (previousOperation != currentOperation) {
+                            updateMouseCursor();
+                        }
+                    }
+                    // Paint rectangle (and cross lines if making selection)
+                    window.repaint();
+                }
+
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    if (selection == null) {
+                        // Selection not done yet
+                        // Paint cross lines
+                        window.repaint();
                     }
                     else {
-                        // Determine operation that could be done by a mousePressed there, and change cursor accordingly.
+                        // Selection done
+                        final Rectangle actionPanelBounds = actionPanel.getBounds();
+                        // Can happen if selection is so large that actionPanel is over selection
+                        if (actionPanelBounds.contains(e.getPoint())) {
+                            window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                        }
+                        else {
+                            // Determine operation that could be done by a mousePressed there, and change cursor accordingly.
+                            //noinspection MagicConstant
+                            window.setCursor(Cursor.getPredefinedCursor(getHoverOperation(e.getPoint(), selection)));
+                        }
+                    }
+                }
+
+
+                private void updateMouseCursor() {
+                    if (isInitialSelectionDone) {
                         //noinspection MagicConstant
-                        window.setCursor(Cursor.getPredefinedCursor(getHoverOperation(e.getPoint(), selection)));
+                        window.setCursor(Cursor.getPredefinedCursor(currentOperation));
                     }
                 }
-            }
 
+                /**
+                 * Determine mouse operation based on hover point and selection.
+                 * Note that we return mouse cursor constants, but it is more than just a cursor:
+                 * the returned int value indicates which operation this area corresponds to.
+                 */
+                private int getHoverOperation(Point point, Rectangle selection) {
+                    // Inside
+                    final Rectangle internalArea = new Rectangle(selection);
+                    internalArea.grow(-RESIZE_AREA_IN_MARGIN, -RESIZE_AREA_IN_MARGIN);
+                    if (internalArea.contains(point)) return Cursor.MOVE_CURSOR;
 
-            private void updateMouseCursor() {
-                if (isInitialSelectionDone) {
-                    //noinspection MagicConstant
-                    window.setCursor(Cursor.getPredefinedCursor(currentOperation));
-                }
-            }
-
-            /**
-             * Determine mouse operation based on hover point and selection.
-             * Note that we return mouse cursor constants, but it is more than just a cursor:
-             * the returned int value indicates which operation this area corresponds to.
-             */
-            private int getHoverOperation(Point point, Rectangle selection) {
-                // Inside
-                final Rectangle internalArea = new Rectangle(selection);
-                internalArea.grow(-RESIZE_AREA_IN_MARGIN, -RESIZE_AREA_IN_MARGIN);
-                if (internalArea.contains(point)) return Cursor.MOVE_CURSOR;
-
-                // Above or Below or Left or Right
-                if (point.y < selection.y - RESIZE_AREA_OUT_MARGIN
-                        || point.y > selection.y + selection.height + RESIZE_AREA_OUT_MARGIN
-                        || point.x < selection.x - RESIZE_AREA_OUT_MARGIN
-                        || point.x > selection.x + selection.width + RESIZE_AREA_OUT_MARGIN
-                ) {
-                    return Cursor.DEFAULT_CURSOR;
-                }
-
-                // OK, we're in the "resize area". Determine which.
-                if (point.x <= internalArea.x) {
-                    // left edge
-                    if (point.y <= internalArea.y) {
-                        return Cursor.NW_RESIZE_CURSOR;
+                    // Above or Below or Left or Right
+                    if (point.y < selection.y - RESIZE_AREA_OUT_MARGIN
+                            || point.y > selection.y + selection.height + RESIZE_AREA_OUT_MARGIN
+                            || point.x < selection.x - RESIZE_AREA_OUT_MARGIN
+                            || point.x > selection.x + selection.width + RESIZE_AREA_OUT_MARGIN
+                    ) {
+                        return Cursor.DEFAULT_CURSOR;
                     }
-                    else if (point.y >= internalArea.y + internalArea.height) {
-                        return Cursor.SW_RESIZE_CURSOR;
+
+                    // OK, we're in the "resize area". Determine which.
+                    if (point.x <= internalArea.x) {
+                        // left edge
+                        if (point.y <= internalArea.y) {
+                            return Cursor.NW_RESIZE_CURSOR;
+                        }
+                        else if (point.y >= internalArea.y + internalArea.height) {
+                            return Cursor.SW_RESIZE_CURSOR;
+                        }
+                        else {
+                            return Cursor.W_RESIZE_CURSOR;
+                        }
+                    }
+                    else if (point.x >= internalArea.x + internalArea.width) {
+                        // right edge
+                        if (point.y <= internalArea.y) {
+                            return Cursor.NE_RESIZE_CURSOR;
+                        }
+                        else if (point.y >= internalArea.y + internalArea.height) {
+                            return Cursor.SE_RESIZE_CURSOR;
+                        }
+                        else {
+                            return Cursor.E_RESIZE_CURSOR;
+                        }
                     }
                     else {
-                        return Cursor.W_RESIZE_CURSOR;
+                        // between left and right edges (but not inside)
+                        if (point.y <= internalArea.y) {
+                            return Cursor.N_RESIZE_CURSOR;
+                        }
+                        else {
+                            return Cursor.S_RESIZE_CURSOR;
+                        }
                     }
                 }
-                else if (point.x >= internalArea.x + internalArea.width) {
-                    // right edge
-                    if (point.y <= internalArea.y) {
-                        return Cursor.NE_RESIZE_CURSOR;
-                    }
-                    else if (point.y >= internalArea.y + internalArea.height) {
-                        return Cursor.SE_RESIZE_CURSOR;
-                    }
-                    else {
-                        return Cursor.E_RESIZE_CURSOR;
-                    }
-                }
-                else {
-                    // between left and right edges (but not inside)
-                    if (point.y <= internalArea.y) {
-                        return Cursor.N_RESIZE_CURSOR;
-                    }
-                    else {
-                        return Cursor.S_RESIZE_CURSOR;
-                    }
-                }
-            }
-        };
+            };
+        }
 
         addMouseListener(mouseAdapter);
         addMouseMotionListener(mouseAdapter);
     }
+
+    private void removeMouseBehaviour() {
+        removeMouseListener(mouseAdapter);
+        removeMouseMotionListener(mouseAdapter);
+    }
+
 
     @Override
     protected int getSelectedAreaHorizontalStrokeWidth() {
@@ -565,13 +617,13 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
         capture.setOriginalImage(capturedImg);
         final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
         captureEditingFrame.setVisible(true);
-        dispose();
+        close();
     }
 
     private void onCaptureVideo() {
         if (Jaffree.IS_AVAILABLE) {
             final VideoControlFrame videoControlFrame = new VideoControlFrame(starWindow, getCroppedSelection(), createNewCapture(true));
-            dispose();
+            close();
             videoControlFrame.setVisible(true);
         }
         else {
@@ -584,7 +636,7 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     }
 
     private void onCancel() {
-        dispose();
+        close();
     }
 
 }

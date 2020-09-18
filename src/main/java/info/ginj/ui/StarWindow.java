@@ -39,6 +39,7 @@ public class StarWindow extends JWindow {
     private Provider hotKeyProvider;
     private TrayIcon trayIcon;
     private Export lastExport = null;
+    private CaptureSelectionFrame captureSelectionFrame;
 
     public enum Border {TOP, LEFT, BOTTOM, RIGHT}
 
@@ -897,12 +898,19 @@ public class StarWindow extends JWindow {
     void onCapture() {
         // Hide star icon during the capture
         setVisible(false);
-        // Creating the capture selection window will cause the screenshot to happen
-        CaptureSelectionFrame frame = new CaptureSelectionFrame(this);
+        if (captureSelectionFrame == null) {
+            // Creating the new capture selection window will cause the screenshot to happen
+            captureSelectionFrame = new CaptureSelectionFrame(this);
+        }
+        else {
+            // Perform the screen capture
+            captureSelectionFrame.init();
+        }
         // Show star icon again
         setVisible(true);
-        // And show capture selection window
-        frame.setVisible(true);
+
+        // And show the capture selection window
+        captureSelectionFrame.setVisible(true);
     }
 
 

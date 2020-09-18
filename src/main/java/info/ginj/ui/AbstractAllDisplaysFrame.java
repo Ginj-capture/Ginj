@@ -52,13 +52,16 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
         UI.packPanel(actionPanel);
         contentPane.add(actionPanel);
 
+        prepareAndShow();
+    }
+
+    protected void prepareAndShow() {
         pack();
         positionWindowOnStartup();
         setVisible(true);
         requestFocus();
 
         setAlwaysOnTop(true);
-
     }
 
     // TODO this method should be called at regular interval to adjust coordinates in "real-time" when config changes

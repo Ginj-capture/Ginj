@@ -183,7 +183,7 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
                     // Robot does not transform capture if all screens have the same scaling factor.
                     // In that case, we have to "fix" the physical point
                     try {
-                        currentTransform.inverseTransform(mousePosition, mousePosition);
+                        widgetDisplayTransform.inverseTransform(mousePosition, mousePosition);
                     }
                     catch (NoninvertibleTransformException e) {
                         logger.error("Cannot invert transform...");

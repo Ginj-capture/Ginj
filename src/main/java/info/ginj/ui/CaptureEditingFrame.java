@@ -682,16 +682,14 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         for (CaptureEditingFrame captureEditingFrame : captureEditingFramePool) {
             if (captureEditingFrame.isAvailable()) {
                 captureEditingFrame.setAvailable(false);
-System.out.println("Found available window");
                 return captureEditingFrame;
             }
-System.out.println("Found unavailable window");
         }
         // If we came here, no available capture editing frame is available in the pool
         // Create a new one
         final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow);
         captureEditingFramePool.add(captureEditingFrame);
-System.out.println("Created window. Pool size is now " + captureEditingFramePool.size());
+
         // and return it
         captureEditingFrame.setAvailable(false);
         return captureEditingFrame;

@@ -42,6 +42,10 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
         this.setTitle(windowTitle);
         this.setIconImage(StarWindow.getAppIcon());
 
+        prepareAndShow();
+    }
+
+    protected void prepareAndShow() {
         JComponent contentPane = createContentPane();
         setContentPane(contentPane);
 
@@ -52,10 +56,6 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
         UI.packPanel(actionPanel);
         contentPane.add(actionPanel);
 
-        prepareAndShow();
-    }
-
-    protected void prepareAndShow() {
         pack();
         positionWindowOnStartup();
         setVisible(true);

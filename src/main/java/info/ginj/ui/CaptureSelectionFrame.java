@@ -93,8 +93,6 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     }
 
     public void init() {
-        setContentPane(new CaptureMainPane());
-
         prepareAndShow();
 
         addKeyboardBehaviour();

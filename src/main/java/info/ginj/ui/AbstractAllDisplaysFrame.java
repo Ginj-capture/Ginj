@@ -1,12 +1,13 @@
 package info.ginj.ui;
 
 import com.github.kokorin.jaffree.OS;
-import info.ginj.jna.DisplayInfo;
+import info.ginj.model.DisplayConfiguration;
 import info.ginj.model.Prefs;
 import info.ginj.util.UI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,8 +21,11 @@ import static info.ginj.model.Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS;
  */
 public abstract class AbstractAllDisplaysFrame extends JFrame {
     // Caching
+    protected DisplayConfiguration displayConfiguration;
     protected List<Rectangle> visibleAreas;
     protected Rectangle allDisplaysBounds;
+    protected AffineTransform currentTransform;
+    protected boolean areTransformsUniform;
 
     protected StarWindow starWindow;
     protected JPanel actionPanel;
@@ -66,19 +70,23 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
 
     // TODO this method should be called at regular interval to adjust coordinates in "real-time" when config changes
     private void computeAllDisplayBounds() {
+        displayConfiguration = UI.getDisplayConfiguration();
+
         // List "visible areas" of all monitors
-        if (OS.IS_WINDOWS && Prefs.isTrue(USE_JNA_FOR_WINDOWS_MONITORS)) {
-            // Use JNA for Windows, to work around bug https://bugs.openjdk.java.net/browse/JDK-8211999 with scaled monitors
-            visibleAreas = DisplayInfo.getWindowsMonitorList();
-        }
-        else {
-            // Standard Java for other platforms
-            visibleAreas = new ArrayList<>();
-            GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            for (GraphicsDevice screenDevice : graphicsEnvironment.getScreenDevices()) {
-                GraphicsConfiguration screenConfiguration = screenDevice.getDefaultConfiguration();
-                //logger.info("" + screenConfiguration.getBounds());
-                visibleAreas.add(screenConfiguration.getBounds());
+        final boolean usePhysical = OS.IS_WINDOWS && Prefs.isTrue(USE_JNA_FOR_WINDOWS_MONITORS);
+        visibleAreas = new ArrayList<>();
+        AffineTransform previousTransform = displayConfiguration.getDisplayList().get(0).getDefaultTransform();
+        areTransformsUniform = true;
+        for (DisplayConfiguration.Display display : displayConfiguration.getDisplayList()) {
+            if (usePhysical) {
+                // Use physical value using JNA for Windows, to work around bug https://bugs.openjdk.java.net/browse/JDK-8211999 with scaled monitors
+                visibleAreas.add(display.getPhysicalRectangle());
+                if (!display.getDefaultTransform().equals(previousTransform)) {
+                    areTransformsUniform = false;
+                }
+            }
+            else {
+                visibleAreas.add(display.getLogicalRectangle());
             }
         }
 
@@ -93,6 +101,10 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
                 allDisplaysBounds.add(area);
             }
         }
+
+        int starScreen = Prefs.getAsInt(Prefs.Key.STAR_WINDOW_DISPLAY_NUMBER);
+        currentTransform = displayConfiguration.getDisplayList().get(starScreen).getDefaultTransform();
+        System.out.println(currentTransform);
     }
 
 

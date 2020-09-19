@@ -24,6 +24,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
 import java.io.File;
@@ -533,7 +534,8 @@ public class UI {
             final Rectangle screenBounds = screenConfiguration.getBounds();
             // determine the "borders" (taskbars, menus):
             final Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(screenConfiguration);
-            configuration.addDisplay(screenBounds, screenInsets);
+            AffineTransform defaultTransform = screenConfiguration.getDefaultTransform();
+            configuration.addDisplay(screenBounds, screenInsets, defaultTransform);
         }
 
         // Physical

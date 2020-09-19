@@ -178,20 +178,20 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
             Point mousePosition;
             if (OS.IS_WINDOWS && Prefs.isTrue(Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS)) {
                 mousePosition = DisplayInfo.getMousePosition();
-//                System.out.println("mousePosition = " + mousePosition);
-                if (areTransformsUniform) {
-                    // Robot does not transform capture if all screens have the same scaling factor.
-                    // In that case, we have to "fix" the physical point
-                    try {
-                        widgetDisplayTransform.inverseTransform(mousePosition, mousePosition);
-                    }
-                    catch (NoninvertibleTransformException e) {
-                        logger.error("Cannot invert transform...");
-                    }
+
+                // Sometimes, the "robot + redisplay" completely resizes the cropped image, but "when" is a mystery to me.
+                // Anyway, by always applying the inverse of the affine transform of the primary (first enumerated)
+                // display to the mouse position, the area is correctly shown (even if resized) and captured
+                // The captured image is the physical one and not the "zoomed" one however.
+                try {
+                    primaryDisplayTransform.inverseTransform(mousePosition, mousePosition);
                 }
-                // Otherwise, Robot falls back to "full capture" mode. keep JNA mouseposition unchanged
+                catch (NoninvertibleTransformException e) {
+                    logger.error("Cannot invert transform...");
+                }
+
 //                System.out.println("areTransformUniform = " + areTransformsUniform);
-//                System.out.println("currentTransform = " + currentTransform);
+//                System.out.println("primaryDisplayTransform = " + primaryDisplayTransform);
 //                System.out.println("mousePosition = " + mousePosition);
             }
             else {
@@ -243,10 +243,10 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
             String cursorText = null;
             if (selection == null) {
                 if (isShiftDown && mousePosition != null) {
-                    cursorText = mousePosition.x + "," + mousePosition.y;
+                    cursorText = "l=" + mousePosition.x + "," + mousePosition.y;
                     Point jnaPosition = DisplayInfo.getMousePosition();
                     if (jnaPosition != null) {
-                        cursorText += " / " + jnaPosition.x + "," + jnaPosition.y;
+                        cursorText += " / p=" + jnaPosition.x + "," + jnaPosition.y;
                     }
                 }
                 else {

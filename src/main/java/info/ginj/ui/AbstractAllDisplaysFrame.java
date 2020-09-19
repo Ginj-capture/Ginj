@@ -25,7 +25,7 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
     protected DisplayConfiguration displayConfiguration;
     protected List<Rectangle> visibleAreas;
     protected Rectangle allDisplaysBounds;
-    protected AffineTransform widgetDisplayTransform;
+    protected AffineTransform primaryDisplayTransform;
     protected boolean areTransformsUniform;
 
     protected StarWindow starWindow;
@@ -120,9 +120,11 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
             }
         }
 
-        int starScreen = Prefs.getAsInt(Prefs.Key.STAR_WINDOW_DISPLAY_NUMBER);
-        widgetDisplayTransform = displayConfiguration.getDisplayList().get(starScreen).getDefaultTransform();
-        System.out.println("widgetDisplayTransform = " + widgetDisplayTransform);
+//        int starScreen = Prefs.getAsInt(Prefs.Key.STAR_WINDOW_DISPLAY_NUMBER);
+//        primaryDisplayTransform = displayConfiguration.getDisplayList().get(starScreen).getDefaultTransform();
+
+        primaryDisplayTransform = displayConfiguration.getDisplayList().get(0).getDefaultTransform();
+        System.out.println("widgetDisplayTransform = " + primaryDisplayTransform);
     }
 
 

@@ -121,7 +121,7 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
         }
 
         primaryDisplayTransform = displayConfiguration.getDisplayList().get(0).getDefaultTransform();
-        System.out.println("widgetDisplayTransform = " + primaryDisplayTransform);
+//        System.out.println("primaryDisplayTransform = " + primaryDisplayTransform);
     }
 
 

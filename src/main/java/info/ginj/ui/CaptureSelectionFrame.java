@@ -69,6 +69,9 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     public static final int SELECTED_AREA_STROKE_WIDTH = 2;
     public static final BasicStroke SELECTED_AREA_STROKE = new BasicStroke(SELECTED_AREA_STROKE_WIDTH);
 
+    // We only have a single instance of VideoControlFrame that we reuse to avoid memory leaks
+    private static VideoControlFrame videoControlFrame;
+
     // Caching
     // See https://stackoverflow.com/a/10687248
     private final Cursor CURSOR_NONE = Toolkit.getDefaultToolkit().createCustomCursor(new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), new Point(), null);
@@ -89,11 +92,10 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
 
     public CaptureSelectionFrame(StarWindow starWindow) {
         super(starWindow, Ginj.getAppName() + " Selection");
-        init();
     }
 
-    public void init() {
-        prepareAndShow();
+    public void open() {
+        super.open();
 
         addKeyboardBehaviour();
         addMouseBehaviour();
@@ -104,7 +106,8 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     public void close() {
         removeKeyboardBehaviour();
         removeMouseBehaviour();
-        setVisible(false);
+
+        super.close();
     }
 
     protected JPanel createActionPanel() {
@@ -312,9 +315,10 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
 
     private void logRam(String msg) {
         // See https://stackoverflow.com/a/12807848/13551878
+        final long freeMemory = Runtime.getRuntime().maxMemory() - (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
         logger.info(msg + " - about "
-                + (Runtime.getRuntime().maxMemory() - (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory()))
-                + "bytes free.");
+                + freeMemory
+                + " bytes (" + Misc.getPrettySize(freeMemory) + ") free.");
     }
 
     private void addKeyboardBehaviour() {
@@ -614,13 +618,18 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
         final Capture capture = createNewCapture(false);
         capture.setOriginalImage(capturedImg);
         final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
-        captureEditingFrame.setVisible(true);
         close();
+        captureEditingFrame.setVisible(true);
     }
 
     private void onCaptureVideo() {
         if (Jaffree.IS_AVAILABLE) {
-            final VideoControlFrame videoControlFrame = new VideoControlFrame(starWindow, getCroppedSelection(), createNewCapture(true));
+            // We always reuse the single instance of videoControlFrame
+            if (videoControlFrame == null) {
+                videoControlFrame = new VideoControlFrame(starWindow);
+            }
+            videoControlFrame.init(getCroppedSelection(), createNewCapture(true));
+            videoControlFrame.open();
             close();
             videoControlFrame.setVisible(true);
         }

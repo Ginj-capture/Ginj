@@ -14,10 +14,11 @@ import java.util.List;
 import static info.ginj.model.Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS;
 
 /**
- * This class represents a frame that spans all available displays, a kind of "mega-full-screen window".
- * It is the base class for the capture selection (which is a mega-full-screen window with the capture to crop as background)
- * and for the video recording window (which is a mega-full-screen transparent window, but shares many aspects such as a rectangular overlay
- * and a self positioning button panel
+ * This base class represents a frame that spans all available displays, a kind of "mega-full-screen window".
+ * It is the base class for :
+ * - the capture selection (which is a mega-full-screen window with the capture to crop as background)
+ * - the video recording window (which is a mega-full-screen transparent window, but shares many aspects such as a rectangular overlay
+ * and a self positioning button panel)
  */
 public abstract class AbstractAllDisplaysFrame extends JFrame {
     // Caching
@@ -36,8 +37,6 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
     public AbstractAllDisplaysFrame(StarWindow starWindow, String windowTitle) {
         this.starWindow = starWindow;
 
-        computeAllDisplayBounds();
-
         // No window title bar or border.
         // Note: setDefaultLookAndFeelDecorated(true); must not have been called anywhere for this to work
         setUndecorated(true);
@@ -46,10 +45,20 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
         this.setTitle(windowTitle);
         this.setIconImage(StarWindow.getAppIcon());
 
-        prepareAndShow();
     }
 
-    protected void prepareAndShow() {
+    /**
+     * Initialize and show the frame
+     * As new JFrames reserve memory that is never garbage collected, we will reuse instances, and use open() and close()
+     * to show or hide them, including initialization and cleanup.
+     */
+    protected void open() {
+        // Hide the star widget
+        starWindow.setVisible(false);
+
+        // We suppose the display config will not change while the mega window is open... otherwise call it at regular interval...
+        computeAllDisplayBounds();
+
         JComponent contentPane = createContentPane();
         setContentPane(contentPane);
 
@@ -68,7 +77,16 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
         setAlwaysOnTop(true);
     }
 
-    // TODO this method should be called at regular interval to adjust coordinates in "real-time" when config changes
+    protected void close() {
+        // Will allow garbage collection of the content pane and its subcomponents
+        setContentPane(new JPanel());
+
+        setVisible(false);
+
+        // Restore the star widget
+        starWindow.setVisible(true);
+    }
+
     private void computeAllDisplayBounds() {
         displayConfiguration = UI.getDisplayConfiguration();
 

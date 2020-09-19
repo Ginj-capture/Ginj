@@ -46,19 +46,14 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     private JLabel captureDurationLabel;
 
     private FFmpegResultFuture ffmpegFutureResult = null;
-    private final Capture capture;
+    private Capture capture;
 
-    private final Timer cellPerforationAnimationTimer;
+    private Timer cellPerforationAnimationTimer;
     private final BufferedImage perforationImage;
     private int perforationOffset = 0;
 
-    public VideoControlFrame(StarWindow starWindow, Rectangle selection, Capture capture) {
+    public VideoControlFrame(StarWindow starWindow) {
         super(starWindow, Ginj.getAppName() + " recording");
-        this.selection = selection;
-        this.capture = capture;
-
-        capture.setOriginalFile(new File(getTempVideoFilename()));
-
 
         // Prepare film perforations animation
 
@@ -72,6 +67,27 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
         perforationGraphics.setRenderingHints(UI.ANTI_ALIASING_ON);
         perforationGraphics.fillRoundRect((FILM_PERFORATION_BAND_WIDTH_PX - FILM_PERFORATION_WIDTH_PX) / 2, 0, FILM_PERFORATION_WIDTH_PX, FILM_PERFORATION_HEIGHT_PX, 6, 6);
         perforationGraphics.dispose();
+    }
+
+    public void init(Rectangle selection, Capture capture) {
+        this.selection = selection;
+        this.capture = capture;
+    }
+
+    @Override
+    public void open() {
+        // Start recording right away
+        capture.setOriginalFile(new File(getTempVideoFilename()));
+        startRecording(this.selection);
+
+        super.open();
+
+        // The window itself is transparent
+        setBackground(new Color(0, 0, 0, 0));
+
+        positionActionPanel();
+        actionPanel.setVisible(true);
+        captureDurationLabel.setText("00:00:00");
 
         cellPerforationAnimationTimer = new Timer(50, e -> {
             perforationOffset++;
@@ -81,20 +97,14 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
             repaint();
         });
         cellPerforationAnimationTimer.start();
+    }
 
+    @Override
+    public void close() {
+        cellPerforationAnimationTimer.stop();
+        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 
-        // Hide the widget
-        starWindow.setVisible(false);
-
-        // Start recording right away
-        startRecording(this.selection);
-
-        // The window itself is transparent
-        setBackground(new Color(0, 0, 0, 0));
-
-        positionActionPanel();
-        actionPanel.setVisible(true);
-        captureDurationLabel.setText("00:00:00");
+        super.close();
     }
 
     @Override
@@ -233,15 +243,6 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
         starWindow.getHotkeyProvider().reset();
     }
 
-    @Override
-    public void dispose() {
-        cellPerforationAnimationTimer.stop();
-        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        // Restore Widget
-        starWindow.setVisible(true);
-        super.dispose();
-    }
-
 
     ///////////////////////
     // Event handlers
@@ -255,7 +256,7 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
                 logger.trace("Could not delete video file '" + videoFile.getAbsolutePath() + "'.");
             }
         }
-        dispose();
+        close();
     }
 
     private void onStop() {
@@ -268,7 +269,7 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
             final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
             captureEditingFrame.setVisible(true);
         }
-        dispose();
+        close();
     }
 
 }

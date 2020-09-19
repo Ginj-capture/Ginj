@@ -39,6 +39,9 @@ public class StarWindow extends JWindow {
     private Provider hotKeyProvider;
     private TrayIcon trayIcon;
     private Export lastExport = null;
+
+    // We only have a single instance of CaptureSelectionFrame that we reuse to avoid memory leaks
+    // See https://stackoverflow.com/questions/39437481/jframe-is-never-garbage-collected
     private CaptureSelectionFrame captureSelectionFrame;
 
     public enum Border {TOP, LEFT, BOTTOM, RIGHT}
@@ -896,21 +899,12 @@ public class StarWindow extends JWindow {
     // EVENT HANDLERS
 
     void onCapture() {
-        // Hide star icon during the capture
-        setVisible(false);
         if (captureSelectionFrame == null) {
-            // Creating the new capture selection window will cause the screenshot to happen
+            // Create a new (single) capture selection window
             captureSelectionFrame = new CaptureSelectionFrame(this);
         }
-        else {
-            // Perform the screen capture
-            captureSelectionFrame.init();
-        }
-        // Show star icon again
-        setVisible(true);
-
-        // And show the capture selection window
-        captureSelectionFrame.setVisible(true);
+        // Perform the screen capture and show the Frame
+        captureSelectionFrame.open();
     }
 
 

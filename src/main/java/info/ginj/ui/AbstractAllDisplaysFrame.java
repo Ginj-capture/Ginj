@@ -120,9 +120,6 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
             }
         }
 
-//        int starScreen = Prefs.getAsInt(Prefs.Key.STAR_WINDOW_DISPLAY_NUMBER);
-//        primaryDisplayTransform = displayConfiguration.getDisplayList().get(starScreen).getDefaultTransform();
-
         primaryDisplayTransform = displayConfiguration.getDisplayList().get(0).getDefaultTransform();
         System.out.println("widgetDisplayTransform = " + primaryDisplayTransform);
     }

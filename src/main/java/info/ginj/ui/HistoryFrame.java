@@ -287,8 +287,8 @@ public class HistoryFrame extends JFrame {
             newCapture.setVersion(maxCaptureVersion + 1);
             newCapture.setName(name + Capture.VERSION_SEPARATOR + (maxCaptureVersion + 1));
             newCapture.setOriginalFile(getCaptureFile(capture));
-            final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, newCapture);
-            captureEditingFrame.setVisible(true);
+            final CaptureEditingFrame captureEditingFrame = CaptureEditingFrame.getInstance(starWindow);
+            captureEditingFrame.open(capture);
         }
         catch (CloneNotSupportedException e) {
             UI.alertException(this, "Clone error", "Error creating clone of previous capture", e, logger);

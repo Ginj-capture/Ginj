@@ -266,8 +266,8 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
             capture.setVideoDurationMs(videoDurationMs);
             capture.setVideoHigherBoundMs(videoDurationMs);
             // Open capture editing
-            final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
-            captureEditingFrame.setVisible(true);
+            final CaptureEditingFrame captureEditingFrame = CaptureEditingFrame.getInstance(starWindow);
+            captureEditingFrame.open(capture);
         }
         close();
     }

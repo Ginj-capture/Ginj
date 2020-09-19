@@ -27,6 +27,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -45,29 +46,27 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
     // State
     private final StarWindow starWindow;
-    final Capture capture;
-    private final ImageEditorPane imagePane;
-    private final MiniToolButton undoButton;
-    private final MiniToolButton redoButton;
-    private final UndoManager undoManager = new UndoManager();
-    private final ToolButton colorToolButton;
-    private final JTextField nameTextField;
+    Capture capture;
+    private ImageEditorPane imagePane;
+    private MiniToolButton undoButton;
+    private MiniToolButton redoButton;
+    private UndoManager undoManager;
+    private ToolButton colorToolButton;
+    private JTextField nameTextField;
 
     GinjTool currentTool;
-    private final JPanel actionPanel;
+    private JPanel actionPanel;
     private Timer videoImageUpdateTimer = null;
     private int displayedVideoImagePositionMs = 0;
     // Delay of slider pause between image refresh
-    private final int videoImageUpdateMs;
+    private int videoImageUpdateMs;
     private JTimelineSlider positionSlider = null;
+    private boolean available;
 
 
-    public CaptureEditingFrame(StarWindow starWindow, Capture capture) {
+    public CaptureEditingFrame(StarWindow starWindow) {
         super();
         this.starWindow = starWindow;
-        this.capture = capture;
-
-        starWindow.addTargetChangeListener(this);
 
         // For Alt+Tab behaviour
         this.setTitle(Ginj.getAppName() + " Preview");
@@ -80,6 +79,14 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         setBackground(new Color(0, 0, 0, 0));
         // Add default "draggable window" behaviour
         UI.addDraggableWindowMouseBehaviour(this, this);
+    }
+
+    public void open(Capture capture) {
+        this.capture = capture;
+
+        starWindow.addTargetChangeListener(this);
+
+        undoManager = new UndoManager();
 
         videoImageUpdateMs = Prefs.getAsInt(Prefs.Key.VIDEO_IMAGE_UPDATE_DELAY_MS);
 
@@ -383,6 +390,44 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         starWindow.centerFrameOnStarIconDisplay(this);
     }
 
+    public void close() {
+        // Will allow garbage collection of the content pane's subcomponents
+        getContentPane().removeAll();
+        // and of the capture and attached objects.
+        capture = null;
+
+        setVisible(false);
+
+        UI.removeEscKeyShortcut(this);
+
+        starWindow.removeTargetChangeListener(this);
+
+        if (videoImageUpdateTimer != null) {
+            videoImageUpdateTimer.stop();
+            videoImageUpdateTimer = null;
+        }
+
+        // free all references so they are garbage collected
+        imagePane = null;
+        colorToolButton = null;
+        undoButton = null;
+        redoButton = null;
+        positionSlider = null;
+        nameTextField = null;
+        actionPanel = null;
+
+        // "Return this window to the pool"
+        available = true;
+    }
+
+    public boolean isAvailable() {
+        return available;
+    }
+
+    public void setAvailable(boolean available) {
+        this.available = available;
+    }
+
     private void updateVideoImage(Capture capture, int positionInMillis) {
         if (positionInMillis != displayedVideoImagePositionMs) {
             // update image
@@ -592,7 +637,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
     private void onCancel() {
         // Close window
-        dispose();
+        close();
     }
 
     private void onShare(LowerButton button) {
@@ -627,10 +672,29 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         // TODO
     }
 
-    @Override
-    public void dispose() {
-        starWindow.removeTargetChangeListener(this);
-        super.dispose();
+    // Window pool management
+    // We reuse "CaptureEditingFrame" windows, because creating and disposing them causes a memory leak.
+    // However, several can be open at the same time, so we're using a pool
+
+    private static Set<CaptureEditingFrame> captureEditingFramePool = new HashSet<>();
+
+    public synchronized static CaptureEditingFrame getInstance(StarWindow starWindow) {
+        for (CaptureEditingFrame captureEditingFrame : captureEditingFramePool) {
+            if (captureEditingFrame.isAvailable()) {
+                captureEditingFrame.setAvailable(false);
+System.out.println("Found available window");
+                return captureEditingFrame;
+            }
+System.out.println("Found unavailable window");
+        }
+        // If we came here, no available capture editing frame is available in the pool
+        // Create a new one
+        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow);
+        captureEditingFramePool.add(captureEditingFrame);
+System.out.println("Created window. Pool size is now " + captureEditingFramePool.size());
+        // and return it
+        captureEditingFrame.setAvailable(false);
+        return captureEditingFrame;
     }
 
 }

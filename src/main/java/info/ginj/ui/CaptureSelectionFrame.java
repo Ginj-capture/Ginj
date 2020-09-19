@@ -617,7 +617,8 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
         final BufferedImage capturedImg = capturedScreenImg.getSubimage(croppedSelection.x, croppedSelection.y, croppedSelection.width, croppedSelection.height);
         final Capture capture = createNewCapture(false);
         capture.setOriginalImage(capturedImg);
-        final CaptureEditingFrame captureEditingFrame = new CaptureEditingFrame(starWindow, capture);
+        final CaptureEditingFrame captureEditingFrame = CaptureEditingFrame.getInstance(starWindow);
+        captureEditingFrame.open(capture);
         close();
         captureEditingFrame.setVisible(true);
     }

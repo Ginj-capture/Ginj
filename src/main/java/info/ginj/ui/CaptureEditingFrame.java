@@ -388,6 +388,8 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
         // Center window
         starWindow.centerFrameOnStarIconDisplay(this);
+
+        setVisible(true);
     }
 
     public void close() {

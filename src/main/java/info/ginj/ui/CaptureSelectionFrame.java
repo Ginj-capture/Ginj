@@ -620,7 +620,6 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
         final CaptureEditingFrame captureEditingFrame = CaptureEditingFrame.getInstance(starWindow);
         captureEditingFrame.open(capture);
         close();
-        captureEditingFrame.setVisible(true);
     }
 
     private void onCaptureVideo() {
@@ -632,7 +631,6 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
             videoControlFrame.init(getCroppedSelection(), createNewCapture(true));
             videoControlFrame.open();
             close();
-            videoControlFrame.setVisible(true);
         }
         else {
             UI.alertError(this, "Cannot capture video", Ginj.getAppName() + " could not find FFmpeg during startup.\nPlease re-install " + Ginj.getAppName() + " and make sure you select ffmpeg during the installation.\nIf the problem persist, please open a Github issue.");

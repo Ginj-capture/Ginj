@@ -330,12 +330,12 @@ public class HistoryFrame extends JFrame {
             case DATE -> (o1, o2) -> {
                 HistoryItemWidget historyItemWidget1 = (HistoryItemWidget) o1;
                 HistoryItemWidget historyItemWidget2 = (HistoryItemWidget) o2;
-                return (int) (historyItemWidget2.getFile().lastModified() - (historyItemWidget1.getFile().lastModified()));
+                return Long.compare(historyItemWidget2.getFile().lastModified(), historyItemWidget1.getFile().lastModified());
             };
             case SIZE -> (o1, o2) -> {
                 HistoryItemWidget historyItemWidget1 = (HistoryItemWidget) o1;
                 HistoryItemWidget historyItemWidget2 = (HistoryItemWidget) o2;
-                return (int) (historyItemWidget2.getCaptureSize() - (historyItemWidget1.getCaptureSize()));
+                return Long.compare(historyItemWidget2.getCaptureSize(), historyItemWidget1.getCaptureSize());
             };
             case NAME -> (o1, o2) -> {
                 HistoryItemWidget historyItemWidget1 = (HistoryItemWidget) o1;

@@ -196,7 +196,6 @@ public class Jaffree {
                 .addInput(UrlInput.fromPath(file.toPath()))
                 .addOutput(new NullOutput())
                 .setProgressListener(progress -> {
-                    System.out.println("hello");
                     durationMillis.set(progress.getTimeMillis());
                 })
                 .execute();

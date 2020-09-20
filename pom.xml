@@ -6,7 +6,7 @@
 
     <groupId>info.ginj</groupId>
     <artifactId>Ginj</artifactId>
-    <version>0.4.2</version>
+    <version>0.4.3</version>
 
     <name>Ginj</name>
     <description>Ginj is an open source multi-platform screen capture and recording tool.</description>

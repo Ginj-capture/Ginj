@@ -76,11 +76,13 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
 
     @Override
     public void open() {
-        // Start recording right away
-        capture.setOriginalFile(new File(getTempVideoFilename()));
-        startRecording(this.selection);
-
         super.open();
+
+        // Start recording
+        capture.setOriginalFile(new File(getTempVideoFilename()));
+        Rectangle videoSelection = new Rectangle(this.selection); // Copy: only the video selection must be translated
+        videoSelection.translate(allDisplaysBounds.x, allDisplaysBounds.y);
+        startRecording(videoSelection);
 
         // The window itself is transparent
         setBackground(new Color(0, 0, 0, 0));

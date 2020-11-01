@@ -62,6 +62,13 @@ This option will copy FFmpeg4.3.1 into Ginj's installation directory. If FFmpeg 
           <archive location="Ginj.jar" failOnError="false" />
         </classPath>
       </java>
+      <vmOptionsFile mode="content">
+        <content># Enter one VM parameter per line
+# This line adjusts the maximum memory usage to 256 MB:
+-Xmx256m
+# To include another file, uncomment the following line:
+# -include-options [path to other .vmoption file]</content>
+      </vmOptionsFile>
       <iconImageFiles>
         <file path="./images/ginj-logo/Ginj_icon_16.png" />
         <file path="./images/ginj-logo/Ginj_icon_32.png" />

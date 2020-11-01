@@ -18,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+import java.util.logging.LogManager;
 
 import static java.awt.GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSLUCENT;
 
@@ -40,6 +41,16 @@ public class Ginj {
     public static FutureTask<JFileChooser> futureFileChooser;
     public static StarWindow starWindow;
     private static TargetPrefs targetPrefs;
+
+    static {
+        try {
+            LogManager.getLogManager().readConfiguration(Ginj.class.getResourceAsStream("/logging.properties"));
+        }
+        catch (final Exception e) {
+            System.err.println("Error! - Could not load default logging.properties file");
+            System.err.println(e.getMessage());
+        }
+    }
 
     public static void main(String[] args) {
         // Determine what the GraphicsDevice can support.

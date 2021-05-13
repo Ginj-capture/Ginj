@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
+import java.awt.image.BufferedImage;
 
 /**
  * This exporter copies the image to the clipboard
@@ -70,7 +71,7 @@ public class ClipboardExporter extends Exporter {
         }
         try {
             logProgress("Reading source", 50);
-            Image image = capture.getRenderedImage();
+            BufferedImage image = capture.getRenderedImage();
             if (image == null) {
                 image = ImageIO.read(capture.getOriginalFile());
             }

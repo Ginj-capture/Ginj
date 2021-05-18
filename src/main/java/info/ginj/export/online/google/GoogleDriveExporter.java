@@ -3,6 +3,7 @@ package info.ginj.export.online.google;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import info.ginj.export.ExportContext;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
@@ -89,9 +90,9 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
      * @param target  the target to export this capture to
      */
     @Override
-    public void exportCapture(Capture capture, Target target) {
+    public void exportCapture(ExportContext context, Capture capture, Target target) {
         try {
-            final Export export = uploadCapture(capture, target);
+            final Export export = uploadCapture(context, capture, target);
             String message = "Upload successful.";
 
             if (export.getLocation() != null) {
@@ -103,17 +104,19 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
             }
             capture.addExport(export);
             // Indicate export is complete.
-            complete(message);
+            complete(context, capture, message);
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e, logger);
-            failed("Upload error");
+            UI.alertException(context.getParentFrame(), getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e, logger);
+            failed(context, "Upload error");
         }
     }
 
     /**
      * Uploads a capture to Google Drive, and optionally shares it and returns the URL of the shared media.
      *
+     *
+     * @param context
      * @param capture The object representing the captured screenshot or video
      * @param target  the target to export this capture to
      * @return a public URL to share to give access to the uploaded media.
@@ -122,9 +125,9 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
      * @throws UploadException        if an upload-specific error occurs
      */
     @Override
-    public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
+    public Export uploadCapture(ExportContext context, Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
-        logProgress("Rendering file", PROGRESS_RENDER_START);
+        logProgress(context.getExportMonitor(), "Rendering file", PROGRESS_RENDER_START);
         try {
             capture.toRenderedFile();
         }
@@ -136,7 +139,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
 
         // Step 1: Upload the file
 
-        FilesResource resource = uploadFile(client, target, capture);
+        FilesResource resource = uploadFile(context, client, target, capture);
 
         if (target.getSettings().getMustShare()) {
             // Step 2: Share it
@@ -156,6 +159,8 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
     /**
      * This method implements https://developers.google.com/drive/api/v3/manage-uploads?authuser=1#resumable
      *
+     *
+     * @param context
      * @param client  the {@link CloseableHttpClient}
      * @param target  the target to export this capture to
      * @param capture the object representing the captured screenshot or video
@@ -164,11 +169,11 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
      * @throws CommunicationException if an url, network or decoding error occurs
      * @throws UploadException        if an upload-specific error occurs
      */
-    private FilesResource uploadFile(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, CommunicationException, UploadException {
+    private FilesResource uploadFile(ExportContext context, CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, CommunicationException, UploadException {
         final File file = capture.getRenderedFile();
 
         // Step 1: Initiating an upload session
-        logProgress("Uploading", PROGRESS_UPLOAD_START);
+        logProgress(context.getExportMonitor(), "Uploading", PROGRESS_UPLOAD_START);
         HttpPost httpPost = new HttpPost("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -229,7 +234,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
                     throw new UploadException("Could not read bytes from file");
                 }
 
-                logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+                logProgress(context.getExportMonitor(), "Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
 
                 HttpPut httpPut = new HttpPut(uploadUrl);
                 httpPut.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -280,7 +285,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
                 offset += bytesRead;
                 remainingBytes = file.length() - offset;
             }
-            logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
+            logProgress(context.getExportMonitor(), "Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
         }
         catch (FileNotFoundException e) {
             throw new UploadException("File not found: " + file.getAbsolutePath());

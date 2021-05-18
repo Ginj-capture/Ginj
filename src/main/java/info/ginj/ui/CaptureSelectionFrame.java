@@ -104,6 +104,8 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
     }
 
     public void close() {
+        capturedScreenImg = null;
+
         removeKeyboardBehaviour();
         removeMouseBehaviour();
 
@@ -150,9 +152,7 @@ public class CaptureSelectionFrame extends AbstractAllDisplaysFrame {
                 Robot robot = new Robot();
 
 // Simulate small screen to be able to debug in parallel of "full screen" capture window on top
-//capturedArea = new Rectangle(0,0,800,600);
-//visibleAreas.clear();
-//visibleAreas.add(capturedArea);
+// allDisplaysBounds = new Rectangle(0,0,800,600);
                 logger.info("Capturing area: " + allDisplaysBounds);
                 capturedScreenImg = robot.createScreenCapture(allDisplaysBounds);
                 logRam("After capture");

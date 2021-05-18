@@ -49,7 +49,7 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     private Capture capture;
 
     private Timer cellPerforationAnimationTimer;
-    private final BufferedImage perforationImage;
+    private BufferedImage perforationImage;
     private int perforationOffset = 0;
 
     public VideoControlFrame(StarWindow starWindow) {
@@ -104,7 +104,11 @@ public class VideoControlFrame extends AbstractAllDisplaysFrame {
     @Override
     public void close() {
         cellPerforationAnimationTimer.stop();
+        cellPerforationAnimationTimer = null;
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        ffmpegFutureResult = null;
+        capture = null;
+        perforationImage = null;
 
         super.close();
     }

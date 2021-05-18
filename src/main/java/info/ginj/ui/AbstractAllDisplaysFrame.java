@@ -83,6 +83,8 @@ public abstract class AbstractAllDisplaysFrame extends JFrame {
 
         setVisible(false);
 
+        dispose();
+
         // Restore the star widget
         starWindow.setVisible(true);
     }

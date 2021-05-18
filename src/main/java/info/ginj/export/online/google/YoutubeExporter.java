@@ -1,5 +1,6 @@
 package info.ginj.export.online.google;
 
+import info.ginj.export.ExportContext;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
@@ -50,11 +51,11 @@ public class YoutubeExporter extends AbstractGoogleExporter {
     }
 
     @Override
-    public void exportCapture(Capture capture, Target target) {
+    public void exportCapture(ExportContext exportContext, Capture capture, Target target) {
     }
 
     @Override
-    public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
+    public Export uploadCapture(ExportContext context, Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // TODO
         return null;
     }

@@ -1,5 +1,6 @@
 package info.ginj.export.online;
 
+import info.ginj.export.ExportContext;
 import info.ginj.export.Exporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
@@ -26,19 +27,23 @@ public abstract class AbstractOnlineExporter extends Exporter {
      */
     public static final int CHUNK_SIZE = 256*1024;
 
-    public abstract Account authorize() throws AuthorizationException, CommunicationException;
+    public abstract Account authorize(ExportContext context) throws AuthorizationException, CommunicationException;
 
     /**
      * This method checks that the account is valid and authorized
      *
+     *
+     * @param context
      * @param account the account to validate
      * @throws CommunicationException in case a communication error occurs
      * @throws AuthorizationException in case authorization fails
      */
-    public abstract void checkAuthorizations(Account account) throws CommunicationException, AuthorizationException;
+    public abstract void checkAuthorizations(ExportContext context, Account account) throws CommunicationException, AuthorizationException;
 
     /**
      * Uploads a capture to the online service and returns its URL
+     *
+     * @param context
      * @param capture The object representing the captured screenshot or video
      * @param target  the target to export this capture to
      * @return a public URL to share to give access to the uploaded media, or null if there is no way to share.
@@ -46,5 +51,5 @@ public abstract class AbstractOnlineExporter extends Exporter {
      * @throws UploadException        if an upload-specific error occurs
      * @throws CommunicationException in case a communication error occurs
      */
-    public abstract Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException;
+    public abstract Export uploadCapture(ExportContext context, Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException;
 }

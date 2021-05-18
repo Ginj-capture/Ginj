@@ -35,6 +35,12 @@ public interface ExportMonitor {
     void log(String state);
 
     /**
+     * Indicates that a Cancel of the export was requested
+     * @return true if cancel requested
+     */
+    boolean isCancelRequested();
+
+    /**
      * Indicates that the export completed successfully.
      * @param state a custom "state" string
      */

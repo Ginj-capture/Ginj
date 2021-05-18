@@ -394,7 +394,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                         progress.setBusy("Authorizing " + Ginj.getAppName() + "...");
                         //setBusy(true);
                         final AbstractOAuth2Exporter exporter = (AbstractOAuth2Exporter) settings.get(TargetPrefs.EXPORTER_KEY);
-                        OAuthAccount account = exporter.authorize();
+                        OAuthAccount account = exporter.authorize(null);
                         if (account != null) {
                             account.setId(UUID.randomUUID().toString());
                             //noinspection unchecked

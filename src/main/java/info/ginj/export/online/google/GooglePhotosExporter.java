@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import info.ginj.Ginj;
+import info.ginj.export.ExportContext;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.export.online.exception.UploadException;
@@ -115,9 +116,9 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
      * @param target  the target to export this capture to
      */
     @Override
-    public void exportCapture(Capture capture, Target target) {
+    public void exportCapture(ExportContext context, Capture capture, Target target) {
         try {
-            final Export export = uploadCapture(capture, target);
+            final Export export = uploadCapture(context, capture, target);
             String message = "Upload successful.";
             if (export.getLocation() != null) {
                 if (target.getSettings().getMustCopyPath()) {
@@ -128,11 +129,11 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
             }
             capture.addExport(export);
             // Indicate export is complete.
-            complete(message);
+            complete(context, capture, message);
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e, logger);
-            failed("Upload error");
+            UI.alertException(context.getParentFrame(), getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e, logger);
+            failed(context, "Upload error");
         }
     }
 
@@ -144,6 +145,8 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
     /**
      * Uploads a capture to the Google Photo service and optionally share the album containing the item and return its URL.
      *
+     *
+     * @param context
      * @param capture The object representing the captured screenshot or video
      * @param target  the target to export this capture to
      * @return a public URL to share to give access to the uploaded media.
@@ -152,9 +155,9 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
      * @throws UploadException        if an upload-specific error occurs
      */
     @Override
-    public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
+    public Export uploadCapture(ExportContext context, Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
-        logProgress("Rendering file", PROGRESS_RENDER_START);
+        logProgress(context.getExportMonitor(), "Rendering file", PROGRESS_RENDER_START);
         try {
             capture.toRenderedFile();
         }
@@ -166,14 +169,14 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
 
         // Step 1: Retrieve Ginj album ID, or create it if needed
         // + Optionally share the album (one cannot share a single media using the API)
-        final Album album = getOrCreateAlbum(client, target, capture);
+        final Album album = getOrCreateAlbum(context, client, target, capture);
 
         // Step 2: Upload bytes
-        final String uploadToken = uploadFileBytes(client, target, capture);
+        final String uploadToken = uploadFileBytes(context, client, target, capture);
 
         // Step 3: Create a media item in the album
         @SuppressWarnings("unused")
-        String mediaId = createMediaItem(client, target, capture, album.getId(), uploadToken);
+        String mediaId = createMediaItem(context, client, target, capture, album.getId(), uploadToken);
         // Unfortunately, mediaId seems to be useless as we can only share the album...
 
         if (target.getSettings().getMustShare()) {
@@ -188,6 +191,8 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
      * Retrieves the album to upload image to, or create it if needed.
      * Also checks the album is shared, or shares it if needed.
      *
+     *
+     * @param context
      * @param client  the {@link CloseableHttpClient}
      * @param target  the target to export this capture to
      * @param capture The object representing the captured screenshot or video
@@ -195,7 +200,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
      * @throws AuthorizationException if user has no, or insufficient, authorizations, or if a token error occurs
      * @throws CommunicationException if an url, network or decoding error occurs
      */
-    private Album getOrCreateAlbum(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, CommunicationException {
+    private Album getOrCreateAlbum(ExportContext context, CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, CommunicationException {
         // Determine target album accorging to "granularity" preference:
         // Single album / One per day / One per Ginj session / One per capture name / one per capture id
         String albumName = switch (target.getSettings().getAlbumGranularity()) {
@@ -207,7 +212,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
         };
 
         // Try to find the album in the list of existing albums
-        logProgress("Getting album", PROGRESS_GETTING_ALBUM);
+        logProgress(context.getExportMonitor(), "Getting album", PROGRESS_GETTING_ALBUM);
         Album album = getAlbumByName(client, target, albumName);
 
         // See if we found it
@@ -215,17 +220,17 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
             // Yes. See if it is shared
             if (album.getShareInfo() == null || album.getShareInfo().getShareableUrl() == null) {
                 // No, share it
-                logProgress("Sharing album", PROGRESS_SHARING_ALBUM);
+                logProgress(context.getExportMonitor(), "Sharing album", PROGRESS_SHARING_ALBUM);
                 shareAlbum(client, target, album);
             }
         }
         else {
             // Not found. Create it
-            logProgress("Creating album", PROGRESS_CREATING_ALBUM);
+            logProgress(context.getExportMonitor(), "Creating album", PROGRESS_CREATING_ALBUM);
             album = createAlbum(client, target, albumName);
 
             // And, share it
-            logProgress("Sharing album", PROGRESS_SHARING_ALBUM);
+            logProgress(context.getExportMonitor(), "Sharing album", PROGRESS_SHARING_ALBUM);
             shareAlbum(client, target, album);
         }
 
@@ -492,6 +497,8 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
      * Uploads the captured file contents to Google Photos in "resumable" mode
      * Implements https://developers.google.com/photos/library/guides/resumable-uploads
      *
+     *
+     * @param context
      * @param client  the {@link CloseableHttpClient}
      * @param target  the target to export this capture to
      * @param capture to upload
@@ -500,13 +507,13 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
      * @throws CommunicationException if an url, network or decoding error occurs
      * @throws UploadException        if an upload-specific error occurs
      */
-    private String uploadFileBytes(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
+    private String uploadFileBytes(ExportContext context, CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
         String uploadToken = null;
 
         final File file = capture.getRenderedFile();
 
         // Step 1: Initiating an upload session
-        logProgress("Uploading", PROGRESS_UPLOAD_START);
+        logProgress(context.getExportMonitor(), "Uploading", PROGRESS_UPLOAD_START);
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/uploads");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -571,7 +578,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
                     throw new UploadException("Could not read bytes from file");
                 }
 
-                logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+                logProgress(context.getExportMonitor(), "Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
 
                 httpPost = new HttpPost(uploadUrl);
                 httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -607,7 +614,7 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
                 offset += bytesRead;
                 remainingBytes = file.length() - offset;
             }
-            logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
+            logProgress(context.getExportMonitor(), "Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
         }
         catch (FileNotFoundException e) {
             throw new UploadException("File not found: " + file.getAbsolutePath());
@@ -623,6 +630,8 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
      * Creates a media entry in the given application album.
      * Implements https://developers.google.com/photos/library/reference/rest/v1/mediaItems/batchCreate
      *
+     *
+     * @param context
      * @param client      the {@link CloseableHttpClient}
      * @param target      the target to export this capture to
      * @param capture     The object representing the captured screenshot or video
@@ -633,9 +642,9 @@ public class GooglePhotosExporter extends AbstractGoogleExporter {
      * @throws CommunicationException if an url, network or decoding error occurs
      * @throws UploadException        if an upload-specific error occurs
      */
-    private String createMediaItem(CloseableHttpClient client, Target target, Capture capture, String albumId, String uploadToken) throws AuthorizationException, UploadException, CommunicationException {
+    private String createMediaItem(ExportContext context, CloseableHttpClient client, Target target, Capture capture, String albumId, String uploadToken) throws AuthorizationException, UploadException, CommunicationException {
 
-        logProgress("Creating media", PROGRESS_CREATING_MEDIA);
+        logProgress(context.getExportMonitor(), "Creating media", PROGRESS_CREATING_MEDIA);
         HttpPost httpPost = new HttpPost("https://photoslibrary.googleapis.com/v1/mediaItems:batchCreate");
 
         httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));

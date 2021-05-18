@@ -4,12 +4,15 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import info.ginj.Ginj;
+import info.ginj.export.ExportContext;
+import info.ginj.export.ExportMonitor;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
 import info.ginj.model.Account;
 import info.ginj.model.Capture;
 import info.ginj.model.Profile;
 import info.ginj.model.Target;
+import info.ginj.ui.StarWindow;
 import info.ginj.util.UI;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
@@ -23,6 +26,7 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -51,9 +55,9 @@ public abstract class AbstractOAuth2Exporter extends AbstractOnlineExporter {
 
     public static final String HTML_BODY_OPEN = "<html><head><style>body{background-color:" + UI.colorToHex(UI.LABEL_BACKGROUND_COLOR) + ";font-family:sans-serif;color:" + UI.colorToHex(UI.LABEL_FOREGROUND_COLOR) + ";} a{color:" + UI.colorToHex(UI.ICON_ENABLED_COLOR) + ";} a:hover{color:white;}</style></head><body>";
     public static final String BODY_HTML_CLOSE = "</body></html>";
-    protected static final int PORT_GINJ = 6193;
+    protected static final int PORT_GINJ = 6193; // 6193 was chosen randomly. 6193 looks like GINJ, doesn't it ?
 
-    // TODO mabye make the following fields ThreadLocal ?
+    // Note: the following variables are shared but only a single authorization procedure can take place at any time (limited by the port locking)
     protected String verifier;
     protected String receivedCode = null;
     protected ArrayList<String> receivedScopes = null;
@@ -81,24 +85,25 @@ public abstract class AbstractOAuth2Exporter extends AbstractOnlineExporter {
     protected abstract List<String> getRequiredScopes();
 
     @Override
-    public boolean prepare(Capture capture, Target target) {
+    public ExportContext prepare(JFrame parentFrame, StarWindow starWindow, ExportMonitor exportMonitor, Capture capture, Target target) {
+        OAuth2ExportContext context = new OAuth2ExportContext(parentFrame, starWindow, exportMonitor);
         try {
-            checkAuthorizations(target.getAccount());
+            checkAuthorizations(context, target.getAccount());
         }
         catch (AuthorizationException e) {
             UI.alertException(parentFrame, getExporterName() + " authorization error", "Ginj was not authorized on " + getExporterName() + ".\nPlease go to " + Ginj.getAppName() + " preferences to re-authorize.", e, logger);
-            failed("Authorization error");
-            return false;
+            failed(context, "Authorization error");
+            return null;
         }
         catch (CommunicationException e) {
             UI.alertException(parentFrame, getExporterName() + " authorization check error", "There was an error checking authorization on " + getExporterName(), e, logger);
-            failed("Communication error");
-            return false;
+            failed(context, "Communication error");
+            return null;
         }
-        return true;
+        return context;
     }
 
-    public OAuthAccount authorize() throws AuthorizationException, CommunicationException {
+    public OAuthAccount authorize(ExportContext context) throws AuthorizationException, CommunicationException {
         OAuthAccount oAuthAccount = null;
         try {
             // Start web server to receive Google responses
@@ -144,7 +149,9 @@ public abstract class AbstractOAuth2Exporter extends AbstractOnlineExporter {
             // Step 2: Send a request to the OAuth 2.0 server
 
             // Open that page in the user's default browser
-            logProgress("Waiting for browser authorization");
+            if (context != null) {
+                logProgress(context.getExportMonitor(), "Waiting for browser authorization");
+            }
             Desktop.getDesktop().browse(new URI(url));
 
             // (Step 3: Online Service prompts user for consent)
@@ -154,15 +161,15 @@ public abstract class AbstractOAuth2Exporter extends AbstractOnlineExporter {
             // Wait for code to be received by our http server...
             long timeOutTime = System.currentTimeMillis() + 5 * 60 * 1000;
             // TODO make sure the progress indicates that browser is opening, and that operation can be cancelled.
-            while (receivedCode == null && System.currentTimeMillis() < timeOutTime && !cancelRequested()) {
+            while (receivedCode == null && System.currentTimeMillis() < timeOutTime && !isCancelRequested()) {
                 //noinspection BusyWait
                 Thread.sleep(100);
             }
             // When we get here, it's because of either an abort request, a response, or a time-out
-            if (!cancelRequested()) {
+            if (!isCancelRequested()) {
                 if (receivedCode != null) {
                     // Step 5: Exchange authorization code for refresh and access tokens
-                    oAuthAccount = exchangeCodeForTokens(receivedCode, receivedScopes);
+                    oAuthAccount = exchangeCodeForTokens(context, receivedCode, receivedScopes);
                 }
                 else {
                     // time-out
@@ -186,8 +193,10 @@ public abstract class AbstractOAuth2Exporter extends AbstractOnlineExporter {
     protected abstract String getOAuth2TokenUrl();
 
     // Note: forcing an ArrayList because it will have to be persisted and we have to make sure it has a no-arg constructor (e.g. not Arrays.asList())
-    protected OAuthAccount exchangeCodeForTokens(String code, ArrayList<String> allowedScopes) throws AuthorizationException, CommunicationException {
-        logProgress("Getting tokens");
+    protected OAuthAccount exchangeCodeForTokens(ExportContext context, String code, ArrayList<String> allowedScopes) throws AuthorizationException, CommunicationException {
+        if (context != null) {
+            logProgress(context.getExportMonitor(), "Getting tokens");
+        }
 
         CloseableHttpClient client = HttpClients.createDefault();
 
@@ -464,7 +473,7 @@ public abstract class AbstractOAuth2Exporter extends AbstractOnlineExporter {
     }
 
     public void cancel() {
-        super.cancel();
+        //super.cancel();
         try {
             if (server != null) {
                 server.stop(0);

@@ -2,6 +2,7 @@ package info.ginj.ui;
 
 import info.ginj.Ginj;
 import info.ginj.action.AbstractUndoableAction;
+import info.ginj.export.ExportContext;
 import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Prefs;
@@ -10,6 +11,7 @@ import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
 import info.ginj.ui.component.*;
 import info.ginj.util.Jaffree;
+import info.ginj.util.Misc;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +26,7 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -603,7 +606,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         }
         else {
             BufferedImage renderedImage = new BufferedImage(imagePane.getWidth(), imagePane.getHeight(), BufferedImage.TYPE_INT_RGB);
-            Graphics g = renderedImage.getGraphics();
+            Graphics g = renderedImage.createGraphics();
             imagePane.paint(g);
             g.dispose();
             capture.setRenderedImage(renderedImage);
@@ -622,18 +625,38 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
         // 2. Perform export
         Exporter exporter = target.getExporter();
-        ExportFrame exportFrame = new ExportFrame(this, starWindow, capture, exporter);
-        exporter.initialize(this, exportFrame);
-        // Note the chicken/egg problem:
-        // - Frame needs the Exporter to start and control it
-        // - Exporter needs the Frame to update UI (progress and message)
-        // There's a risk of a circular reference preventing GC, that's why all exit points of the ExportFrame set the exporter field to null
 
-        exportFrame.setVisible(true);
+        // Risk of memory leak: https://stackoverflow.com/questions/39437481/jframe-is-never-garbage-collected
+        // ExportFrame should not hold any field
+        ExportFrame exportFrame = new ExportFrame(this);
 
-        if (exportFrame.startExport(target)) {
-            // Hide this window during export. It will be "re-opened" in case of failure or cancellation
-            setVisible(false);
+        ExportContext exportContext = exporter.prepare(this, starWindow, exportFrame, capture, target);
+        if (exportContext != null) {
+            Thread exportThread = new Thread(() -> {
+                renderCapture(capture);
+                exporter.exportCapture(exportContext, capture, target);
+            });
+            exportThread.start();
+            close();
+        }
+        else {
+            exportFrame.close();
+        }
+
+    }
+
+    private void renderCapture(Capture capture) {
+        if (capture.isVideo()) {
+            // By default, just point to the original file
+            File renderedFile = capture.getOriginalFile();
+
+            if (capture.getVideoLowerBoundMs() > 0 || capture.getVideoHigherBoundMs() < capture.getVideoDurationMs()) {
+                // TODO should also "render" video file if it has overlays
+                renderedFile = new File(Ginj.getTempDir(), capture.getId() + "_trim" +  Misc.VIDEO_EXTENSION);
+                Jaffree.trim(capture.getOriginalFile(), capture.getVideoLowerBoundMs(), capture.getVideoHigherBoundMs(), renderedFile);
+            }
+
+            capture.setRenderedFile(renderedFile);
         }
     }
 
@@ -676,7 +699,9 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
     // Window pool management
     // We reuse "CaptureEditingFrame" windows, because creating and disposing them causes a memory leak.
+    // See: https://stackoverflow.com/questions/39437481/jframe-is-never-garbage-collected
     // However, several can be open at the same time, so we're using a pool
+    // TODO Now that we clean up the CaptureEditingFrame after use, the mem leak is probably negligible
 
     private static Set<CaptureEditingFrame> captureEditingFramePool = new HashSet<>();
 

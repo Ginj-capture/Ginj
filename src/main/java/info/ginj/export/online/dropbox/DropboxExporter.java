@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import info.ginj.Ginj;
+import info.ginj.export.ExportContext;
 import info.ginj.export.online.AbstractOAuth2Exporter;
 import info.ginj.export.online.exception.AuthorizationException;
 import info.ginj.export.online.exception.CommunicationException;
@@ -122,25 +123,27 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
      * @param target  the target to export this capture to
      */
     @Override
-    public void exportCapture(Capture capture, Target target) {
+    public void exportCapture(ExportContext context, Capture capture, Target target) {
         try {
-            final Export export = uploadCapture(capture, target);
-            String message = "Upload successful.";
+            final Export export = uploadCapture(context, capture, target);
+            if (export != null) {
+                String message = "Upload successful.";
 
-            if (export.getLocation() != null) {
-                if (target.getSettings().getMustCopyPath()) {
-                    copyTextToClipboard(export.getLocation());
-                    export.setLocationCopied(true);
-                    message += "\nA link to your capture was copied to the clipboard";
+                if (export.getLocation() != null) {
+                    if (target.getSettings().getMustCopyPath()) {
+                        copyTextToClipboard(export.getLocation());
+                        export.setLocationCopied(true);
+                        message += "\nA link to your capture was copied to the clipboard";
+                    }
                 }
+                capture.addExport(export);
+                // Indicate export is complete.
+                complete(context, capture, message);
             }
-            capture.addExport(export);
-            // Indicate export is complete.
-            complete(message);
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e, logger);
-            failed("Upload error");
+            UI.alertException(context.getParentFrame(), getExporterName() + " Error", "There was an error exporting to " + getExporterName(), e, logger);
+            failed(context, "Upload error");
         }
     }
 
@@ -148,13 +151,15 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     /**
      * This method checks that Dropbox authorizations are OK by fetching user info
      *
+     *
+     * @param context
      * @param account the account to validate
      * @throws CommunicationException in case a communication error occurs
      * @throws AuthorizationException in case authorization fails
      */
     @Override
-    public void checkAuthorizations(Account account) throws CommunicationException, AuthorizationException {
-        logProgress("Checking authorizations", PROGRESS_CHECK_AUTHORIZE_START);
+    public void checkAuthorizations(ExportContext context, Account account) throws CommunicationException, AuthorizationException {
+        logProgress(context.getExportMonitor(), "Checking authorizations", PROGRESS_CHECK_AUTHORIZE_START);
 
         String accessToken = getAccessToken(account);
         if (accessToken == null) {
@@ -211,6 +216,8 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
     /**
      * Uploads a capture to Dropbox, and optionally shares it and returns the URL of the shared media.
      *
+     *
+     * @param context
      * @param capture The object representing the captured screenshot or video
      * @param target  the target to export this capture to
      * @return a public URL to share to give access to the uploaded media.
@@ -219,9 +226,9 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
      * @throws UploadException        if an upload-specific error occurs
      */
     @Override
-    public Export uploadCapture(Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
+    public Export uploadCapture(ExportContext context, Capture capture, Target target) throws AuthorizationException, UploadException, CommunicationException {
         // We need an actual file (for now at least). Make sure we have or create one
-        logProgress("Rendering file", PROGRESS_RENDER_START);
+        logProgress(context.getExportMonitor(), "Rendering file", PROGRESS_RENDER_START);
         try {
             capture.toRenderedFile();
         }
@@ -229,10 +236,15 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             throw new UploadException("Error preparing file to upload", e);
         }
 
+        if (isCancelRequested()) {
+            cancel();
+            return null;
+        }
+
         final CloseableHttpClient client = HttpClients.createDefault();
 
         // Step 1: Upload the file
-        final FileMetadata fileMetadata = uploadFile(client, target, capture);
+        final FileMetadata fileMetadata = uploadFile(context, client, target, capture);
 
         if (target.getSettings().getMustShare()) {
             // Step 2: Share it
@@ -245,7 +257,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
         }
     }
 
-    public FileMetadata uploadFile(CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
+    public FileMetadata uploadFile(ExportContext context, CloseableHttpClient client, Target target, Capture capture) throws AuthorizationException, UploadException, CommunicationException {
         FileMetadata fileMetadata;
 
         String sessionId;
@@ -259,7 +271,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
         try (InputStream is = new FileInputStream(file)) {
             // Step 1: Initiating an upload session with the first CHUNK
-            logProgress("Uploading", PROGRESS_UPLOAD_START);
+            logProgress(context.getExportMonitor(), "Uploading", PROGRESS_UPLOAD_START);
             HttpPost httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/start");
 
             httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -307,8 +319,8 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
 
 
             // Step 2: Append to session with more CHUNKS, if needed
-            while (remainingBytes > CHUNK_SIZE) {
-                logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+            while (remainingBytes > CHUNK_SIZE && !isCancelRequested()) {
+                logProgress(context.getExportMonitor(), "Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
                 httpPost = new HttpPost("https://content.dropboxapi.com/2/files/upload_session/append_v2");
 
                 httpPost.addHeader("Authorization", "Bearer " + getAccessToken(target.getAccount()));
@@ -344,9 +356,13 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
                 remainingBytes = file.length() - offset;
             }
 
+            if (isCancelRequested()) {
+                cancel();
+                return null;
+            }
 
             // Step 3: Finish session (optionally with the remaining bytes)
-            logProgress("Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
+            logProgress(context.getExportMonitor(), "Uploading", (int) (PROGRESS_UPLOAD_START + ((PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START) * offset) / file.length()), offset, file.length());
 
             final String destinationFileName = "/Applications/" + Ginj.getAppName() + "/" + capture.computeUploadFilename();
 
@@ -399,7 +415,7 @@ public class DropboxExporter extends AbstractOAuth2Exporter {
             }
 
 
-            logProgress("Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
+            logProgress(context.getExportMonitor(), "Uploaded", PROGRESS_UPLOAD_END, file.length(), file.length());
         }
         catch (FileNotFoundException e) {
             throw new UploadException("File not found: " + file.getAbsolutePath(), e);

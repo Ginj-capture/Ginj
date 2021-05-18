@@ -1,6 +1,7 @@
 package info.ginj.export.online.google;
 
 import com.google.gson.Gson;
+import info.ginj.export.ExportContext;
 import info.ginj.export.online.AbstractOAuth2Exporter;
 import info.ginj.export.online.OAuthAccount;
 import info.ginj.export.online.exception.AuthorizationException;
@@ -83,12 +84,14 @@ public abstract class AbstractGoogleExporter extends AbstractOAuth2Exporter {
     /**
      * This method checks that requested Google authorizations (scopes) are still OK.
      *
+     *
+     * @param context
      * @param account the account to validate
      * @throws CommunicationException in case a communication error occurs
      * @throws AuthorizationException in case authorization fails
      */
-    public void checkAuthorizations(Account account) throws CommunicationException, AuthorizationException {
-        logProgress("Checking authorizations", PROGRESS_CHECK_AUTHORIZE_START);
+    public void checkAuthorizations(ExportContext context, Account account) throws CommunicationException, AuthorizationException {
+        logProgress(context.getExportMonitor(), "Checking authorizations", PROGRESS_CHECK_AUTHORIZE_START);
         CloseableHttpClient client = HttpClients.createDefault();
         HttpGet httpGet;
         try {

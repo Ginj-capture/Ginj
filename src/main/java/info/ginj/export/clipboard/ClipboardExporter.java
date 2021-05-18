@@ -1,14 +1,18 @@
 package info.ginj.export.clipboard;
 
+import info.ginj.export.ExportContext;
+import info.ginj.export.ExportMonitor;
 import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Export;
 import info.ginj.model.Target;
+import info.ginj.ui.StarWindow;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.image.BufferedImage;
@@ -53,6 +57,11 @@ public class ClipboardExporter extends Exporter {
         return false;
     }
 
+    @Override
+    public ExportContext prepare(JFrame parentFrame, StarWindow starWindow, ExportMonitor exportMonitor, Capture capture, Target target) {
+        return new ExportContext(parentFrame, starWindow, exportMonitor);
+    }
+
     /**
      * Copies the given capture to the clipboard
      * This method is run in its own thread and should not access the GUI directly. All interaction
@@ -63,14 +72,14 @@ public class ClipboardExporter extends Exporter {
      * @return true if export completed, or false otherwise
      */
     @Override
-    public void exportCapture(Capture capture, Target target) {
+    public void exportCapture(ExportContext context, Capture capture, Target target) {
         if (capture.isVideo()) {
-            UI.alertError(parentFrame, "Export error", "Video contents cannot be copied to the clipboard");
-            failed("Error copying capture");
+            UI.alertError(context.getParentFrame(), "Export error", "Video contents cannot be copied to the clipboard");
+            failed(context, "Error copying capture");
             return;
         }
         try {
-            logProgress("Reading source", 50);
+            logProgress(context.getExportMonitor(), "Reading source", 50);
             BufferedImage image = capture.getRenderedImage();
             if (image == null) {
                 image = ImageIO.read(capture.getOriginalFile());
@@ -81,11 +90,11 @@ public class ClipboardExporter extends Exporter {
                 // Do nothing. It's normal to lose ownership when another app copies something to the clipboard
             });
             capture.addExport(new Export(getExporterName(), null, null, false));
-            complete("Image copied to clipboard");
+            complete(context, capture, "Image copied to clipboard");
         }
         catch (Exception e) {
-            UI.alertException(parentFrame, "Export error", "There was an error copying image to the clipboard", e, logger);
-            failed("Error copying capture");
+            UI.alertException(context.getParentFrame(), "Export error", "There was an error copying image to the clipboard", e, logger);
+            failed(context, "Error copying capture");
         }
     }
 }

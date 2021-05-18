@@ -1,5 +1,5 @@
 package info.ginj.export;
 
 public interface Cancellable {
-    void cancel();
+    void cancel(ExportContext context);
 }

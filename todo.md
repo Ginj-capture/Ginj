@@ -10,7 +10,6 @@
  - ~~Implement arrow overlay~~
  - ~~Implement rectangular overlays~~
  - ~~Implement Text overlay~~
- - Implement font size, style and color selection for text overlay
  - ~~Implement overlay resize and move~~
  - ~~Double-clicking one an overlay brings it to front ENHANCEMENT~~
  - ~~Draw pretty overlay handles~~
@@ -37,7 +36,9 @@
  - Add audio support
  - ~~Implement "check for updates" from Java~~
  - Implement generic preference editor
+ - Implement font size, style and color selection for Text Overlay
  - Typing in a Text Overlay should make the overlay grow wider
+ - Text should auto wrap in Text Overlay
  - ~~Add Google Drive exporter~~
  - Add Youtube exporter
  - Add FTP exporter :-)
@@ -72,6 +73,7 @@
  - Remove useless icons ?
 
 #### Options ENHANCEMENT:
+ - Remember last used overlay tool when making a new capture, or better yet "first tool used on the last capture" 
  - Remember previously used custom colors
  - Add optional "Speech Balloon" overlay
  - Add optional "Line" overlay (with CTRL to constrain)

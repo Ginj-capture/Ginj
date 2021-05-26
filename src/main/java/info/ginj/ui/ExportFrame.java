@@ -5,6 +5,8 @@ import info.ginj.export.ExportMonitor;
 import info.ginj.ui.component.YellowLabel;
 import info.ginj.util.Misc;
 import info.ginj.util.UI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,14 +16,19 @@ import java.awt.*;
  */
 public class ExportFrame extends JFrame implements ExportMonitor {
 
+    private static final Logger logger = LoggerFactory.getLogger(ExportFrame.class);
+    public static final String MSG_CANCELLATION_REQUESTED = "Cancellation requested";
+
     private JLabel stateLabel;
     private JLabel sizeLabel;
     private BoundedRangeModel progressModel;
     private Window parentWindow;
     private boolean isCancelRequested = false;
+    private final JButton cancelButton;
 
     public ExportFrame(Window parentWindow) {
         super();
+        logger.debug("ExportFrame.constructor");
         this.parentWindow = parentWindow;
 
         // For Alt+Tab behaviour
@@ -60,7 +67,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         mainPanel.add(progressBar, c);
 
         // Add cancel button
-        JButton cancelButton = new JButton("Cancel");
+        cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(e -> onCancel());
 
         c = new GridBagConstraints();
@@ -96,6 +103,7 @@ public class ExportFrame extends JFrame implements ExportMonitor {
         // Position window
         Ginj.starWindow.positionFrameNextToStarIcon(this);
 
+        logger.debug("ExportFrame: setVisible(true)");
         setVisible(true);
     }
 
@@ -125,12 +133,23 @@ public class ExportFrame extends JFrame implements ExportMonitor {
     }
 
     private void onCancel() {
+        logger.debug("ExportFrame.onCancel");
         isCancelRequested = true;
-        stateLabel.setText("Cancellation requested");
+        if (MSG_CANCELLATION_REQUESTED.equals(stateLabel.getText())) {
+            logger.debug("(second call)");
+            // Second time "cancel" is called. Something weird happened... Closing?
+            // TODO prompt to send log
+            close();
+        }
+        else {
+            stateLabel.setText(MSG_CANCELLATION_REQUESTED);
+            cancelButton.setText("Close");
+        }
     }
 
     @Override
     public boolean isCancelRequested() {
+        logger.debug("ExportFrame.isCancelRequested");
         if (isCancelRequested) {
             // This request is taken into account, close the monitor
             close();
@@ -140,20 +159,23 @@ public class ExportFrame extends JFrame implements ExportMonitor {
 
     @Override
     public void complete(String state) {
+        logger.debug("ExportFrame.complete");
         close();
     }
 
     @Override
     public void failed(String state) {
+        logger.debug("ExportFrame.failed");
         // "Reopen" the capture window
         if (parentWindow != null) {
+            logger.debug("ExportFrame: Showing parent Window");
             parentWindow.setVisible(true);
         }
-
         close();
     }
 
     public void close() {
+        logger.debug("ExportFrame.close");
         stateLabel = null;
         sizeLabel = null;
         progressModel = null;

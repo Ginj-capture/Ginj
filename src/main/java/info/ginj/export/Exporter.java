@@ -135,6 +135,7 @@ public abstract class Exporter implements Cancellable {
     }
 
     protected void complete(ExportContext context, Capture capture, String state) {
+        logger.debug("Exporter.complete");
         if (context.getExportMonitor() != null) context.getExportMonitor().complete(state);
 
         // Store image in history, no matter the export type
@@ -265,6 +266,7 @@ public abstract class Exporter implements Cancellable {
 
 
     protected void failed(ExportContext context, String state) {
+        logger.debug("Exporter.failed");
         if (context.getExportMonitor() != null) context.getExportMonitor().failed(state);
     }
 
@@ -289,6 +291,7 @@ public abstract class Exporter implements Cancellable {
 
     @Override
     public void cancel(ExportContext context) {
+        logger.debug("Exporter.cancel");
         // "Reopen" the capture window
         if (context.getParentFrame() != null) {
             context.getParentFrame().setVisible(true);

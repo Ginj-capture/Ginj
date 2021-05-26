@@ -396,6 +396,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
     }
 
     public void close() {
+        logger.debug("CaptureEditingFrame.close");
         // Will allow garbage collection of the content pane's subcomponents
         getContentPane().removeAll();
         // and of the capture and attached objects.
@@ -628,21 +629,32 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
         // Risk of memory leak: https://stackoverflow.com/questions/39437481/jframe-is-never-garbage-collected
         // ExportFrame should not hold any field
+        logger.debug("Creating exportFrame");
         ExportFrame exportFrame = new ExportFrame(this);
 
+        logger.debug("Preparing exporter");
         ExportContext exportContext = exporter.prepare(this, starWindow, exportFrame, capture, target);
         if (exportContext != null) {
             Thread exportThread = new Thread(() -> {
+                logger.debug("ExportThread: renderCapture");
                 renderCapture(capture);
+                logger.debug("ExportThread: exportCapture");
                 exporter.exportCapture(exportContext, capture, target);
+                logger.debug("ExportThread: done.");
+                // Close
+                close();
             });
+            logger.debug("Starting export thread");
             exportThread.start();
-            close();
+            logger.debug("Hiding capture window");
+            setVisible(false);
         }
         else {
+            logger.info("Export aborted");
+            logger.debug("Closing this window");
             exportFrame.close();
         }
-
+        logger.debug("CaptureEditingFrame.onExport returning");
     }
 
     private void renderCapture(Capture capture) {
@@ -691,10 +703,6 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
     private void onConfigureTargets() {
         starWindow.openTargetManagementFrame();
-    }
-
-    private void onCustomize() {
-        // TODO
     }
 
     // Window pool management

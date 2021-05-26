@@ -18,6 +18,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 
 import static java.awt.GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSLUCENT;
@@ -53,6 +55,12 @@ public class Ginj {
     }
 
     public static void main(String[] args) {
+        Prefs.load();
+
+        // Init logging level
+        initLoggingLevel();
+        logger.info(getAppName() + " " + getVersion() + " starting.");
+
         // Determine what the GraphicsDevice can support.
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice gd = ge.getDefaultScreenDevice();
@@ -75,8 +83,6 @@ public class Ginj {
             System.exit(ERR_STATUS_LAF);
         }
 
-        Prefs.load();
-
         // Check ffpmeg availability
         Jaffree.checkAvailability();
 
@@ -91,6 +97,30 @@ public class Ginj {
             starWindow.setVisible(true);
         });
 
+    }
+
+    private static void initLoggingLevel() {
+        String levelStr = Prefs.get(Prefs.Key.LOGGING_LEVEL);
+        if (levelStr == null) {
+            levelStr = Level.INFO.getName();
+            Prefs.set(Prefs.Key.LOGGING_LEVEL, levelStr);
+        }
+        setLoggingLevel(levelStr);
+    }
+
+    public static void setLoggingLevel(String levelStr) {
+        // This assumes that slf4j uses the JDK logging framework
+        Level level;
+        try {
+            level = Level.parse(levelStr);
+        }
+        catch (IllegalArgumentException e) {
+            level = Level.INFO;
+            Prefs.set(Prefs.Key.LOGGING_LEVEL, level.getName());
+        }
+        for (Handler handler : java.util.logging.Logger.getLogger("").getHandlers()) {
+            handler.setLevel(level);
+        }
     }
 
     public static String getAppName() {

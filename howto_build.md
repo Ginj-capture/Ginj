@@ -8,7 +8,7 @@
     - build_installer.install4j
    to e.g. "0.4.5" or "0.4.5-pre"
 3. Commit and push (possibly after merging branch onto master)
-4. Build the project using maven's assembly plugin (Ginj>Plugins>assembly>assembly-single).
+4. Build the project first with clean + compile, then run maven's assembly plugin (Ginj>Plugins>assembly>assembly-single).
    (Note: if it doesn't show up, refresh the maven list of targets using the reload button)
 5. Rename the resulting file in target/ from e.g. Ginj-0.4.5-jar-with-dependencies.jar to just Ginj.jar
 6. Launch Install4j, then:

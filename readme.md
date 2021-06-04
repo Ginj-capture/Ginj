@@ -10,7 +10,7 @@ Ginj is an open source multi-platform screen capture and recording tool.
 
 Its unobtrusive user interface and no-nonsense "capture / annotate / share" workflow is hard to beat.
 
-Ginj might remind you of a free tool called [Jing](http://web.archive.org/web/20181002042822/https://www.techsmith.com/jing-tool.html), that [Techsmith discontinued](https://feedback.techsmith.com/techsmith/topics/techsmith-jing-2019-announcement) in July 2020 (*). But although there are similarities in the way both tools behave, Ginj is not Jing.
+Ginj might remind you of a free tool called [Jing](http://web.archive.org/web/20181002042822/https://www.techsmith.com/jing-tool.html), that [Techsmith discontinued](http://web.archive.org/web/20210604184054/https://support.techsmith.com/hc/en-us/community/posts/360071752572-TechSmith-Jing-2019-Announcement) in July 2020 (*). But although there are similarities in the way both tools behave, Ginj is not Jing.
 
 #### What does it look like?
 
@@ -21,7 +21,7 @@ Looks familiar ?
 ##### What's the difference with Jing?
 
 - It's all open-source. Of course, not a single line of code, not a single icon or font was taken from Jing. So basically _everything_ is different. 
-- Since [Screencast.com](https://www.screencast.com/), Techsmith's online sharing platform, [does not have a public API](https://feedback.techsmith.com/techsmith/topics/screencast-api), I had to switch to other online sharing services. Ginj supports Dropbox and Google Photos for now.
+- Since [Screencast.com](https://www.screencast.com/), Techsmith's online sharing platform, [does not have a public API](http://web.archive.org/web/20210604184610/https://support.techsmith.com/hc/en-us/community/posts/360071722171-Screencast-API-), I had to switch to other online sharing services. Ginj supports Dropbox and Google Photos for now.
 - Ginj will never be "discontinued". It's open source. Take it, use it, keep it, fork it, improve it, change it.
 - A few new features could be added, but I really want to stick to the simple UI I love. 
 - Oh, and Ginj is written in Java.

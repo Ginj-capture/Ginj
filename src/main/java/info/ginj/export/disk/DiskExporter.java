@@ -175,6 +175,9 @@ public class DiskExporter extends Exporter {
             }
             else {
                 ImageIO.write(capture.getRenderedImage(), Misc.IMAGE_FORMAT_PNG, destinationFile);
+//                if (remember && ask) {
+//                    target.getSettings().setLastCustomDestLocation(destinationFile.getParent());
+//                }
             }
         }
         catch (IOException e) {

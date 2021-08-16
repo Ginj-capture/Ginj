@@ -630,7 +630,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
         private List<String> spaces = null;
         @SerializedName("version")
         @Expose
-        private Integer version;
+        private Long version;
         @SerializedName("webContentLink")
         @Expose
         private String webContentLink;
@@ -648,7 +648,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
         private String thumbnailLink;
         @SerializedName("thumbnailVersion")
         @Expose
-        private Integer thumbnailVersion;
+        private Long thumbnailVersion;
         @SerializedName("viewedByMe")
         @Expose
         private Boolean viewedByMe;
@@ -729,10 +729,10 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
         private String md5Checksum;
         @SerializedName("size")
         @Expose
-        private Integer size;
+        private Long size;
         @SerializedName("quotaBytesUsed")
         @Expose
-        private Integer quotaBytesUsed;
+        private Long quotaBytesUsed;
         @SerializedName("headRevisionId")
         @Expose
         private String headRevisionId;
@@ -770,7 +770,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
         public FilesResource() {
         }
 
-        public FilesResource(String kind, String id, String name, String mimeType, String description, Boolean starred, Boolean trashed, Boolean explicitlyTrashed, TrashingUser trashingUser, Date trashedTime, List<String> parents, Properties properties, AppProperties appProperties, List<String> spaces, Integer version, String webContentLink, String webViewLink, String iconLink, Boolean hasThumbnail, String thumbnailLink, Integer thumbnailVersion, Boolean viewedByMe, Date viewedByMeTime, Date createdTime, Date modifiedTime, Date modifiedByMeTime, Boolean modifiedByMe, Date sharedWithMeTime, SharingUser sharingUser, List<Owner> owners, String teamDriveId, String driveId, LastModifyingUser lastModifyingUser, Boolean shared, Boolean ownedByMe, Capabilities capabilities, Boolean viewersCanCopyContent, Boolean copyRequiresWriterPermission, Boolean writersCanShare, List<String> permissions, List<String> permissionIds, Boolean hasAugmentedPermissions, String folderColorRgb, String originalFilename, String fullFileExtension, String fileExtension, String md5Checksum, Integer size, Integer quotaBytesUsed, String headRevisionId, ContentHints contentHints, ImageMediaMetadata imageMediaMetadata, VideoMediaMetadata videoMediaMetadata, Boolean isAppAuthorized, ExportLinks exportLinks, ShortcutDetails shortcutDetails, List<ContentRestriction> contentRestrictions, String resourceKey, LinkShareMetadata linkShareMetadata) {
+        public FilesResource(String kind, String id, String name, String mimeType, String description, Boolean starred, Boolean trashed, Boolean explicitlyTrashed, TrashingUser trashingUser, Date trashedTime, List<String> parents, Properties properties, AppProperties appProperties, List<String> spaces, Long version, String webContentLink, String webViewLink, String iconLink, Boolean hasThumbnail, String thumbnailLink, Long thumbnailVersion, Boolean viewedByMe, Date viewedByMeTime, Date createdTime, Date modifiedTime, Date modifiedByMeTime, Boolean modifiedByMe, Date sharedWithMeTime, SharingUser sharingUser, List<Owner> owners, String teamDriveId, String driveId, LastModifyingUser lastModifyingUser, Boolean shared, Boolean ownedByMe, Capabilities capabilities, Boolean viewersCanCopyContent, Boolean copyRequiresWriterPermission, Boolean writersCanShare, List<String> permissions, List<String> permissionIds, Boolean hasAugmentedPermissions, String folderColorRgb, String originalFilename, String fullFileExtension, String fileExtension, String md5Checksum, Long size, Long quotaBytesUsed, String headRevisionId, ContentHints contentHints, ImageMediaMetadata imageMediaMetadata, VideoMediaMetadata videoMediaMetadata, Boolean isAppAuthorized, ExportLinks exportLinks, ShortcutDetails shortcutDetails, List<ContentRestriction> contentRestrictions, String resourceKey, LinkShareMetadata linkShareMetadata) {
             super();
             this.kind = kind;
             this.id = id;
@@ -945,11 +945,11 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
             this.spaces = spaces;
         }
 
-        public Integer getVersion() {
+        public Long getVersion() {
             return version;
         }
 
-        public void setVersion(Integer version) {
+        public void setVersion(Long version) {
             this.version = version;
         }
 
@@ -993,11 +993,11 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
             this.thumbnailLink = thumbnailLink;
         }
 
-        public Integer getThumbnailVersion() {
+        public Long getThumbnailVersion() {
             return thumbnailVersion;
         }
 
-        public void setThumbnailVersion(Integer thumbnailVersion) {
+        public void setThumbnailVersion(Long thumbnailVersion) {
             this.thumbnailVersion = thumbnailVersion;
         }
 
@@ -1209,19 +1209,19 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
             this.md5Checksum = md5Checksum;
         }
 
-        public Integer getSize() {
+        public Long getSize() {
             return size;
         }
 
-        public void setSize(Integer size) {
+        public void setSize(Long size) {
             this.size = size;
         }
 
-        public Integer getQuotaBytesUsed() {
+        public Long getQuotaBytesUsed() {
             return quotaBytesUsed;
         }
 
-        public void setQuotaBytesUsed(Integer quotaBytesUsed) {
+        public void setQuotaBytesUsed(Long quotaBytesUsed) {
             this.quotaBytesUsed = quotaBytesUsed;
         }
 
@@ -2853,7 +2853,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
         private Integer height;
         @SerializedName("durationMillis")
         @Expose
-        private Integer durationMillis;
+        private Long durationMillis;
 
         /**
          * No args constructor for use in serialization
@@ -2861,7 +2861,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
         public VideoMediaMetadata() {
         }
 
-        public VideoMediaMetadata(Integer width, Integer height, Integer durationMillis) {
+        public VideoMediaMetadata(Integer width, Integer height, Long durationMillis) {
             super();
             this.width = width;
             this.height = height;
@@ -2884,11 +2884,11 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
             this.height = height;
         }
 
-        public Integer getDurationMillis() {
+        public Long getDurationMillis() {
             return durationMillis;
         }
 
-        public void setDurationMillis(Integer durationMillis) {
+        public void setDurationMillis(Long durationMillis) {
             this.durationMillis = durationMillis;
         }
     }

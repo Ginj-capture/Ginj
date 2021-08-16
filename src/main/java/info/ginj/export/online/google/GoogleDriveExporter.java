@@ -376,8 +376,7 @@ public class GoogleDriveExporter extends AbstractGoogleExporter {
     // - Include getters and setters
     // - Include constructors
     // - Allow additional properties
-    // (note: version as of 2021-08-15 uses Long instead of Integer (no matter if the "Long" option is checked or not) and String instead of Date.
-    //  those are reverted by hand to Integer and Date below :-( )
+    // Note : Date fields are generated as String and must be changed manually...
     ////////////////////////////////////////////////////
 
 

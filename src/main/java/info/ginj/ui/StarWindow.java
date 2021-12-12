@@ -938,7 +938,7 @@ public class StarWindow extends JWindow {
     }
 
     public void removeTargetChangeListener(TargetListChangeListener listener) {
-        targetListChangeListener.add(listener);
+        targetListChangeListener.remove(listener);
     }
 
     public void notifyTargetListChange() {

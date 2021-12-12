@@ -171,8 +171,8 @@ public class Capture implements Cloneable {
 
 // Utils
 
-    public String computeExtension() {
-        return isVideo()? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION;
+    public String defaultExtension() {
+        return isVideo()? Misc.VIDEO_EXTENSION : Misc.IMAGE_EXTENSION_PNG;
     }
 
 
@@ -184,7 +184,7 @@ public class Capture implements Cloneable {
      */
     public File toRenderedFile() throws IOException {
         if (renderedFile == null) {
-            renderedFile = new File(Ginj.getTempDir(), id + Misc.IMAGE_EXTENSION);
+            renderedFile = new File(Ginj.getTempDir(), id + Misc.IMAGE_EXTENSION_PNG);
             ImageIO.write(renderedImage, Misc.IMAGE_FORMAT_PNG, renderedFile);
             renderedFile.deleteOnExit();
         }
@@ -234,7 +234,7 @@ public class Capture implements Cloneable {
      */
     public String computeUploadFilename() {
         String filename = getDefaultName();
-        String extension = computeExtension();
+        String extension = defaultExtension();
         if (!filename.toLowerCase().endsWith(extension)) {
             filename += extension;
         }

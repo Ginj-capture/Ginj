@@ -232,7 +232,7 @@ public class HistoryFrame extends JFrame {
     }
 
     private File getCaptureFile(Capture capture) {
-        return new File(Ginj.getHistoryFolder(), capture.getId() + capture.computeExtension());
+        return new File(Ginj.getHistoryFolder(), capture.getId() + capture.defaultExtension());
     }
 
     public void setSelectedItem(HistoryItemWidget selectedItem) {
@@ -483,7 +483,7 @@ public class HistoryFrame extends JFrame {
                 if (versionPos != -1) {
                     basename = basename.substring(0, versionPos);
                 }
-                File captureFile = new File(basename + capture.computeExtension());
+                File captureFile = new File(basename + capture.defaultExtension());
                 captureSize = captureFile.length();
                 sizeLabel.setText(Misc.getPrettySize(captureSize));
                 addMouseListener(new MouseAdapter() {

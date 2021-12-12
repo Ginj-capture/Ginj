@@ -167,7 +167,7 @@ public abstract class Exporter implements Cancellable {
         // Save the original file to history
         // ENHANCEMENT we store the source, not the rendered version !
         // Compute filename (no version involved here)
-        File originalFile = new File(historyFolder, capture.getId() + capture.computeExtension());
+        File originalFile = new File(historyFolder, capture.getId() + capture.defaultExtension());
         try {
             // Original file could be shared between multiple captures, only store it once
             if (!originalFile.exists()) {

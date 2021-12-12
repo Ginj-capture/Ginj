@@ -516,6 +516,7 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
                     "Save location:", UI.createWizardTextField(ExportSettings.DEST_LOCATION_KEY, getWizardDataMap(), defaultSaveDir, true, true),
                     "Ask for save location:", alwaysAskCheckBox,
                     "Remember save location:", UI.createWizardCheckBox(ExportSettings.MUST_REMEMBER_LAST_LOCATION_KEY, getWizardDataMap(), true, alwaysAskCheckBox, true),
+                    "Preferred image file format:", UI.createWizardList(ExportSettings.PREFERRED_FILE_FORMAT_KEY, ExportSettings.FileFormat.values(), getWizardDataMap(), 0, true, true),
                     "Copy path to clipboard:", UI.createWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, getWizardDataMap(), true, true, true)
             );
 

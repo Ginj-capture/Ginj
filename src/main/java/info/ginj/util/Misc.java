@@ -9,7 +9,9 @@ public class Misc {
     public static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
 
     public static final String IMAGE_FORMAT_PNG = "png";
-    public static final String IMAGE_EXTENSION = ".png";
+    public static final String IMAGE_EXTENSION_PNG = ".png";
+    public static final String IMAGE_FORMAT_JPEG = "jpeg";
+    public static final String IMAGE_EXTENSION_JPEG = ".jpg";
     public static final String VIDEO_EXTENSION = ".mp4";
     public static final String METADATA_EXTENSION = ".xml";
     public static final String THUMBNAIL_EXTENSION = ".thumb.png";

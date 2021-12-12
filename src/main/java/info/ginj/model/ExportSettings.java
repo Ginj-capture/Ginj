@@ -10,10 +10,29 @@ import java.util.Set;
 
 public class ExportSettings {
 
+    public enum FileFormat {
+        PNG("PNG format"),
+        JPEG("JPEG format"),
+        SELECT_ON_SAVE("Select format on save"),
+        SMALLEST("Whichever makes the smallest file");
+
+        private final String friendlyName;
+
+        FileFormat(String friendlyName) {
+            this.friendlyName = friendlyName;
+        }
+
+        @Override
+        public String toString() {
+            return friendlyName;
+        }
+    }
+
     // Warning: all these fields must be handled by the copyToMap() & moveFromMap() methods
     public static final String MUST_ALWAYS_ASK_LOCATION_KEY = "must_always_ask_location";
     public static final String DEST_LOCATION_KEY = "dest_location";
     public static final String MUST_REMEMBER_LAST_LOCATION_KEY = "must_remember_last_location";
+    public static final String PREFERRED_FILE_FORMAT_KEY = "preferred_file_format";
     public static final String MUST_SHARE_KEY = "must_share";
     public static final String MUST_COPY_PATH_KEY = "must_copy_path";
     public static final String ALBUM_GRANULARITY_KEY = "album_granularity";
@@ -21,6 +40,7 @@ public class ExportSettings {
     private Boolean mustAlwaysAskLocation;
     private String destLocation;
     private Boolean mustRememberLastLocation;
+    private FileFormat preferredFileFormat;
     private Boolean mustShare;
     private Boolean mustCopyPath;
     private GooglePhotosExporter.Granularity albumGranularity;
@@ -51,6 +71,14 @@ public class ExportSettings {
 
     public void setMustRememberLastLocation(Boolean mustRememberLastLocation) {
         this.mustRememberLastLocation = mustRememberLastLocation;
+    }
+
+    public FileFormat getPreferredFileFormat() {
+        return preferredFileFormat;
+    }
+
+    public void setPreferredFileFormat(FileFormat preferredFileFormat) {
+        this.preferredFileFormat = preferredFileFormat;
     }
 
     public Boolean getMustShare() {
@@ -86,6 +114,7 @@ public class ExportSettings {
         if (getMustAlwaysAskLocation() != null) map.put(MUST_ALWAYS_ASK_LOCATION_KEY, getMustAlwaysAskLocation());
         if (getDestLocation() != null) map.put(DEST_LOCATION_KEY, getDestLocation());
         if (getMustRememberLastLocation() != null) map.put(MUST_REMEMBER_LAST_LOCATION_KEY, getMustRememberLastLocation());
+        if (getPreferredFileFormat() != null) map.put(PREFERRED_FILE_FORMAT_KEY, getPreferredFileFormat());
         if (getMustShare() != null) map.put(MUST_SHARE_KEY, getMustShare());
         if (getMustCopyPath() != null) map.put(MUST_COPY_PATH_KEY, getMustCopyPath());
         if (getAlbumGranularity() != null) map.put(ALBUM_GRANULARITY_KEY, getAlbumGranularity());
@@ -128,6 +157,15 @@ public class ExportSettings {
         }
         else {
             missingSettings.add(MUST_REMEMBER_LAST_LOCATION_KEY);
+        }
+
+
+        if (map.containsKey(PREFERRED_FILE_FORMAT_KEY)) {
+            setPreferredFileFormat((FileFormat) map.get(PREFERRED_FILE_FORMAT_KEY));
+            map.remove(PREFERRED_FILE_FORMAT_KEY);
+        }
+        else {
+            missingSettings.add(PREFERRED_FILE_FORMAT_KEY);
         }
 
 

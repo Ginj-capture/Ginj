@@ -513,9 +513,9 @@ public class TargetManagementFrame extends JFrame implements TargetListChangeLis
             final JCheckBox alwaysAskCheckBox = UI.createWizardCheckBox(ExportSettings.MUST_ALWAYS_ASK_LOCATION_KEY, getWizardDataMap(), false, true, true);
             JPanel fieldsPanel = UI.createFieldPanel(
                     "Display as:", UI.createWizardTextField(TargetPrefs.DISPLAY_NAME_KEY, getWizardDataMap(), displayName, true, true),
-                    "Save to:", UI.createWizardTextField(ExportSettings.DEST_LOCATION_KEY, getWizardDataMap(), defaultSaveDir, true, true),
-                    "Always ask save location:", alwaysAskCheckBox,
-                    "Remember last location:", UI.createWizardCheckBox(ExportSettings.MUST_REMEMBER_LAST_LOCATION_KEY, getWizardDataMap(), true, alwaysAskCheckBox, true),
+                    "Save location:", UI.createWizardTextField(ExportSettings.DEST_LOCATION_KEY, getWizardDataMap(), defaultSaveDir, true, true),
+                    "Ask for save location:", alwaysAskCheckBox,
+                    "Remember save location:", UI.createWizardCheckBox(ExportSettings.MUST_REMEMBER_LAST_LOCATION_KEY, getWizardDataMap(), true, alwaysAskCheckBox, true),
                     "Copy path to clipboard:", UI.createWizardCheckBox(ExportSettings.MUST_COPY_PATH_KEY, getWizardDataMap(), true, true, true)
             );
 

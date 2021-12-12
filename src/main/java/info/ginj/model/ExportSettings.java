@@ -10,11 +10,10 @@ import java.util.Set;
 
 public class ExportSettings {
 
-    // Warning: all these fields must be handled by the toMap() & moveFromMap() methods
+    // Warning: all these fields must be handled by the copyToMap() & moveFromMap() methods
     public static final String MUST_ALWAYS_ASK_LOCATION_KEY = "must_always_ask_location";
     public static final String DEST_LOCATION_KEY = "dest_location";
     public static final String MUST_REMEMBER_LAST_LOCATION_KEY = "must_remember_last_location";
-    public static final String LAST_CUSTOM_DEST_LOCATION_KEY = "last_custom_dest_location";
     public static final String MUST_SHARE_KEY = "must_share";
     public static final String MUST_COPY_PATH_KEY = "must_copy_path";
     public static final String ALBUM_GRANULARITY_KEY = "album_granularity";
@@ -22,7 +21,6 @@ public class ExportSettings {
     private Boolean mustAlwaysAskLocation;
     private String destLocation;
     private Boolean mustRememberLastLocation;
-    private String lastCustomDestLocation;
     private Boolean mustShare;
     private Boolean mustCopyPath;
     private GooglePhotosExporter.Granularity albumGranularity;
@@ -53,14 +51,6 @@ public class ExportSettings {
 
     public void setMustRememberLastLocation(Boolean mustRememberLastLocation) {
         this.mustRememberLastLocation = mustRememberLastLocation;
-    }
-
-    public String getLastCustomDestLocation() {
-        return lastCustomDestLocation;
-    }
-
-    public void setLastCustomDestLocation(String lastCustomDestLocation) {
-        this.lastCustomDestLocation = lastCustomDestLocation;
     }
 
     public Boolean getMustShare() {
@@ -96,7 +86,6 @@ public class ExportSettings {
         if (getMustAlwaysAskLocation() != null) map.put(MUST_ALWAYS_ASK_LOCATION_KEY, getMustAlwaysAskLocation());
         if (getDestLocation() != null) map.put(DEST_LOCATION_KEY, getDestLocation());
         if (getMustRememberLastLocation() != null) map.put(MUST_REMEMBER_LAST_LOCATION_KEY, getMustRememberLastLocation());
-        if (getLastCustomDestLocation() != null) map.put(LAST_CUSTOM_DEST_LOCATION_KEY, getLastCustomDestLocation());
         if (getMustShare() != null) map.put(MUST_SHARE_KEY, getMustShare());
         if (getMustCopyPath() != null) map.put(MUST_COPY_PATH_KEY, getMustCopyPath());
         if (getAlbumGranularity() != null) map.put(ALBUM_GRANULARITY_KEY, getAlbumGranularity());
@@ -139,15 +128,6 @@ public class ExportSettings {
         }
         else {
             missingSettings.add(MUST_REMEMBER_LAST_LOCATION_KEY);
-        }
-
-
-        if (map.containsKey(LAST_CUSTOM_DEST_LOCATION_KEY)) {
-            setLastCustomDestLocation((String) map.get(LAST_CUSTOM_DEST_LOCATION_KEY));
-            map.remove(LAST_CUSTOM_DEST_LOCATION_KEY);
-        }
-        else {
-            missingSettings.add(LAST_CUSTOM_DEST_LOCATION_KEY);
         }
 
 

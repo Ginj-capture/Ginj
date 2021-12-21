@@ -233,7 +233,7 @@ public class Capture implements Cloneable {
      * @return the name to use
      */
     public String computeUploadFilename() {
-        String filename = getDefaultName();
+        String filename = Misc.cleanupFilename(getDefaultName());
         String extension = defaultExtension();
         if (!filename.toLowerCase().endsWith(extension)) {
             filename += extension;

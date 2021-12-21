@@ -52,4 +52,13 @@ public class Misc {
         if (SystemUtils.IS_OS_WINDOWS) return "Exit";
         else return "Quit";
     }
+
+    public static String cleanupFilename(String filename) {
+        if (filename == null) {
+            return null;
+        }
+        else {
+            return filename.replaceAll("[\\\\/:*?\"<>|]", "_");
+        }
+    }
 }

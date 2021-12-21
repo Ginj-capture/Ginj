@@ -21,7 +21,7 @@ Looks familiar ?
 ##### What's the difference with Jing?
 
 - It's all open-source. Of course, not a single line of code, not a single icon or font was taken from Jing. So basically _everything_ is different. 
-- Since [Screencast.com](https://www.screencast.com/), Techsmith's online sharing platform, [does not have a public API](http://web.archive.org/web/20210604184610/https://support.techsmith.com/hc/en-us/community/posts/360071722171-Screencast-API-), I had to switch to other online sharing services. Ginj supports Dropbox and Google Photos for now.
+- Since [Screencast.com](https://www.screencast.com/), Techsmith's online sharing platform, [does not have a public API](http://web.archive.org/web/20210604184610/https://support.techsmith.com/hc/en-us/community/posts/360071722171-Screencast-API-), I had to switch to other online sharing services. Ginj supports Dropbox, Google Drive and Google Photos for now.
 - Ginj will never be "discontinued". It's open source. Take it, use it, keep it, fork it, improve it, change it.
 - A few new features could be added, but I really want to stick to the simple UI I love. 
 - Oh, and Ginj is written in Java.

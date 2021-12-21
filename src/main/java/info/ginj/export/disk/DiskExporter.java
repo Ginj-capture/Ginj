@@ -86,9 +86,13 @@ public class DiskExporter extends Exporter {
         boolean askForLocation = target.getSettings().getMustAlwaysAskLocation();
 
         String saveDirName = target.getSettings().getDestLocation();
-        // Sanity check : if save location is not set or invalid, default to the current dir, and force prompt
+        // Sanity check : if save location is not set or invalid, default to the previous "save location" setting, and force prompt
         if (saveDirName == null || saveDirName.isBlank() || !new File(saveDirName).exists()) {
-            saveDirName = new File("").getAbsolutePath();
+            saveDirName = target.getSettings().getLastCustomDestLocation();
+            // If previous "save location" setting was not set or is invalid, default to the user dir
+            if (saveDirName == null || saveDirName.isBlank() || !new File(saveDirName).exists()) {
+                saveDirName = new File(System.getProperty("user.home")).getAbsolutePath();
+            }
             askForLocation = true;
         }
 

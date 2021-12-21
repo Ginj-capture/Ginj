@@ -39,6 +39,10 @@ public class ExportSettings {
 
     private Boolean mustAlwaysAskLocation;
     private String destLocation;
+    /**
+     * @deprecated now using destLocation , just used for migration
+     */
+    private String lastCustomDestLocation;
     private Boolean mustRememberLastLocation;
     private FileFormat preferredFileFormat = FileFormat.PNG;
     private Boolean mustShare;
@@ -63,6 +67,20 @@ public class ExportSettings {
 
     public void setDestLocation(String destLocation) {
         this.destLocation = destLocation;
+    }
+
+    /**
+     * @deprecated now using destLocation , just used for migration
+     */
+    public String getLastCustomDestLocation() {
+        return lastCustomDestLocation;
+    }
+
+    /**
+     * @deprecated now using destLocation , just used for migration
+     */
+    public void setLastCustomDestLocation(String lastCustomDestLocation) {
+        this.lastCustomDestLocation = lastCustomDestLocation;
     }
 
     public Boolean getMustRememberLastLocation() {

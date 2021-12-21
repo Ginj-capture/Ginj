@@ -40,7 +40,7 @@ public class ExportSettings {
     private Boolean mustAlwaysAskLocation;
     private String destLocation;
     private Boolean mustRememberLastLocation;
-    private FileFormat preferredFileFormat;
+    private FileFormat preferredFileFormat = FileFormat.PNG;
     private Boolean mustShare;
     private Boolean mustCopyPath;
     private GooglePhotosExporter.Granularity albumGranularity;

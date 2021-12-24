@@ -25,7 +25,7 @@
  - ~~Implement history with **editable** items~~
  - ~~Implement edit from history window~~
  - Finalize history window (export button should perform a "smart" re-export, performing only missing operations (reupload, reshare, or just re-copy link))
- - Allow history window resizing
+ - ~~Allow history window resizing~~
  - ~~Load history contents asynchronously~~
  - ~~Persist StarWindow position~~
  - ~~Position ExportFrame and ExportCompletionFrame next to Star Window~~
@@ -73,7 +73,7 @@
  - Remove useless icons ?
 
 #### Options ENHANCEMENT:
- - Remember last used overlay tool when making a new capture, or better yet "first tool used on the last capture" 
+ - ~~Remember last used overlay tool when making a new capture, or better yet "first tool used on the last capture"~~ 
  - Remember previously used custom colors
  - Add optional "Speech Balloon" overlay
  - Add optional "Line" overlay (with CTRL to constrain)

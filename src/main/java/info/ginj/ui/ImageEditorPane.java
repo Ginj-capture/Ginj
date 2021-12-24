@@ -1,6 +1,7 @@
 package info.ginj.ui;
 
 import info.ginj.action.*;
+import info.ginj.model.Prefs;
 import info.ginj.tool.Overlay;
 import info.ginj.ui.listener.DragInsensitiveMouseClickListener;
 import org.slf4j.Logger;
@@ -106,6 +107,13 @@ public class ImageEditorPane extends JLayeredPane {
                     // Create a new one
                     final Overlay overlay = frame.currentTool.createComponent(clicked, frame.getCurrentColor(), frame, ImageEditorPane.this);
                     overlay.setBounds(0, 0, capturedImgSize.width, capturedImgSize.height);
+                    if (getComponents().length == 0) {
+                        // This is the first component added to the panel. Remember it as "default tool" (if requested)
+                        if (Prefs.isTrue(Prefs.Key.REMEMBER_DEFAULT_TOOL)) {
+                            Prefs.set(Prefs.Key.DEFAULT_TOOL_NAME, frame.currentTool.getName());
+                        }
+                    }
+
                     currentAction = new AddOverlayAction(overlay, ImageEditorPane.this);
                     currentAction.execute();
                     selectedHandleIndex = 0;

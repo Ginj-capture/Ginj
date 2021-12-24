@@ -526,13 +526,23 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         // Add the button to the buttonGroup to get a "radio-button" experience
         group.add(toolButton);
 
-        // Select this button if it's the first
-        if (currentTool == null) {
-            toolButton.setSelected(true);
-            currentTool = tool;
+        // Select current tool according to saved one
+        String defaultToolName = Prefs.get(Prefs.Key.DEFAULT_TOOL_NAME);
+        if (defaultToolName != null) {
+            if (tool.getName().equals(defaultToolName)) {
+                toolButton.setSelected(true);
+                currentTool = tool;
+            }
+        }
+        else {
+            // Or if none is saved, select this button if it's the first one
+            if (currentTool == null) {
+                toolButton.setSelected(true);
+                currentTool = tool;
+            }
         }
 
-        // And store this tool as currentTool if clicked
+        // And update currentTool if clicked
         toolButton.addActionListener((event) -> {
             currentTool = tool;
             imagePane.setSelectedOverlay(null);

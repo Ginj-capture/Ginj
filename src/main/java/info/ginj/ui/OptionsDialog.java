@@ -39,6 +39,8 @@ public class OptionsDialog extends JDialog {
     private final JCheckBox videoCursorCheckBox;
     private final JSpinner videoFramerateSpinner;
     private final JCheckBox useJNACheckbox;
+    private final JComboBox<String> defaultToolCombo;
+    private final JCheckBox rememberDefaultToolCheckbox;
 
     private KeyStroke hotKey;
 
@@ -158,6 +160,19 @@ public class OptionsDialog extends JDialog {
         useJNACheckbox.setSelected(Prefs.isTrue(Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS));
         useJNACheckbox.setToolTipText(Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS.getHelp());
 
+        defaultToolCombo = new JComboBox(GinjTool.getMap().keySet().toArray());
+        String defaultToolName = Prefs.get(Prefs.Key.DEFAULT_TOOL_NAME);
+        if (defaultToolName != null) {
+            defaultToolCombo.setSelectedItem(defaultToolName);
+        }
+        else {
+            defaultToolCombo.setSelectedIndex(0);
+        }
+
+        rememberDefaultToolCheckbox = new JCheckBox();
+        rememberDefaultToolCheckbox.setSelected(Prefs.isTrue(Prefs.Key.REMEMBER_DEFAULT_TOOL));
+        rememberDefaultToolCheckbox.setToolTipText(Prefs.Key.REMEMBER_DEFAULT_TOOL.getHelp());
+
         // Add fields to main panel
         mainPanel.add(UI.createFieldPanel(
                 "Capture hotkey", hotKeyFieldPanel,
@@ -165,7 +180,9 @@ public class OptionsDialog extends JDialog {
                 "Use tray notification on export", useTrayNotificationsOnExportCompletion,
                 "Capture mouse cursor in video", videoCursorCheckBox,
                 "Video frame rate", videoFramerateSpinner,
-                "Use JNA on Windows", useJNACheckbox
+                "Use JNA on Windows", useJNACheckbox,
+                "Default tool", defaultToolCombo,
+                "Remember default tool", rememberDefaultToolCheckbox
         ));
 
         // TODO add Capture folder, ffmpeg folder, tmp folder, etc.
@@ -242,6 +259,10 @@ public class OptionsDialog extends JDialog {
         Prefs.set(Prefs.Key.VIDEO_FRAMERATE, String.valueOf(videoFramerateSpinner.getModel().getValue()));
 
         Prefs.set(Prefs.Key.USE_JNA_FOR_WINDOWS_MONITORS, String.valueOf(useJNACheckbox.isSelected()));
+
+        Prefs.set(Prefs.Key.DEFAULT_TOOL_NAME, String.valueOf(defaultToolCombo.getSelectedItem()));
+
+        Prefs.set(Prefs.Key.REMEMBER_DEFAULT_TOOL, String.valueOf(rememberDefaultToolCheckbox.isSelected()));
 
         Prefs.save();
 

@@ -53,7 +53,9 @@ public class Prefs {
         DEBUG_NO_REQUEST_FOCUS_IN_RECOVERY("debug.no.request.focus.in.recovery", "Debug param to see what part really recovers the widget", true),
         FFMPEG_TERMINATION_TIMEOUT("ffmpeg.termination.timeout", "The max delay between a request to end an ffmpeg process and its actual response", true, String.valueOf(15)),
         USE_JNA_FOR_WINDOWS_MONITORS("use.jna.for.windows.monitors", "If true, dimensions of monitors and mouse position will be fetched using JNA to work around bug JDK-8211999", true, String.valueOf(true)),
-        LOGGING_LEVEL("logging.level", "The verbosity of the log file. Vaid values are OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST and ALL", true);
+        LOGGING_LEVEL("logging.level", "The verbosity of the log file. Valid values are OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST and ALL", true),
+        DEFAULT_TOOL_NAME("default.tool.name", "The tool that is selected by default after a new capture is performed" , true),
+        REMEMBER_DEFAULT_TOOL("remember.default.tool", "Remember the default tool according to the first tool used in the previous capture" , true);
 
         private final String keyString;
         private final String help;

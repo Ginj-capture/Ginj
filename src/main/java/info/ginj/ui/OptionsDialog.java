@@ -41,6 +41,7 @@ public class OptionsDialog extends JDialog {
     private final JCheckBox useJNACheckbox;
     private final JComboBox<String> defaultToolCombo;
     private final JCheckBox rememberDefaultToolCheckbox;
+    private final JCheckBox useSmallButtonsCheckbox;
 
     private KeyStroke hotKey;
 
@@ -173,6 +174,10 @@ public class OptionsDialog extends JDialog {
         rememberDefaultToolCheckbox.setSelected(Prefs.isTrue(Prefs.Key.REMEMBER_DEFAULT_TOOL));
         rememberDefaultToolCheckbox.setToolTipText(Prefs.Key.REMEMBER_DEFAULT_TOOL.getHelp());
 
+        useSmallButtonsCheckbox = new JCheckBox();
+        useSmallButtonsCheckbox.setSelected(Prefs.isTrue(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS));
+        useSmallButtonsCheckbox.setToolTipText(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS.getHelp());
+
         // Add fields to main panel
         mainPanel.add(UI.createFieldPanel(
                 "Capture hotkey", hotKeyFieldPanel,
@@ -182,7 +187,8 @@ public class OptionsDialog extends JDialog {
                 "Video frame rate", videoFramerateSpinner,
                 "Use JNA on Windows", useJNACheckbox,
                 "Default tool", defaultToolCombo,
-                "Remember default tool", rememberDefaultToolCheckbox
+                "Remember default tool", rememberDefaultToolCheckbox,
+                "Use small buttons for uploads", useSmallButtonsCheckbox
         ));
 
         // TODO add Capture folder, ffmpeg folder, tmp folder, etc.
@@ -263,6 +269,8 @@ public class OptionsDialog extends JDialog {
         Prefs.set(Prefs.Key.DEFAULT_TOOL_NAME, String.valueOf(defaultToolCombo.getSelectedItem()));
 
         Prefs.set(Prefs.Key.REMEMBER_DEFAULT_TOOL, String.valueOf(rememberDefaultToolCheckbox.isSelected()));
+
+        Prefs.set(Prefs.Key.USE_SMALL_BUTTONS_FOR_ONLINE_TARGETS, String.valueOf(useSmallButtonsCheckbox.isSelected()));
 
         Prefs.save();
 

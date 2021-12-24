@@ -2,6 +2,7 @@ package info.ginj.ui;
 
 import info.ginj.Ginj;
 import info.ginj.model.Capture;
+import info.ginj.model.Prefs;
 import info.ginj.ui.component.BorderedLabel;
 import info.ginj.ui.component.HistoryButtonPanel;
 import info.ginj.ui.component.HistoryToggleButton;
@@ -37,6 +38,7 @@ public class HistoryFrame extends JFrame {
     private static final Logger logger = LoggerFactory.getLogger(HistoryFrame.class);
 
     private final BorderedLabel statusLabel;
+    private JScrollPane historyPanel;
 
     private enum SortOrder {DATE, SIZE, NAME}
     private enum Filter {IMAGE, VIDEO, BOTH}
@@ -44,6 +46,7 @@ public class HistoryFrame extends JFrame {
     public static final Dimension HISTORY_CELL_SIZE = new Dimension(156, 164);
     public static final Dimension THUMBNAIL_SIZE = new Dimension(113, 91);
     public static final Dimension MAIN_AREA_DEFAULT_SIZE = new Dimension(680, 466);
+    public static final Dimension MIN_WINDOW_SIZE = new Dimension(HISTORY_CELL_SIZE.width * 2 + 50, HISTORY_CELL_SIZE.height + 50);
     private final ImageIcon exportIcon;
     private final ImageIcon editIcon;
     private final ImageIcon deleteIcon;
@@ -134,13 +137,18 @@ public class HistoryFrame extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         contentPane.add(buttonBar, c);
 
-        JScrollPane historyPanel;
         historyList = new JPanel(new WrapLayout(WrapLayout.LEFT));
 
         historyPanel = new JScrollPane(historyList);
         historyPanel.getVerticalScrollBar().setUnitIncrement(HISTORY_CELL_SIZE.height);
-        historyPanel.setPreferredSize(MAIN_AREA_DEFAULT_SIZE);
-
+        try {
+            int width = Integer.parseInt(Prefs.get(Prefs.Key.HISTORY_WINDOW_WIDTH));
+            int height = Integer.parseInt(Prefs.get(Prefs.Key.HISTORY_WINDOW_HEIGHT));
+            historyPanel.setPreferredSize(new Dimension(width, height));
+        }
+        catch (Exception e) {
+            historyPanel.setPreferredSize(MAIN_AREA_DEFAULT_SIZE);
+        }
         historyPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
@@ -174,7 +182,11 @@ public class HistoryFrame extends JFrame {
         // Add default "draggable window" behaviour
         UI.addDraggableWindowMouseBehaviour(this, titleBar);
 
-        // TODO should be resizeable with the bottom right corner handle (min 3x1)
+        ComponentResizer cr = new ComponentResizer();
+        // TODO should only be resizeable to min 3x1 cells
+        //cr.setSnapSize();
+        cr.setMinimumSize(MIN_WINDOW_SIZE);
+        cr.registerComponent(this);
 
         // Lay out components again
         pack();
@@ -254,6 +266,11 @@ public class HistoryFrame extends JFrame {
     // Event handlers
 
     private void onClose() {
+        // Remember size
+        Dimension size = historyPanel.getSize();
+        Prefs.set(Prefs.Key.HISTORY_WINDOW_WIDTH, String.valueOf(size.width));
+        Prefs.set(Prefs.Key.HISTORY_WINDOW_HEIGHT, String.valueOf(size.height));
+
         starWindow.setHistoryFrame(null);
         // Close window
         dispose();

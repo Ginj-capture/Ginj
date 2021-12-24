@@ -55,7 +55,9 @@ public class Prefs {
         USE_JNA_FOR_WINDOWS_MONITORS("use.jna.for.windows.monitors", "If true, dimensions of monitors and mouse position will be fetched using JNA to work around bug JDK-8211999", true, String.valueOf(true)),
         LOGGING_LEVEL("logging.level", "The verbosity of the log file. Valid values are OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST and ALL", true),
         DEFAULT_TOOL_NAME("default.tool.name", "The tool that is selected by default after a new capture is performed" , true),
-        REMEMBER_DEFAULT_TOOL("remember.default.tool", "Remember the default tool according to the first tool used in the previous capture" , true);
+        REMEMBER_DEFAULT_TOOL("remember.default.tool", "Remember the default tool according to the first tool used in the previous capture" , true),
+        HISTORY_WINDOW_WIDTH("history.window.width", "Width of the history window", false),
+        HISTORY_WINDOW_HEIGHT("history.window.height", "Height of the history window", false);
 
         private final String keyString;
         private final String help;

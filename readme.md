@@ -95,6 +95,7 @@ The source code contains classes or snippets from:
 - [JHLabs image filters](http://jhlabs.com/ip/filters/index.html) by Jerry Huxtable
 - SystemUtils from [Commons-lang](https://commons.apache.org/proper/commons-lang/)  
 - [Desktop](https://github.com/jjYBdx4IL/misc/blob/master/swing-utils/src/main/java/com/github/jjYBdx4IL/utils/awt/Desktop.java) Copyright © 2017 jjYBdx4IL (https://github.com/jjYBdx4IL)
+- [ComponentResizer](https://tips4java.wordpress.com/2009/09/13/resizing-components/) by Rob Camick
 - Discussions at [StackOverflow](https://stackoverflow.com/) and [CodeRanch](https://coderanch.com/) - hats off to MadProgrammer, camickr, and others.
 
 The user interface uses: 

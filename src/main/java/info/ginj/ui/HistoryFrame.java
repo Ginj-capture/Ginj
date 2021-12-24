@@ -46,7 +46,7 @@ public class HistoryFrame extends JFrame {
     public static final Dimension HISTORY_CELL_SIZE = new Dimension(156, 164);
     public static final Dimension THUMBNAIL_SIZE = new Dimension(113, 91);
     public static final Dimension MAIN_AREA_DEFAULT_SIZE = new Dimension(680, 466);
-    public static final Dimension MIN_WINDOW_SIZE = new Dimension(HISTORY_CELL_SIZE.width * 2 + 50, HISTORY_CELL_SIZE.height + 50);
+    public static final Dimension MIN_WINDOW_SIZE = new Dimension(HISTORY_CELL_SIZE.width * 2 + 40, HISTORY_CELL_SIZE.height + 90);
     private final ImageIcon exportIcon;
     private final ImageIcon editIcon;
     private final ImageIcon deleteIcon;

@@ -253,10 +253,12 @@ public class DiskExporter extends Exporter {
                         File tmpJpg = Files.createTempFile(Paths.get(destinationFile.getParent()), null, null).toFile();
                         ImageIO.write(capture.getRenderedImage(), Misc.IMAGE_FORMAT_JPEG, tmpJpg);
                         if (tmpJpg.length() < tmpPng.length()) {
-                            keepFile(replaceExtension(destinationFile, Misc.IMAGE_EXTENSION_JPEG), tmpJpg, tmpPng);
+                            destinationFile = replaceExtension(destinationFile, Misc.IMAGE_EXTENSION_JPEG);
+                            keepFile(destinationFile, tmpJpg, tmpPng);
                         }
                         else {
-                            keepFile(replaceExtension(destinationFile, Misc.IMAGE_EXTENSION_PNG), tmpPng, tmpJpg);
+                            destinationFile = replaceExtension(destinationFile, Misc.IMAGE_EXTENSION_PNG);
+                            keepFile(destinationFile, tmpPng, tmpJpg);
                         }
                     }
                 }

@@ -13,7 +13,7 @@
 5. Rename the resulting file in target/ from e.g. Ginj-0.4.5-jar-with-dependencies.jar to just Ginj.jar
 6. Launch Install4j, then:
     - check that the version has been updated in the "Application info" tab
-    - check that "build all" is selected in the "Build" tab
+    - check that "build all" is selected in the "Build" tab on the left
     - click the "build project" button at the top
 7. Go to https://github.com/Ginj-capture/Ginj/releases and click "Draft a new release" at the right
     - fill the "Tag version" field with e.g "v0.4.5"

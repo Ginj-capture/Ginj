@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="8.0.11" transformSequenceNumber="8">
   <directoryPresets config="./ffmpeg4.3.1/linux_amd64/ffmpeg" />
-  <application name="Ginj" applicationId="2821-6917-3685-7854" mediaDir="./releases" compression="9" shortName="Ginj" publisher="Ginj" publisherWeb="http://www.ginj.info" version="0.4.9" allPathsRelative="true" backupOnSave="true" macVolumeId="2f8e78c917a76687" javaMinVersion="14" javaMaxVersion="14" jdkMode="jdk" jdkName="JDK 14.0">
+  <application name="Ginj" applicationId="2821-6917-3685-7854" mediaDir="./releases" compression="9" shortName="Ginj" publisher="Ginj" publisherWeb="http://www.ginj.info" version="0.4.10" allPathsRelative="true" backupOnSave="true" macVolumeId="2f8e78c917a76687" javaMinVersion="14" javaMaxVersion="14" jdkMode="jdk" jdkName="JDK 14.0">
     <jreBundles jdkProviderId="AdoptOpenJDK" release="openjdk14/jdk-14.0.1+7" />
   </application>
   <files missingFilesStrategy="error">

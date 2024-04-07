@@ -6,6 +6,7 @@ import info.ginj.export.ExportMonitor;
 import info.ginj.export.Exporter;
 import info.ginj.model.Capture;
 import info.ginj.model.Export;
+import info.ginj.model.ExportSettings;
 import info.ginj.model.Target;
 import info.ginj.ui.StarWindow;
 import info.ginj.util.Misc;
@@ -83,7 +84,9 @@ public class DiskExporter extends Exporter {
 
         logProgress(context.getExportMonitor(), "Determining target file", PROGRESS_SAVE_CALC_DESTINATION);
         // Determine where to save the file
-        boolean askForLocation = target.getSettings().getMustAlwaysAskLocation();
+        boolean askForLocation =
+                target.getSettings().getMustAlwaysAskLocation()
+                || target.getSettings().getPreferredFileFormat() == ExportSettings.FileFormat.SELECT_ON_SAVE;
 
         String saveDirName = target.getSettings().getDestLocation();
         // Sanity check : if save location is not set or invalid, default to the previous "save location" setting, and force prompt
@@ -204,12 +207,15 @@ public class DiskExporter extends Exporter {
                     fileChooser.setSelectedFile(replaceExtension(defaultDestinationFile, Misc.IMAGE_EXTENSION_JPEG));
                     return;
                 case SELECT_ON_SAVE:
-                case SMALLEST:
                     String extension1 = Misc.IMAGE_EXTENSION_PNG;
                     fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(extension1.substring(1).toUpperCase() + " (*" + extension1 + ")", extension1.substring(1)));
                     String extension2 = Misc.IMAGE_EXTENSION_JPEG;
                     fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(extension2.substring(1).toUpperCase() + " (*" + extension2 + ")", extension2.substring(1)));
                     fileChooser.setSelectedFile(defaultDestinationFile);
+                    return;
+                case SMALLEST:
+                    // No filter
+                    fileChooser.setSelectedFile(replaceExtension(defaultDestinationFile, ""));
                     return;
             }
         }
@@ -252,6 +258,7 @@ public class DiskExporter extends Exporter {
                         ImageIO.write(capture.getRenderedImage(), Misc.IMAGE_FORMAT_PNG, tmpPng);
                         File tmpJpg = Files.createTempFile(Paths.get(destinationFile.getParent()), null, null).toFile();
                         ImageIO.write(capture.getRenderedImage(), Misc.IMAGE_FORMAT_JPEG, tmpJpg);
+                        logger.info("PNG=" +  Misc.getPrettySize(tmpPng.length()) + " / JPG=" +  Misc.getPrettySize(tmpJpg.length()));
                         if (tmpJpg.length() < tmpPng.length()) {
                             destinationFile = replaceExtension(destinationFile, Misc.IMAGE_EXTENSION_JPEG);
                             keepFile(destinationFile, tmpJpg, tmpPng);
@@ -302,7 +309,7 @@ public class DiskExporter extends Exporter {
 
     private File replaceExtension(File file, String extension) {
         String fileName = file.getAbsolutePath();
-        if (!fileName.endsWith(extension)) {
+        if (extension.isEmpty() || !fileName.endsWith(extension)) {
             return new File(fileName.substring(0, fileName.lastIndexOf('.')) + extension);
         }
         else {

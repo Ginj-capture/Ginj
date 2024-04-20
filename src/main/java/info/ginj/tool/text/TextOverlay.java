@@ -14,9 +14,12 @@ public class TextOverlay extends RectangleOverlay {
 
     // TODO Implement use of the following fields (popup to select font and color)
     protected Color textColor = UI.TEXT_TOOL_DEFAULT_FOREGROUND_COLOR;
-    protected String fontName;
-    protected int fontSize;
-    protected int fontStyle;
+    protected String fontName = "Arial";
+    protected int fontSize = 18;
+    protected int fontStyle = Font.PLAIN;
+    // Plus these two as per request
+    protected int strokeWidth = 6;
+    protected Color backgroundColor = Color.WHITE;
 
     private JTextArea textArea;
     private ImageEditorPane imagePane;
@@ -79,8 +82,8 @@ public class TextOverlay extends RectangleOverlay {
         super.initialize(initialPoint, initialColor);
         textArea = new JTextArea();
         textArea.setForeground(initialColor);
-        // TODO current font of overlay should be a variable, initialized with the Tool's default
-        textArea.setFont(new Font("Arial", Font.PLAIN, 18));
+        // TODO current font of overlay should be initialized with the Tool's default
+        textArea.setFont(new Font(fontName, fontStyle, fontSize));
 
         textArea.addFocusListener(new FocusAdapter() {
             @Override
@@ -122,10 +125,10 @@ public class TextOverlay extends RectangleOverlay {
         textRectangle.grow(-10, -8);
         textArea.setBounds(textRectangle);
         textArea.setForeground(getColor());
-        g2d.setColor(Color.WHITE);
+        g2d.setColor(backgroundColor);
         g2d.fillRoundRect(rectangle.x + 2 + xOffset, rectangle.y + 2 + yOffset, rectangle.width - 4, rectangle.height - 4, 8, 8);
         g2d.setColor(getColor());
-        g2d.setStroke(new BasicStroke(6));
+        g2d.setStroke(new BasicStroke(strokeWidth));
         g2d.drawRoundRect(rectangle.x + xOffset, rectangle.y + yOffset, rectangle.width, rectangle.height, 16, 16);
     }
 

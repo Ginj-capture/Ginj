@@ -20,10 +20,7 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import java.awt.*;
 import java.awt.color.ColorSpace;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
@@ -598,4 +595,28 @@ public class UI {
         return displayDetails;
     }
 
+    /**
+     * This method restores mouse behaviours (e.g. clicks) of a component after adding a tooltip to it.
+     * Otherwise, the component (e.g. imagepanel) with the tooltip cannot be clicked anymore as the tooltip consumes clicks.
+     * See https://stackoverflow.com/a/14932443
+     * @param componentWithToolTip
+     */
+    public static void restoreMouseBehaviourAfterTooltip(Component componentWithToolTip) {
+        componentWithToolTip.addMouseListener(
+        new MouseAdapter() {
+            public void mousePressed(MouseEvent event) {forwardEvent(event);}
+            public void mouseReleased(MouseEvent event) {forwardEvent(event);}
+            public void mouseClicked(MouseEvent event) {forwardEvent(event);}
+            public void mouseEntered(MouseEvent event) {forwardEvent(event);}
+            public void mouseExited(MouseEvent event) {forwardEvent(event);}
+            public void mouseWheelMoved(MouseEvent event) {forwardEvent(event);}
+            public void mouseDragged(MouseEvent event) {forwardEvent(event);}
+            public void mouseMoved(MouseEvent event) {forwardEvent(event);}
+
+            private void forwardEvent(MouseEvent event) {
+                Component parentComponent = componentWithToolTip.getParent();
+                parentComponent.dispatchEvent(SwingUtilities.convertMouseEvent(event.getComponent(), event, parentComponent));
+            }
+        });
+    }
 }

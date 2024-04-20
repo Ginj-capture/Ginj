@@ -67,6 +67,10 @@ public class Export implements Serializable {
                 '}';
     }
 
+    public String toShortString() {
+        return exporterName + (location==null?"":(": " + location));
+    }
+
 
     public String getMessage(boolean isHtmlMode) {
         String message;

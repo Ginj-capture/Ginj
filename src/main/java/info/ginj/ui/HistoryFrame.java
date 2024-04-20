@@ -2,6 +2,7 @@ package info.ginj.ui;
 
 import info.ginj.Ginj;
 import info.ginj.model.Capture;
+import info.ginj.model.Export;
 import info.ginj.model.Prefs;
 import info.ginj.ui.component.BorderedLabel;
 import info.ginj.ui.component.HistoryButtonPanel;
@@ -667,6 +668,12 @@ public class HistoryFrame extends JFrame {
 
                 String basename = xmlFilename.substring(0, xmlFilename.lastIndexOf('.'));
                 imagePanel.setImagePath(basename + Misc.THUMBNAIL_EXTENSION);
+                String exportDetails = "";
+                for (Export export : capture.getExports()) {
+                    exportDetails += (exportDetails.isEmpty()?"Exported to ":"<br/>Exported to ") + export.toShortString();
+                };
+                imagePanel.setToolTipText("<html><body>" + exportDetails + "</body></html>");
+                UI.restoreMouseBehaviourAfterTooltip(imagePanel);
 
                 int versionPos = basename.lastIndexOf("_v");
                 if (versionPos != -1) {
@@ -804,6 +811,18 @@ public class HistoryFrame extends JFrame {
                 logger.error("Error reading '" + imagePath + "'...", e);
             }
             repaint();
+        }
+
+        /**
+         * Yellow on black tooltip
+         * @return
+         */
+        @Override
+        public JToolTip createToolTip() {
+            JToolTip tooltip = super.createToolTip();
+            tooltip.setBackground(Color.BLACK);
+            tooltip.setForeground(UI.LABEL_FOREGROUND_COLOR);
+            return tooltip;
         }
     }
 }

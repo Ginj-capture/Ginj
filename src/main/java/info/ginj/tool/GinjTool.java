@@ -14,7 +14,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * A tool is a class that creates overlays
+ * A tool is a class that creates overlays.
+ * It has one subclass per overlay type
+ * @see Overlay
  */
 public abstract class GinjTool {
 

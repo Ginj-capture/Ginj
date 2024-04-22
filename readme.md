@@ -100,7 +100,7 @@ The source code contains classes or snippets from:
 
 The user interface uses: 
 - Many icons from [FeatherIcons](https://feathericons.com/)
-- Undo icon by Denis Klyuchnikov from [The Noun Project](https://thenounproject.com/)
+- Undo icon by Denis Klyuchnikov and Glass icon by Ahmad Arzaha from [The Noun Project](https://thenounproject.com/)
 - Laptop icon from [Icons8](https://icons8.com/)
 - FTP icon by Pixel perfect from [flaticon](http://www.flaticon.com)
 

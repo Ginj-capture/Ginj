@@ -3,7 +3,6 @@ package info.ginj.tool.frame;
 import info.ginj.tool.GinjTool;
 import info.ginj.tool.Overlay;
 import info.ginj.ui.CaptureEditingFrame;
-import info.ginj.ui.ImageEditorPane;
 
 import java.awt.*;
 
@@ -17,7 +16,7 @@ public class FrameTool extends GinjTool {
     }
 
     @Override
-    public Overlay createComponent(Point initalPosition, Color initialColor, CaptureEditingFrame frame, ImageEditorPane imagePane) {
+    public Overlay createComponent(Point initalPosition, Color initialColor, CaptureEditingFrame frame) {
         return new FrameOverlay().initialize(initalPosition, initialColor);
     }
 }

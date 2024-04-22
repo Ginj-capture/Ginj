@@ -91,6 +91,7 @@ public class ImageEditorPane extends JLayeredPane {
                     // See if it's in a handle
 
                     selectedOverlay.setEditInProgress(true);
+                    selectedOverlay.setButtonBarVisible(false);
 
                     selectedHandleIndex = selectedOverlay.getHandleIndexAt(clicked);
                     if (selectedHandleIndex == Overlay.NO_INDEX) {
@@ -105,7 +106,7 @@ public class ImageEditorPane extends JLayeredPane {
                 else {
                     // Out of all components.
                     // Create a new one
-                    final Overlay overlay = frame.currentTool.createComponent(clicked, frame.getCurrentColor(), frame, ImageEditorPane.this);
+                    final Overlay overlay = frame.currentTool.createComponent(clicked, frame.getCurrentColor(), frame);
                     overlay.setBounds(0, 0, capturedImgSize.width, capturedImgSize.height);
                     if (getComponents().length == 0) {
                         // This is the first component added to the panel. Remember it as "default tool" (if requested)
@@ -159,6 +160,7 @@ public class ImageEditorPane extends JLayeredPane {
                         currentAction = null;
                     }
                     selectedOverlay.setEditInProgress(false);
+                    selectedOverlay.setButtonBarVisible(true);
                     repaint();
                 }
             }
@@ -244,6 +246,7 @@ public class ImageEditorPane extends JLayeredPane {
             // De-select previous one
             if (selectedOverlay != null) {
                 selectedOverlay.setSelected(false);
+                selectedOverlay.setButtonBarVisible(false);
                 // Give focus back to the image pane. In case it was a text component, it is required otherwise keystrokes (e.g. DEL) are still directed to the text area
                 requestFocus();
             }
@@ -251,6 +254,7 @@ public class ImageEditorPane extends JLayeredPane {
             if (overlay != null) {
                 overlay.setSelected(true);
                 frame.setCurrentColor(overlay.getColor());
+                selectedOverlay.setButtonBarVisible(true);
             }
         }
         repaint();

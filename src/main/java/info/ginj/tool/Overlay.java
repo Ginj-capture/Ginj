@@ -1,6 +1,7 @@
 package info.ginj.tool;
 
 import com.jhlabs.image.GaussianFilter;
+import info.ginj.ui.CaptureEditingFrame;
 import info.ginj.util.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +10,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
+import java.beans.Transient;
 
+/**
+ * An overlay is a transparent panel (canvas) that covers the capture,
+ * upon which a single widget is drawn, optionally with its handles or button bar.
+ */
 public abstract class Overlay extends JPanel {
 
     private static final Logger logger = LoggerFactory.getLogger(Overlay.class);
@@ -21,13 +27,16 @@ public abstract class Overlay extends JPanel {
     public static final int SHADOW_BLUR_RADIUS = 8;
     public static final int SHADOW_OFFSET = 3;
 
+    // Parent
+    private CaptureEditingFrame frame;
+
     // Caching
     private Rectangle shadowBoundsCache;
     private BufferedImage shadowImageCache;
     private BufferedImage handleImg;
 
     // State
-    protected boolean editInProgress = true; // Upon creation, the drag/drop is an edit.
+    protected boolean editInProgress = true; // Upon creation, the "rectangle drawing" mode (drag'n'drop) is active.
     private boolean selected = false;
 
     // Actual fields to persist and restore
@@ -45,6 +54,15 @@ public abstract class Overlay extends JPanel {
 
     ////////////////////////////////
     // Accessors
+
+    @Transient
+    public CaptureEditingFrame getFrame() {
+        return frame;
+    }
+    @Transient
+    public void setFrame(CaptureEditingFrame frame) {
+        this.frame = frame;
+    }
 
     public Color getColor() {
         return color;
@@ -156,7 +174,7 @@ public abstract class Overlay extends JPanel {
         return ((rgb & 0xFF000000) != 0);
     }
 
-    @java.beans.Transient
+    @Transient
     private synchronized BufferedImage getShadowImage() {
         if (shadowImageCache == null) {
             // Only redraw the area in the real overlay bounds (by scanning handles) + shadow margin
@@ -174,7 +192,7 @@ public abstract class Overlay extends JPanel {
         return shadowImageCache;
     }
 
-    @java.beans.Transient
+    @Transient
     private Rectangle getShadowBounds() {
         if (shadowBoundsCache == null) {
             // Recompute shadow bounds based on all handles
@@ -252,7 +270,7 @@ public abstract class Overlay extends JPanel {
     /**
      * Clears the shadow image and bounds
      */
-    private void clearShadow() {
+    protected void clearShadow() {
         shadowBoundsCache = null;
         shadowImageCache = null;
     }
@@ -293,17 +311,37 @@ public abstract class Overlay extends JPanel {
      * Returns a short String describing this Overlay
      * @return the name to present
      */
-    @java.beans.Transient
+    @Transient
     public abstract String getPresentationName();
 
 
     /**
-     * This method is  called just after instantiating the component, to provide it's initial position and color
+     * This method is called just after instantiating the component, to provide its initial position and color
      * @param initialPoint the initial position of the Overlay
      * @param initialColor the initial color of the Overlay
      * @return this
      */
     public abstract Overlay initialize(Point initialPoint, Color initialColor);
+
+    /**
+     *  Method called after restoring from History to recreate fields that were not stored (such as FocusListener)
+     *  on disk
+     *  NOTE: This method is not the reverse of teardown(). It should just create objects that are required but
+     *  do not represent a state
+     */
+    public void setUp() {
+        // Do nothing by default
+    }
+
+    /**
+     *  Method called before exporting to History to avoid storing useless (and "unrestoreable" such as FocusListener)
+     *  objects on disk
+     *  NOTE: This method is the reverse of setup(). It should just drop objects that were required but do not
+     *  represent a state
+     */
+    public void tearDown() {
+        setSelected(false);
+    }
 
 
     /**
@@ -320,7 +358,7 @@ public abstract class Overlay extends JPanel {
      * By convention, when a component is first drawn, getHandles()[0] is the handle at the "end" of the drawing (arrowhead or second point of rectangle).
      * @return an array with all handles of this component
      */
-    @java.beans.Transient
+    @Transient
     public abstract Point[] getHandles();
 
 
@@ -332,5 +370,31 @@ public abstract class Overlay extends JPanel {
      * @return the index of the (new) handle to move from now on. Normally = handleIndex param, except when changing quadrants
      */
     protected abstract int setHandlePosition(int handleIndex, Point newPosition, boolean skipSizeChecks);
+
+    /**
+     * This method gives the Overlay an opportunity to show or hide a button bar with further options
+     * @param visible
+     */
+    public void setButtonBarVisible(boolean visible) {
+        // Do nothing by default
+    }
+
+    protected Point getOverlayTopLeftBasedOnHandles() {
+        Point topLeft = new Point(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        for (Point handle : getHandles()) {
+            if (handle.x < topLeft.x) topLeft.x = handle.x;
+            if (handle.y < topLeft.y) topLeft.y = handle.y;
+        };
+        return topLeft;
+    }
+
+    protected Point getOverlayBottomLeftBasedOnHandles() {
+        Point topLeft = new Point(Integer.MAX_VALUE, Integer.MIN_VALUE);
+        for (Point handle : getHandles()) {
+            if (handle.x < topLeft.x) topLeft.x = handle.x;
+            if (handle.y > topLeft.y) topLeft.y = handle.y;
+        };
+        return topLeft;
+    }
 
 }

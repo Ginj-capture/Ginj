@@ -61,4 +61,12 @@ public class Misc {
             return filename.replaceAll("[\\\\/:*?\"<>|]", "_");
         }
     }
+
+    public static int getMaxInt(int... numbers) {
+        int max = numbers[0];
+        for (int number : numbers) {
+            if (number > max) max = number;
+        }
+        return max;
+    }
 }

@@ -249,6 +249,7 @@ public class HistoryFrame extends JFrame {
             for (File metadataFile : metadataFiles) {
                 try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(metadataFile)))) {
                     Capture siblingCapture = (Capture) xmlDecoder.readObject();
+                    siblingCapture.setUp();
                     siblingCaptures.add(siblingCapture);
                 }
             }
@@ -655,6 +656,8 @@ public class HistoryFrame extends JFrame {
         public void loadCapture() {
             try (XMLDecoder xmlDecoder = new XMLDecoder(new BufferedInputStream(new FileInputStream(file)))) {
                 capture = (Capture) xmlDecoder.readObject();
+                capture.setUp();
+
                 nameLabel.setText(capture.getName());
                 nameLabel.setToolTipText(capture.getName());
                 nameLabel.addMouseListener(new MouseAdapter() {

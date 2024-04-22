@@ -17,12 +17,13 @@ public abstract class RectangleOverlay extends Overlay {
         return this;
     }
 
-    // Getter and setter for peristence
-
+    // Getter and setter for persistence
+    public RectangleOverlay() {
+        super();
+    }
     public Rectangle getRectangle() {
         return rectangle;
     }
-
     public void setRectangle(Rectangle rectangle) {
         this.rectangle = rectangle;
     }

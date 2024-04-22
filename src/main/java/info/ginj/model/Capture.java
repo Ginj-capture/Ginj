@@ -240,4 +240,28 @@ public class Capture implements Cloneable {
         }
         return filename;
     }
+
+    /**
+     *  Method called after restoring from History to recreate fields that were not stored (such as FocusListener)
+     *  on disk
+     *  NOTE: This method is not the reverse of teardown(). It should just create objects that are required but
+     *  do not represent a state
+     */
+    public void setUp() {
+        for (Overlay overlay : overlays) {
+            overlay.setUp();
+        }
+    }
+
+    /**
+     *  Method called before exporting to History to avoid storing useless (and "unrestoreable" such as FocusListener)
+     *  objects on disk
+     *  NOTE: This method is the reverse of setup(). It should just drop objects that were required but do not
+     *  represent a state
+     */
+    public void tearDown() {
+        for (Overlay overlay : overlays) {
+            overlay.tearDown();
+        }
+    }
 }

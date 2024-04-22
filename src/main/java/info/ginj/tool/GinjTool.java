@@ -6,7 +6,6 @@ import info.ginj.tool.highlight.HighlightTool;
 import info.ginj.tool.oval.OvalTool;
 import info.ginj.tool.text.TextTool;
 import info.ginj.ui.CaptureEditingFrame;
-import info.ginj.ui.ImageEditorPane;
 
 import java.awt.*;
 import java.beans.Transient;
@@ -53,8 +52,7 @@ public abstract class GinjTool {
      * @param initalPosition
      * @param initialColor
      * @param frame
-     * @param imagePane
      * @return
      */
-    public abstract Overlay createComponent(Point initalPosition, Color initialColor, CaptureEditingFrame frame, ImageEditorPane imagePane);
+    public abstract Overlay createComponent(Point initalPosition, Color initialColor, CaptureEditingFrame frame);
 }

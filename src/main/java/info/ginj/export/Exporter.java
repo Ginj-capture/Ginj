@@ -200,6 +200,7 @@ public abstract class Exporter implements Cancellable {
         // Compute filename (including version)
         File metadataFile = new File(historyFolder, capture.getBaseFilename() + Misc.METADATA_EXTENSION);
         try (XMLEncoder xmlEncoder = new XMLEncoder(new BufferedOutputStream(new FileOutputStream(metadataFile)))) {
+            capture.tearDown();
             xmlEncoder.writeObject(capture);
         }
         catch (Exception e) {

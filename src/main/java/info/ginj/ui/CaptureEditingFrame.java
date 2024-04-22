@@ -84,6 +84,10 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
         UI.addDraggableWindowMouseBehaviour(this, this);
     }
 
+    public ImageEditorPane getImagePane() {
+        return imagePane;
+    }
+
     public void open(Capture capture) {
         this.capture = capture;
 
@@ -151,6 +155,7 @@ public class CaptureEditingFrame extends JFrame implements TargetListChangeListe
 
         // Restore overlays, if any
         for (Overlay overlay : capture.getOverlays()) {
+            overlay.setFrame(this);
             imagePane.add(overlay);
         }
 

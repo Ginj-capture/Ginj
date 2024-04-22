@@ -36,9 +36,10 @@
  - **Add audio support to video capture**
  - ~~Implement "check for updates" from Java~~
  - **Implement generic preference editor**
- - **Implement font size, style and color selection for Text Overlay**
+ - **Implement ~~font size,~~ style and color selection for Text Overlay**
  - **Typing in a Text Overlay should make the overlay grow wider**
  - **Text should auto wrap in Text Overlay**
+ - **Add CTRL-C shortcut to selection frame and capture editing frame to immediately copy to clipboard**
  - ~~Add Google Drive exporter~~
  - **Add Youtube exporter**
  - **Add FTP exporter :-)**

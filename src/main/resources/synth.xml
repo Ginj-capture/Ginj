@@ -113,7 +113,7 @@
     <!-- The style for overlay button bar components used e.g. to choose Font properties -->
     <style id="OverlayButtonBarPanelStyle">
         <state>
-            <imagePainter method="panelBorder" path="/img/laf/popupbar_panel.png" sourceInsets="2 2 2 2" paintCenter="true" stretch="true" center="false"/>
+            <imagePainter method="panelBorder" path="/img/laf/popupbar_panel.png" sourceInsets="5 5 5 5" paintCenter="true" stretch="true" center="false"/>
         </state>
     </style>
     <bind style="OverlayButtonBarPanelStyle" type="name" key="OverlayButtonBarPanel"/>

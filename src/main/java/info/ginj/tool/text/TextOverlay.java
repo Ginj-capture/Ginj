@@ -17,21 +17,15 @@ public class TextOverlay extends RectangleOverlay {
 
     public static final int DEFAULT_FONT_SIZE = 18;
 
-//    TODO:
-//    - Highlight glass button if transparent is ON
-//    - transparent rounded buttons
-//    - transparent rounded bar
-
-
     // TODO Implement use of the following fields (popup to select font and color)
     protected Color textColor = UI.TEXT_TOOL_DEFAULT_FOREGROUND_COLOR;
     protected String fontName = "Arial";
-    protected int fontSize = DEFAULT_FONT_SIZE;
     protected int fontStyle = Font.PLAIN;
     protected Color backgroundColor = Color.WHITE;
-    // Plus these two as per request
-    private int backgroundAlpha = 255;
     protected int strokeWidth = 6;
+    // These are used:
+    protected int fontSize = DEFAULT_FONT_SIZE;
+    private int backgroundAlpha = 255;
 
     private JTextArea textArea;
     private FocusAdapter selectOnFocusGainedFocusAdapter;
@@ -200,6 +194,9 @@ public class TextOverlay extends RectangleOverlay {
         glassButton.addActionListener(e -> setBackgroundAlpha(255 - getBackgroundAlpha()));
         Dimension glassButtonSize = smallerFontButton.getPreferredSize();
         buttonBar.add(glassButton);
+        if (backgroundAlpha != 0) {
+            //glassButtonSize.setSelected(true);
+        }
 
         buttonBar.setBounds(0, 0,
                 2

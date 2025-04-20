@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -188,38 +189,89 @@ public class DiskExporter extends Exporter {
             fileChooser.removeChoosableFileFilter(choosableFileFilter);
         }
 
-        String extension;
+        FileNameExtensionFilter videoExtensionFilter = getFilenameExtensionFilter(Misc.VIDEO_EXTENSION);
+        FileNameExtensionFilter pngExtensionFilter = getFilenameExtensionFilter(Misc.IMAGE_EXTENSION_PNG);
+        FileNameExtensionFilter jpegExtensionFilter = getFilenameExtensionFilter(Misc.IMAGE_EXTENSION_JPEG);
         if (capture.isVideo()) {
-            extension = Misc.VIDEO_EXTENSION;
-            fileChooser.setFileFilter(new FileNameExtensionFilter(extension.substring(1).toUpperCase() + " (*" + extension + ")", extension.substring(1)));
+            fileChooser.setFileFilter(videoExtensionFilter);
             fileChooser.setSelectedFile(defaultDestinationFile);
         }
         else {
             switch (target.getSettings().getPreferredFileFormat()) {
                 case PNG:
-                    extension = Misc.IMAGE_EXTENSION_PNG;
-                    fileChooser.setFileFilter(new FileNameExtensionFilter(extension.substring(1).toUpperCase() + " (*" + extension + ")", extension.substring(1)));
+                    fileChooser.setFileFilter(pngExtensionFilter);
                     fileChooser.setSelectedFile(defaultDestinationFile);
-                    return;
+                    break;
                 case JPEG:
-                    extension = Misc.IMAGE_EXTENSION_JPEG;
-                    fileChooser.setFileFilter(new FileNameExtensionFilter(extension.substring(1).toUpperCase() + " (*" + extension + ")", extension.substring(1)));
+                    fileChooser.setFileFilter(jpegExtensionFilter);
                     fileChooser.setSelectedFile(replaceExtension(defaultDestinationFile, Misc.IMAGE_EXTENSION_JPEG));
-                    return;
+                    break;
                 case SELECT_ON_SAVE:
-                    String extension1 = Misc.IMAGE_EXTENSION_PNG;
-                    fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(extension1.substring(1).toUpperCase() + " (*" + extension1 + ")", extension1.substring(1)));
-                    String extension2 = Misc.IMAGE_EXTENSION_JPEG;
-                    fileChooser.addChoosableFileFilter(new FileNameExtensionFilter(extension2.substring(1).toUpperCase() + " (*" + extension2 + ")", extension2.substring(1)));
-                    fileChooser.setSelectedFile(defaultDestinationFile);
-                    return;
+                    fileChooser.addChoosableFileFilter(pngExtensionFilter);
+                    fileChooser.addChoosableFileFilter(jpegExtensionFilter);
+                    fileChooser.setSelectedFile(replaceExtension(defaultDestinationFile, Misc.IMAGE_EXTENSION_PNG));
+                    break;
                 case SMALLEST:
                     // No filter
                     fileChooser.setSelectedFile(replaceExtension(defaultDestinationFile, ""));
-                    return;
+                    break;
             }
         }
 
+        // Show the dialog *first* to ensure the UI is built
+        SwingUtilities.invokeLater(() -> {
+            // This runs AFTER the chooser is shown
+            JTextField fileNameField = getFileNameTextField(fileChooser);
+
+            // Listen to file filter changes to update the extension of the "selected" file
+            fileChooser.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, evt -> {
+                if (fileNameField != null) {
+                    String filename = fileNameField.getText();
+                    if (!filename.isEmpty()) {
+                        FileFilter newFilter = fileChooser.getFileFilter();
+                        String newExt = "";
+
+                        if (newFilter == videoExtensionFilter) {
+                            newExt = Misc.VIDEO_EXTENSION;
+                        }
+                        else if (newFilter == pngExtensionFilter) {
+                            newExt = Misc.IMAGE_EXTENSION_PNG;
+                        }
+                        else if (newFilter == jpegExtensionFilter) {
+                            newExt = Misc.IMAGE_EXTENSION_JPEG;
+                        }
+
+                        // Change file extension if needed
+                        if (!filename.toLowerCase().endsWith(newExt)) {
+                            String newName = filename.replaceAll("\\.[^.]+$", "") + newExt;
+                            fileNameField.setText(newName);
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * Hacky way to access the filename text field before selection is confirmed
+     * @param parent
+     * @return
+     */
+    private static JTextField getFileNameTextField(Container parent) {
+        for (Component comp : parent.getComponents()) {
+            if (comp instanceof JTextField && comp.isVisible()) {
+                return (JTextField) comp;
+            }
+            if (comp instanceof Container) {
+                JTextField field = getFileNameTextField((Container) comp);
+                if (field != null) return field;
+            }
+        }
+        return null;
+    }
+
+    private static FileNameExtensionFilter getFilenameExtensionFilter(String extension1) {
+        return new FileNameExtensionFilter(extension1.substring(1).toUpperCase() + " (*" + extension1 + ")", extension1.substring(1));
     }
 
     /**

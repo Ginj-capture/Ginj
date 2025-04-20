@@ -690,8 +690,15 @@ public class StarWindow extends JWindow {
             // No (or unrecognized) position.
         }
         if (centerLocation == null || !currentDisplayBounds.contains(centerLocation)) {
-            centerLocation = new Point(currentDisplayBounds.x + (currentDisplayBounds.width / 2), currentDisplayBounds.y);
+            if (centerLocation != null) {
+                logger.warn("centerlocation (" + centerLocation + ") is outside currentDisplayBounds (" + currentDisplayBounds + ")...");
+            }
+            else {
+                logger.warn("centerLocation is null...");
+            }
+            centerLocation = new Point(currentDisplayBounds.x + (currentDisplayBounds.width / 2), currentDisplayBounds.y);;
             currentBorder = Border.TOP;
+            logger.warn("Star center reset to " + centerLocation + " (TOP).");
         }
         return centerLocation;
     }
@@ -890,6 +897,11 @@ public class StarWindow extends JWindow {
 
 
     public void centerFrameOnStarIconDisplay(Window window) {
+        // make sure the screen is visible (in case the monitor containing the capture editing frame was unplugged)
+        logger.debug(" - display configuration:\n" + UI.getDisplayConfigurationAsString()
+                + "\n - currentDisplayBounds=" + currentDisplayBounds
+                + "\n - opening capture window at (" + currentDisplayBounds.x + (currentDisplayBounds.width - window.getWidth()) / 2 + ", " + currentDisplayBounds.y + (currentDisplayBounds.height - window.getHeight()) / 2 + ")");
+
         window.setLocation(currentDisplayBounds.x + (currentDisplayBounds.width - window.getWidth()) / 2,
                 currentDisplayBounds.y + (currentDisplayBounds.height - window.getHeight()) / 2);
     }
